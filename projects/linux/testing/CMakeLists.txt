@@ -78,14 +78,16 @@ target_compile_definitions(
 target_link_libraries(
 	${TARGET_NAME}
 	PRIVATE
+		${CERBERUS_ROOT}/external/openbmc-libpldm/builddir/libpldm.so
 		Threads::Threads
 		OpenSSL::Crypto
 		m
 	)
 
-include(Coverage)
-SETUP_TARGET_FOR_COVERAGE(
-	NAME coverage
- 	EXECUTABLE ${PROJECT_NAME}
- 	DEPENDENCIES ${PROJECT_NAME}
-	)
+
+#include(Coverage)
+#SETUP_TARGET_FOR_COVERAGE(
+#	NAME coverage
+# 	EXECUTABLE ${PROJECT_NAME}
+# 	DEPENDENCIES ${PROJECT_NAME}
+#	)
