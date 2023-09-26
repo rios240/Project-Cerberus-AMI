@@ -55,6 +55,8 @@ target_include_directories(
 		${PLATFORM_INCLUDES}
 		${TESTING_DIR}
 		${PLATFORM_INCLUDES}/testing/config
+		${LIBPLDM_INCLUDES}
+		${CERBERUS_ROOT}/external/openbmc-libpldm/include/libpldm
 	)
 
 target_compile_options(
@@ -78,10 +80,10 @@ target_compile_definitions(
 target_link_libraries(
 	${TARGET_NAME}
 	PRIVATE
-		${CERBERUS_ROOT}/external/openbmc-libpldm/builddir/libpldm.so
 		Threads::Threads
 		OpenSSL::Crypto
 		m
+		${CERBERUS_ROOT}/external/openbmc-libpldm/builddir/libpldm.so
 	)
 
 
