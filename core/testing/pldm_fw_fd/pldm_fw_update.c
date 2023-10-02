@@ -11,6 +11,7 @@
 #include "utils.h"
 #include "firmware_update.h"
 #include "mctp/mctp_interface.h"
+#include "mctp/mctp_base_protocol.h"
 #include "platform_io.h"
 
 
@@ -82,8 +83,8 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
         close(sock);
         return CMD_CHANNEL_SOC_CONNECT_FAILURE;
     }
-    
-    ssize_t bytes = recv(sock, packet->data, CMD_MAX_PACKET_SIZE, 0);
+    platform_printf("Step recv\n");
+    ssize_t bytes = recv(sock, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN, 0);
 
     if (bytes < 0) {
         close(sock);
@@ -97,9 +98,63 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     return 0;
 }
 
-//int process_request(struct cmd_interface *intf, struct cmd_interface_msg *request) {
+int process_request(struct cmd_interface *intf, struct cmd_interface_msg *request) {
+    uint32_t max_transfer_size = 0;
+    uint16_t num_of_comp = 0;
+	uint8_t max_outstanding_transfer_req = 0;
+	uint16_t pkg_data_len = 0;
+	uint8_t comp_image_set_ver_str_type = 0;
+    uint8_t comp_image_set_ver_str_len = 0;
+    struct variable_field comp_img_set_ver_str = { 0 };
 
-//}
+    uint8_t completion_code = 0;
+    const struct pldm_msg *reqMsg = (struct pldm_msg *)request->data;
+    int status;
+
+    status = decode_request_update_req(reqMsg, sizeof (reqMsg->payload), &completion_code,
+                                &max_transfer_size, &num_of_comp, &max_outstanding_transfer_req,
+                                &pkg_data_len, &comp_image_set_ver_str_type, &comp_image_set_ver_str_len,
+                                &comp_img_set_ver_str);
+    if (status != 0) {
+        return status;
+    }
+
+    uint8_t instance_id = 1; 
+	uint16_t fd_meta_data_len = 0x10;
+	uint8_t fd_will_send_pkg_data;
+    if (pkg_data_len != 0) {
+        fd_will_send_pkg_data = 0x01;
+    } else {
+        fd_will_send_pkg_data = 0x00;
+    }
+
+    memset(request->data, 0, sizeof(request->data));
+    struct pldm_msg *respMsg = (struct pldm_msg *)request->data;
+
+    status = encode_request_update_resp(instance_id, fd_meta_data_len, 
+                                fd_will_send_pkg_data, respMsg, sizeof(struct pldm_request_update_resp));
+    
+    request->length = sizeof (request->data);
+    
+    return status;
+}
+
+int process_response(struct cmd_interface *intf, struct cmd_interface_msg *response) {
+    return PLDM_ERROR;
+}
+
+int generate_error_packet(struct cmd_interface *intf, struct cmd_interface_msg *request,
+		            uint8_t error_code, uint32_t error_data, uint8_t cmd_set) {
+    
+    uint8_t data[10];
+
+    memset(data, 0xFF, sizeof(data));
+
+    request->data = data;
+
+    return 0;
+
+}
 
 /**
  * Test Functions
@@ -114,10 +169,14 @@ static void pldm_fw_update_test_place_holder(CuTest *test)
 
 static void pldm_fw_update_test_request_update_resp(CuTest *test)
 {
+    platform_printf("Step 0\n");
     int status;
     struct mctp_interface mctp;
     struct cmd_interface cmd_cerberus;
+    cmd_cerberus.generate_error_packet = generate_error_packet;
     struct cmd_interface cmd_mctp;
+    cmd_mctp.process_request = process_request;
+    cmd_mctp.process_response = process_response;
     struct cmd_interface cmd_spdm;
     struct device_manager device_mgr;
     struct cmd_channel channel;
@@ -136,8 +195,10 @@ static void pldm_fw_update_test_request_update_resp(CuTest *test)
 
     CuAssertIntEquals(test, 0, status);
 
+    platform_printf("Step 1\n");
     status = cmd_channel_receive_and_process(&channel, &mctp, 5000);
 
+    platform_printf("Step final\n");
     CuAssertIntEquals(test, 0, status);
 
 
