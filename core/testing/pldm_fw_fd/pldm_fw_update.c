@@ -21,12 +21,12 @@ TEST_SUITE_LABEL ("pldm_fw_update");
  * Helper Functions
 */
 
-/*static void printBuf(uint8_t *buf, size_t size) {
+static void platform_printbuf(uint8_t *buf, size_t size) {
     for (size_t i = 0; i < size; i++) {
         platform_printf("%02x ", buf[i]);
     }
     platform_printf("\n");
-}*/
+}
 
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     const int port = 5000;
@@ -92,6 +92,9 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     }
 
     packet->pkt_size = bytes;
+    packet->dest_addr = 0xAA;
+
+    platform_printbuf(packet->data, packet->pkt_size);
 
     close(sock);
 
@@ -108,19 +111,22 @@ int process_request(struct cmd_interface *intf, struct cmd_interface_msg *reques
     struct variable_field comp_img_set_ver_str = { 0 };
 
     uint8_t completion_code = 0;
-    const struct pldm_msg *reqMsg = (struct pldm_msg *)request->data;
+    struct pldm_msg *reqMsg = (struct pldm_msg *)&request->data[1];
     int status;
 
-    status = decode_request_update_req(reqMsg, sizeof (reqMsg->payload), &completion_code,
-                                &max_transfer_size, &num_of_comp, &max_outstanding_transfer_req,
+    status = decode_request_update_req(reqMsg, sizeof(struct pldm_request_update_req) + sizeof (struct variable_field), 
+                                &completion_code, &max_transfer_size, &num_of_comp, &max_outstanding_transfer_req,
                                 &pkg_data_len, &comp_image_set_ver_str_type, &comp_image_set_ver_str_len,
                                 &comp_img_set_ver_str);
+
+    platform_printf("pkg_data_len: %d\n", pkg_data_len);
+
     if (status != 0) {
         return status;
     }
 
-    uint8_t instance_id = 1; 
-	uint16_t fd_meta_data_len = 0x10;
+    uint8_t instance_id = 2; 
+	uint16_t fd_meta_data_len = 0x555;
 	uint8_t fd_will_send_pkg_data;
     if (pkg_data_len != 0) {
         fd_will_send_pkg_data = 0x01;
@@ -128,13 +134,23 @@ int process_request(struct cmd_interface *intf, struct cmd_interface_msg *reques
         fd_will_send_pkg_data = 0x00;
     }
 
-    memset(request->data, 0, sizeof(request->data));
-    struct pldm_msg *respMsg = (struct pldm_msg *)request->data;
+    uint8_t respBuf[sizeof (struct pldm_msg_hdr) + sizeof (struct pldm_request_update_resp)+1];
+    respBuf[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)&respBuf[1];
 
     status = encode_request_update_resp(instance_id, fd_meta_data_len, 
                                 fd_will_send_pkg_data, respMsg, sizeof(struct pldm_request_update_resp));
     
-    request->length = sizeof (request->data);
+    memcpy(request->data, respBuf, sizeof (respBuf));
+    request->length = sizeof (respBuf);
+
+    struct pldm_request_update_resp *response =
+		(struct pldm_request_update_resp *)respMsg->payload;
+
+
+    platform_printf("Meta data: %02x\n", response->fd_meta_data_len);
+    platform_printbuf(respMsg->payload, sizeof (struct pldm_request_update_resp));
+    platform_printbuf(request->data, request->length);
     
     return status;
 }
@@ -186,8 +202,11 @@ static void pldm_fw_update_test_request_update_resp(CuTest *test)
 
     TEST_START;
 
-    status = device_manager_init(&device_mgr, 1, 1, DEVICE_MANAGER_PA_ROT_MODE, DEVICE_MANAGER_MASTER_BUS_ROLE, 
+    status = device_manager_init(&device_mgr, 2, 0, DEVICE_MANAGER_PA_ROT_MODE, DEVICE_MANAGER_SLAVE_BUS_ROLE, 
                 1000, 1000, 1000, 1000, 1000, 1000, 5);
+
+    device_mgr.entries->eid = 0xCC;
+    device_mgr.entries->smbus_addr = 0xAA;
 
     CuAssertIntEquals(test, 0, status);
 

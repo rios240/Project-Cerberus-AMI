@@ -75,6 +75,7 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 	*tag_owner = header->tag_owner;
 	*payload = &buf[sizeof (struct mctp_base_protocol_transport_header)];
 
+
 	if (header->som) {
 		*msg_type = (*payload)[0];
 	}
@@ -108,9 +109,10 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 				(uint8_t) MCTP_BASE_PROTOCOL_PACKET_OVERHEAD) {
 			return MCTP_BASE_PROTOCOL_MSG_TOO_SHORT;
 		}
-
 		packet_len = header->byte_count + MCTP_BASE_PROTOCOL_SMBUS_OVERHEAD;
 		*payload_len = mctp_protocol_payload_len (packet_len);
+
+		platform_printf("Packet Length: %d\n", packet_len);
 	}
 	else {
 		platform_printf("Step 3.4.4\n");
@@ -118,29 +120,29 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 	}
 
 	platform_printf("Step 3.5\n");
-	platform_printf("%d\n", header->cmd_code != SMBUS_CMD_CODE_MCTP);
-	platform_printf("%d\n", buf_len < packet_len);
-	platform_printf("%d\n", header->rsvd != 0);
-	platform_printf("%d\n", *dest_eid == *src_eid);
-	platform_printf("%d\n", *dest_eid);
-	platform_printf("%d\n", *src_eid);
 	if ((header->cmd_code != SMBUS_CMD_CODE_MCTP) || (buf_len < packet_len) ||
 		(header->rsvd != 0) || (*dest_eid == *src_eid)) {
 		platform_printf("Step 3.6\n");
 		return MCTP_BASE_PROTOCOL_INVALID_MSG;
 	}
-
+	
 	if (header->header_version != MCTP_BASE_PROTOCOL_SUPPORTED_HDR_VERSION) {
+		platform_printf("Step 3.7\n");
 		return MCTP_BASE_PROTOCOL_UNSUPPORTED_MSG;
 	}
 
+	platform_printf("Source Addr: %02x\n", *source_addr);
+	platform_printf("Dest Addr: %02x\n", dest_addr);
+
 	if (add_crc) {
 		*crc = checksum_crc8 ((dest_addr << 1), buf, packet_len - MCTP_BASE_PROTOCOL_PEC_SIZE);
+		platform_printf("CRC: %d\n", *crc);
+		platform_printf("CRC in buffer: %d\n", buf[packet_len - MCTP_BASE_PROTOCOL_PEC_SIZE]);
 		if (*crc != buf[packet_len - MCTP_BASE_PROTOCOL_PEC_SIZE]) {
+			platform_printf("Step 3.8\n");
 			return MCTP_BASE_PROTOCOL_BAD_CHECKSUM;
 		}
 	}
-	platform_printf("Step 3.7\n");
 
 	return 0;
 }
