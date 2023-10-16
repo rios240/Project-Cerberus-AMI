@@ -194,7 +194,6 @@ int cmd_channel_receive_and_process (struct cmd_channel *channel, struct mctp_in
 			CMD_LOGGING_CHANNEL_PACKET_ERROR, channel->id, 0);
 	}
 
-	platform_printf("Step 2\n");
 	status = mctp_interface_process_packet (mctp, &packet, &message);
 	if (status == 0) {
 		if (message != NULL) {

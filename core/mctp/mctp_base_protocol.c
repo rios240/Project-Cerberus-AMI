@@ -7,7 +7,6 @@
 #include <string.h>
 #include "crypto/checksum.h"
 #include "mctp_base_protocol.h"
-#include "platform_io.h"
 
 
 /**
@@ -42,7 +41,6 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 	size_t packet_len;
 	bool add_crc = true;
 
-	platform_printf("Step 3.1\n");
 	if ((buf == NULL) || (source_addr == NULL) || (som == NULL) || (eom == NULL) ||
 		(src_eid == NULL) || (dest_eid == NULL) || (payload == NULL) || (payload_len == NULL) ||
 		(msg_tag == NULL) || (packet_seq == NULL) || (crc == NULL) || (msg_type == NULL) ||
@@ -50,7 +48,6 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 		return MCTP_BASE_PROTOCOL_INVALID_ARGUMENT;
 	}
 
-	platform_printf("Step 3.2\n");
 	if (buf_len <= sizeof (struct mctp_base_protocol_transport_header)) {
 		return MCTP_BASE_PROTOCOL_MSG_TOO_SHORT;
 	}
@@ -58,7 +55,6 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 	/* At this point, we do not know if the current packet is a control or vendor defined message.
 	 * Control message might not contain a PEC byte. So, here we check if the message length is at
 	 * least the transport header size. */
-	platform_printf("Step 3.3\n");
 	if ((header->byte_count + MCTP_BASE_PROTOCOL_SMBUS_OVERHEAD_NO_PEC) <=
 			(uint8_t) sizeof (struct mctp_base_protocol_transport_header)) {
 		/* Prevent payload_len underflow caused by manipulated header->byte_count. */
@@ -80,18 +76,14 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 		*msg_type = (*payload)[0];
 	}
 
-	platform_printf("Step 3.4: %d\n", *msg_type);
 	if (MCTP_BASE_PROTOCOL_IS_CONTROL_MSG (*msg_type)) {
 		/* Control messages might not not contain a CRC on the packet, so dont always check for
 			CRC. */
 		/* TODO: Change default behaviour to always check for CRC with an ifdef to disable checking
 			in control messages. */
-		
-		platform_printf("Step 3.4.1\n");
 		packet_len = header->byte_count + MCTP_BASE_PROTOCOL_SMBUS_OVERHEAD_NO_PEC;
 		*payload_len = packet_len - sizeof (struct mctp_base_protocol_transport_header);
 		add_crc = false;
-		platform_printf("Step 3.4.2\n");
 	}
 	else if (MCTP_BASE_PROTOCOL_IS_VENDOR_MSG (*msg_type) ||
 		MCTP_BASE_PROTOCOL_IS_SPDM_MSG (*msg_type)) {
@@ -100,7 +92,6 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 			return MCTP_BASE_PROTOCOL_MSG_TOO_SHORT;
 		}
 
-		platform_printf("Step 3.4.3\n");
 		packet_len = header->byte_count + MCTP_BASE_PROTOCOL_SMBUS_OVERHEAD;
 		*payload_len = mctp_protocol_payload_len (packet_len);
 	}
@@ -112,34 +103,23 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 		packet_len = header->byte_count + MCTP_BASE_PROTOCOL_SMBUS_OVERHEAD;
 		*payload_len = mctp_protocol_payload_len (packet_len);
 
-		platform_printf("Packet Length: %d\n", packet_len);
 	}
 	else {
-		platform_printf("Step 3.4.4\n");
 		return MCTP_BASE_PROTOCOL_UNSUPPORTED_MSG;
 	}
 
-	platform_printf("Step 3.5\n");
 	if ((header->cmd_code != SMBUS_CMD_CODE_MCTP) || (buf_len < packet_len) ||
 		(header->rsvd != 0) || (*dest_eid == *src_eid)) {
-		platform_printf("Step 3.6\n");
 		return MCTP_BASE_PROTOCOL_INVALID_MSG;
 	}
 	
 	if (header->header_version != MCTP_BASE_PROTOCOL_SUPPORTED_HDR_VERSION) {
-		platform_printf("Step 3.7\n");
 		return MCTP_BASE_PROTOCOL_UNSUPPORTED_MSG;
 	}
 
-	platform_printf("Source Addr: %02x\n", *source_addr);
-	platform_printf("Dest Addr: %02x\n", dest_addr);
-
 	if (add_crc) {
 		*crc = checksum_crc8 ((dest_addr << 1), buf, packet_len - MCTP_BASE_PROTOCOL_PEC_SIZE);
-		platform_printf("CRC: %d\n", *crc);
-		platform_printf("CRC in buffer: %d\n", buf[packet_len - MCTP_BASE_PROTOCOL_PEC_SIZE]);
 		if (*crc != buf[packet_len - MCTP_BASE_PROTOCOL_PEC_SIZE]) {
-			platform_printf("Step 3.8\n");
 			return MCTP_BASE_PROTOCOL_BAD_CHECKSUM;
 		}
 	}
