@@ -14,7 +14,6 @@
 #include "mctp_logging.h"
 #include "mctp_base_protocol.h"
 #include "mctp_interface.h"
-#include "platform_io.h"
 
 /**
  * MCTP interface initialization
@@ -277,7 +276,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 
 	*tx_message = NULL;
 
-	platform_printf("Step 3\n");
 	status = mctp_base_protocol_interpret (rx_packet->data, rx_packet->pkt_size,
 		rx_packet->dest_addr, &source_addr, &som, &eom, &src_eid, &dest_eid, &payload, &payload_len,
 		&msg_tag, &packet_seq, &crc, &mctp->msg_type, &tag_owner);
@@ -294,7 +292,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 				msg2 |= (rx_packet->data[i_byte] << ((i_byte - 4) * 8));
 			}
 		}
-		platform_printf("Step 4.1\n");
 
 		debug_log_create_entry (DEBUG_LOG_SEVERITY_INFO, DEBUG_LOG_COMPONENT_MCTP,
 			MCTP_LOGGING_CHANNEL, mctp->channel_id, 0);
@@ -318,7 +315,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		}
 	}
 
-	platform_printf("Step 4.2\n");
 	if ((dest_eid != cerberus_eid) && (dest_eid != MCTP_BASE_PROTOCOL_NULL_EID)) {
 		return 0;
 	}
@@ -330,7 +326,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		}
 	}
 
-	platform_printf("Step 4.3\n");
 	if (som) {
 		mctp->req_buffer.length = 0;
 		mctp->req_buffer.source_eid = src_eid;
@@ -376,7 +371,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 			src_eid, dest_eid, msg_tag, response_addr, rx_packet->dest_addr, cmd_set, tag_owner);
 	}
 
-	platform_printf("Step 4.4\n");
 	// Assemble packets into message and process message when EOM is received
 	memcpy (&mctp->req_buffer.data[mctp->req_buffer.length], payload, payload_len);
 	mctp->req_buffer.length += payload_len;
@@ -442,7 +436,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 
 		} 
 		else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
-			platform_printf("Step 4\n");
 			mctp->req_buffer.max_response = MCTP_BASE_PROTOCOL_MAX_PACKET_LEN;
 
 			status = mctp->cmd_mctp->process_request (mctp->cmd_mctp, &mctp->req_buffer);
@@ -492,7 +485,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		}
 
 		if (mctp->req_buffer.length > 0) {
-			platform_printf("Step 5\n");
 			status = mctp_interface_generate_packets_from_payload (mctp->device_manager,
 				mctp->req_buffer.data, mctp->req_buffer.length, mctp->resp_buffer.data,
 				sizeof (mctp->msg_buffer), mctp->req_buffer.source_eid, response_addr,
