@@ -4,37 +4,35 @@
 
 
 #include <stdint.h>
-#include "pldm_firmware_update_interface.h"
+#include "base.h"
+#include "cmd_interface/cmd_interface.h"
 
-#define MAX_ROW 10
+#define MAX_ROW 1
 
-typedef int (*F_FSM_TRIGGER_T)(struct pldm_firmware_update_interface *);
-typedef int (*F_FSM_RESPONSE_T)(struct pldm_firmware_update_interface *);
-typedef bool B_FSM_UPDATE_MODE_T;
+enum pldm_firmware_device_states {
+	PLDM_FD_STATE_IDLE = 0,
+	PLDM_FD_STATE_LEARN_COMPONENTS = 1,
+	PLDM_FD_STATE_READY_XFER = 2,
+	PLDM_FD_STATE_DOWNLOAD = 3,
+	PLDM_FD_STATE_VERIFY = 4,
+	PLDM_FD_STATE_APPLY = 5,
+	PLDM_FD_STATE_ACTIVATE = 6
+};
 
+struct pldm_firmware_device_state_info {
+    int (*pldm_command_controller)(struct pldm_firmware_device_state_info *state_info, 
+        struct cmd_interface_msg *message, int command);
 
-typedef enum {
-    IDLE,
-    LEARN_COMPONENTS,
-    READY_XFER,
-    DOWNLOAD,
-    VERIFY,
-    APPLY,
-    ACTIVATE,
-} E_FSM_STATE_T;
+    int state;
+    int update_mode;
+    int response;
+    int next_state;
+};
 
-typedef struct {
-    E_FSM_STATE_T currentState;
-    F_FSM_TRIGGER_T trigger;
-    F_FSM_RESPONSE_T response;
-    E_FSM_STATE_T nextState;
-} S_FSM_ROW_T;
-
-typedef struct {
-    E_FSM_STATE_T currentState;
-    B_FSM_UPDATE_MODE_T updateMode;
-    S_FSM_ROW_T sstRow[MAX_ROW];
-} S_FSM_STT_T;
+struct pldm_firmware_device_fsm {
+    enum pldm_firmware_device_states current_state;
+    struct pldm_firmware_device_state_info sst[MAX_ROW];
+};
 
 
 #endif /* PLDM_FIRMWARE_UPDATE_FSM_H_ */
