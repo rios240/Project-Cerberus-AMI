@@ -33,6 +33,9 @@ int idle_command_controller(struct pldm_firmware_device_state_info *state_info,
                 state_info->response == PLDM_FWUP_UNABLE_TO_INITIATE_UPDATE) {
                     state_info->next_state = PLDM_FD_STATE_IDLE;
             }
+            else {
+                state_info->next_state = PLDM_FD_STATE_IDLE;
+            }
             break;
     }
 
