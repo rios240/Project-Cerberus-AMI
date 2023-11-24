@@ -9,7 +9,7 @@
 int pldm_firmware_update_init(struct mctp_interface *mctp, struct cmd_channel *channel, struct device_manager *device_mgr,
                                 uint8_t device_eid, uint8_t device_smbus_addr);
 
-int pldm_firmware_update_run_workflow(struct mctp_interface *mctp, struct cmd_channel *channel, int ms_timeout);
+int pldm_firmware_update_run(struct mctp_interface *mctp, struct cmd_channel *channel, int ms_timeout);
 
 
 
