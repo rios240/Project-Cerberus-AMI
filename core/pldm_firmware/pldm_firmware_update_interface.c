@@ -57,6 +57,7 @@ int pldm_firmware_update_init(struct mctp_interface *mctp, struct cmd_channel *c
 
     channel->send_packet = send_packet;
     channel->receive_packet = receive_packet;
+    channel->id = 1;
 
     cmd_mctp.process_request = process_message;
 
