@@ -9,8 +9,10 @@ module load python/anaconda/py3.10-2023.03
 cd Cerberus-PLDM-Client
 cd external/openbmc-libpldm
 meson setup builddir -Dabi=deprecated,stable,testing -Dtests=disabled && ninja -C builddir
-cd ../../bin
-./build.sh
+cd ../..
+mkdir build && cd build
+cmake -G Ninja ../projects/linux/testing/
+ninja
 ./cerberus-linux-unit-tests
 ```
 
