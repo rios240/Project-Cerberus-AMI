@@ -24,6 +24,9 @@ static void place_holder_test(CuTest *test)
 
 static void pldm_firmware_update_interface_test_workflow(CuTest *test) {
     struct mctp_interface mctp;
+    struct cmd_interface cmd_mctp;
+    struct cmd_interface cmd_spdm;
+    struct cmd_interface cmd_cerberus;
     struct cmd_channel com;
     struct device_manager device_mgr;
     uint8_t device_eid = 0x03;
@@ -32,7 +35,7 @@ static void pldm_firmware_update_interface_test_workflow(CuTest *test) {
 
     TEST_START;
 
-    status = pldm_firmware_update_init(&mctp, &com, &device_mgr, device_eid, device_smbus_addr);
+    status = pldm_firmware_update_init(&mctp, &com, &cmd_mctp, &cmd_spdm, &cmd_cerberus, &device_mgr, device_eid, device_smbus_addr);
     CuAssertIntEquals(test, 0, status);
 
     status = pldm_firmware_update_run(&mctp, &com, 10000);

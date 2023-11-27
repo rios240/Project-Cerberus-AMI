@@ -14,6 +14,7 @@
 #include "mctp_logging.h"
 #include "mctp_base_protocol.h"
 #include "mctp_interface.h"
+#include "platform_io.h"
 
 /**
  * MCTP interface initialization

@@ -29,9 +29,9 @@ int process_message(struct cmd_interface *intf, struct cmd_interface_msg *messag
     int status;
     for (row = 0; row < MAX_ROW; row++) {
         if (pldm_fsm.stt[row].state == pldm_fsm.current_state) {
-            platform_printf("Current State: %d", pldm_fsm.stt[row].state);
+            platform_printf("Current State: %d\n", pldm_fsm.stt[row].state);
             status = pldm_fsm.stt[row].pldm_command_controller(&pldm_fsm.stt[row], message);
-            platform_printf("Transitioning to state: %d", pldm_fsm.stt[row].next_state);
+            platform_printf("Transitioning to state: %d\n", pldm_fsm.stt[row].next_state);
             if (status != PLDM_SUCCESS) {
                 break;
             } else {
@@ -46,20 +46,18 @@ int process_message(struct cmd_interface *intf, struct cmd_interface_msg *messag
 }
 
 
-
-int pldm_firmware_update_init(struct mctp_interface *mctp, struct cmd_channel *channel, struct device_manager *device_mgr,
-                                uint8_t device_eid, uint8_t device_smbus_addr) 
+int pldm_firmware_update_init(struct mctp_interface *mctp, struct cmd_channel *channel, struct cmd_interface *cmd_mctp,
+                                struct cmd_interface *cmd_spdm, struct cmd_interface *cmd_cerberus,
+                                struct device_manager *device_mgr, uint8_t device_eid, uint8_t device_smbus_addr)
 {
     int status;
-    struct cmd_interface cmd_cerberus;
-    struct cmd_interface cmd_mctp;
-    struct cmd_interface cmd_spdm;
 
     channel->send_packet = send_packet;
     channel->receive_packet = receive_packet;
     channel->id = 1;
 
-    cmd_mctp.process_request = process_message;
+    cmd_mctp->process_request = process_message;
+    cmd_cerberus->generate_error_packet = generate_error_packet;
 
     status = device_manager_init(device_mgr, 2, 0, DEVICE_MANAGER_PA_ROT_MODE, DEVICE_MANAGER_SLAVE_BUS_ROLE, 
                 1000, 1000, 1000, 1000, 1000, 1000, 5);
@@ -71,7 +69,7 @@ int pldm_firmware_update_init(struct mctp_interface *mctp, struct cmd_channel *c
     device_mgr->entries->eid = device_eid;
     device_mgr->entries->smbus_addr = device_smbus_addr;
 
-    status = mctp_interface_init(mctp, &cmd_cerberus, &cmd_mctp, &cmd_spdm, device_mgr);
+    status = mctp_interface_init(mctp, cmd_cerberus, cmd_mctp, cmd_spdm, device_mgr);
 
     return status;
 

@@ -20,12 +20,12 @@ int idle_command_controller(struct pldm_firmware_device_state_info *state_info,
 
     switch (pldmHdr.command) {
         case PLDM_REQUEST_UPDATE:
-            platform_printf("Recieved RequestUpdate command.");
+            platform_printf("Recieved RequestUpdate command.\n");
             status = requestUpdate(state_info, pldmMsg, message);
             if (status != PLDM_SUCCESS) {
                 return status;
             }
-            
+            platform_printf("Got response: %d\n", state_info->response);
             if (state_info->response == PLDM_SUCCESS) {
                 state_info->next_state = PLDM_FD_STATE_LEARN_COMPONENTS;
             }
