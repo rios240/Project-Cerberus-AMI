@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-#ifndef PLDM_FW_FD_ALL_TESTS_H_
-#define PLDM_FW_FD_ALL_TESTS_H_
+#ifndef PLDM_FIRMWARE_ALL_TESTS_H_
+#define PLDM_FIRMWARE_ALL_TESTS_H_
 
 #include "testing.h"
 #include "platform_all_tests.h"
@@ -16,12 +16,12 @@
  *
  * @param suite Suite to add the tests to.
  */
-static void add_all_pldm_fw_fd_tests (CuSuite *suite)
+static void add_all_pldm_firmware_tests (CuSuite *suite)
 {
     /* This is unused when no tests will be executed. */
 	UNUSED (suite);
 
-    TESTING_RUN_SUITE (pldm_fw_update);
+    TESTING_RUN_SUITE (pldm_firmware_update_interface);
 }
 
-#endif /* PLDM_FW_FD_ALL_TESTS_H_ */
+#endif /* PLDM_FIRMWARE_ALL_TESTS_H_ */
