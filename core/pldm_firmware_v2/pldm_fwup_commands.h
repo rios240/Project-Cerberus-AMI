@@ -1,0 +1,23 @@
+#ifndef PLDM_FWUP_COMMANDS_H_
+#define PLDM_FWUP_COMMANDS_H_
+
+
+#include <stdint.h>
+#include "cmd_interface/cmd_interface.h"
+
+
+/**
+ * Some PLDM commands are either recieved or requested by the Firmware Device.
+ * The following API are either called by mctp_interface_process_packet() to process the PLDM payloads of recieved MCTP packets
+ * or independently create PLDM payloads for mctp_interface_issue_request().
+ * 
+ * These API make use of openbmc's libpldm to construct or deconstruct PLDM messages.
+*/
+
+//Requested by the UA, FD will issue a response.
+int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request);
+
+//Requested by the UA, FD will issue a response.
+int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request);
+
+#endif /* PLDM_FWUP_COMMANDS_H_ */
