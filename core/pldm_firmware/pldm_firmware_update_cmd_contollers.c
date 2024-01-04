@@ -8,6 +8,7 @@
 int idle_command_controller(struct pldm_firmware_device_state_info *state_info, 
         struct cmd_interface_msg *message)
 {
+    /*
     int status;
     struct pldm_msg *pldmMsg = (struct pldm_msg *)&message->data[1];
     struct pldm_header_info pldmHdr = { 0 };
@@ -37,8 +38,8 @@ int idle_command_controller(struct pldm_firmware_device_state_info *state_info,
                 state_info->next_state = PLDM_FD_STATE_IDLE;
             }
             break;
-    }
+    }*/
 
-    return status;
+    return 0;
 
 }
