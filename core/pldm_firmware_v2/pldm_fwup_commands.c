@@ -102,16 +102,12 @@ int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_ms
                 + descriptors.length 
                 + 1;
 
-    uint8_t resp_msg_buf[payload_length];
-    resp_msg_buf[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
-
-    struct pldm_msg *respMsg = (struct pldm_msg *)&resp_msg_buf[1];
+    request->length = payload_length;
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
     int status = encode_query_device_identifiers_resp(instance_id, respMsg, 
                                     completion_code, device_identifiers_len, 
                                     descriptor_count, descriptors);
-    
-    request->data = resp_msg_buf;
-    request->length = payload_length;
     return status;
     
 
@@ -160,17 +156,99 @@ int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg
                     + comp_parameter_table->length 
                     + 1;
 
-    uint8_t resp_msg_buf[payload_length];
-    resp_msg_buf[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
-
-    struct pldm_msg *respMsg = (struct pldm_msg *)&resp_msg_buf[1];
+    request->length = payload_length;
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
     int status = encode_get_firmware_parameters_resp(instance_id, respMsg, 
                                         &resp_data,
                                         &active_comp_image_set_ver_str,
                                         &pending_comp_image_set_ver_str,
                                         comp_parameter_table);
-    request->data = resp_msg_buf;
-    request->length = payload_length;
     return status;
 
+}
+
+int request_update(struct cmd_interface *intf, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
+    struct pldm_request_update_req req_data;
+    struct variable_field comp_img_set_ver_str;
+
+    int status = decode_request_update_req(reqMsg, &req_data, &comp_img_set_ver_str);
+
+    struct pldm_request_update_resp resp_data;
+    resp_data.fd_will_send_pkg_data = 0x00;
+    resp_data.fd_meta_data_len = 0x0000;
+    resp_data.completion_code = PLDM_SUCCESS;
+
+    uint8_t instance_id = 1;
+
+    size_t payload_length = sizeof (struct pldm_msg_hdr)
+                        + sizeof (struct pldm_request_update_resp)
+                        + 1;
+    request->length = payload_length;
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
+    status = encode_request_update_resp(instance_id, respMsg, &resp_data);
+
+    return status;
+}
+
+int pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
+    struct pldm_pass_component_table_req req_data;
+    struct variable_field comp_ver_str;
+
+    int status = decode_pass_component_table_req(reqMsg, &req_data, &comp_ver_str);
+
+    struct pldm_pass_component_table_resp resp_data;
+    resp_data.comp_resp = PLDM_CR_COMP_CAN_BE_UPDATED;
+    resp_data.comp_resp_code = PLDM_CRC_COMP_CAN_BE_UPDATED;
+    resp_data.completion_code = PLDM_SUCCESS;
+
+    uint8_t instance_id = 1;
+
+    size_t payload_length = sizeof (struct pldm_msg_hdr)
+                        + sizeof (struct pldm_pass_component_table_resp)
+                        + 1;
+    request->length = payload_length;
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
+    status = encode_pass_component_table_resp(instance_id, respMsg, &resp_data);
+
+    return status;
+}
+
+int update_component(struct cmd_interface *intf, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
+    struct pldm_update_component_req req_data;
+    struct variable_field comp_ver_str;
+
+    int status = decode_update_component_req(reqMsg, &req_data, &comp_ver_str);
+
+    bitfield32_t update_option_flags_enabled;
+    update_option_flags_enabled.value = 0xDEADBEEF;
+
+
+    struct pldm_update_component_resp resp_data;
+    resp_data.comp_compatibility_resp = PLDM_CCR_COMP_CAN_BE_UPDATED;
+    resp_data.comp_compatibility_resp_code = PLDM_CCRC_NO_RESPONSE_CODE;
+    resp_data.update_option_flags_enabled = update_option_flags_enabled;
+    resp_data.time_before_req_fw_data = 0x64;
+    resp_data.completion_code = PLDM_SUCCESS;
+
+    size_t payload_length = sizeof (struct pldm_msg_hdr)
+                        + sizeof (struct pldm_update_component_resp)
+                        + 1;
+    
+    uint8_t instance_id = 1;
+
+    request->length = payload_length;
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
+    status = encode_update_component_resp(instance_id, respMsg, &resp_data);
+
+    return status;
 }

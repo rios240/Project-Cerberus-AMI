@@ -20,4 +20,14 @@ int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_ms
 //Requested by the UA, FD will issue a response.
 int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
+
+//Requested by the UA, FD will issue a response
+int request_update(struct cmd_interface *intf, struct cmd_interface_msg *request);
+
+//Requested by the UA, FD will issue a response
+int pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request);
+
+//Requested by the UA, FD will issue a response
+int update_component(struct cmd_interface *intf, struct cmd_interface_msg *request);
+
 #endif /* PLDM_FWUP_COMMANDS_H_ */

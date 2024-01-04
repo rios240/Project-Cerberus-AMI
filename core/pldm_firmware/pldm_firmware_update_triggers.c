@@ -17,6 +17,7 @@ int generate_error_packet(struct cmd_interface *intf, struct cmd_interface_msg *
     return 0;
 }
 
+/*
 int requestUpdate(struct pldm_firmware_device_state_info *state_info, struct pldm_msg *pldmMsg, struct cmd_interface_msg *message) 
 {
 
@@ -69,4 +70,4 @@ int requestUpdate(struct pldm_firmware_device_state_info *state_info, struct pld
     return status;
     
 
-}
+}*/
