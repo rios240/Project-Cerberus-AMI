@@ -252,3 +252,64 @@ int update_component(struct cmd_interface *intf, struct cmd_interface_msg *reque
 
     return status;
 }
+
+int issue_request_firmware_data(uint8_t *request, size_t *payload_length)
+{
+    struct pldm_request_firmware_data_req req_data;
+    req_data.offset = 0;
+    req_data.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE;
+
+    uint8_t instance_id = 1;
+
+    *payload_length = sizeof (struct pldm_msg_hdr)
+                + sizeof (struct pldm_request_firmware_data_req)
+                + 1;
+    
+    request[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(request + 1);
+    int status = encode_request_firmware_data_req(instance_id, reqMsg, &req_data);
+
+    return status;
+    
+}
+
+int request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&response->data[1]);
+    uint8_t completion_code = 0;
+    struct variable_field comp_image_portion;
+    comp_image_portion.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE;
+
+    int status = decode_request_firmware_data_resp(respMsg, &completion_code, &comp_image_portion);
+
+    response->length = 0;
+
+    return status;
+}
+
+int issue_transfer_complete(uint8_t *request, size_t *payload_length)
+{
+    uint8_t transfer_result = PLDM_FWUP_TRANSFER_SUCCESS;
+    uint8_t instance_id = 1;
+
+    *payload_length = sizeof (struct pldm_msg) + 1;
+
+    request[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(request + 1);
+    int status = encode_transfer_complete_req(instance_id, reqMsg, transfer_result);
+
+    return status;
+
+}
+
+int transfer_complete(struct cmd_interface *intf, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&response->data[1]);
+    uint8_t completion_code = 0;
+
+    int status = decode_transfer_complete_resp(respMsg, &completion_code);
+
+    response->length = 0;
+
+    return status;
+}
