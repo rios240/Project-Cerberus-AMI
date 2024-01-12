@@ -40,4 +40,16 @@ int issue_transfer_complete(uint8_t *request, size_t *payload_length);
 
 int transfer_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
+//Requested by the FD, UA will issue a response
+int issue_verify_complete(uint8_t *request, size_t *payload_length);
+
+int verify_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
+
+//Requested by the FD, UA will issue a response
+int issue_apply_complete(uint8_t *request, size_t *payload_length);
+
+int apply_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
+
+//Requested by the UA, FD will issue a response
+int activate_firmware(struct cmd_interface *intf, struct cmd_interface_msg *request);
 #endif /* PLDM_FWUP_COMMANDS_H_ */
