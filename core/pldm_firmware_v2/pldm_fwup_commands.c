@@ -313,3 +313,90 @@ int transfer_complete(struct cmd_interface *intf, struct cmd_interface_msg *resp
 
     return status;
 }
+
+int issue_verify_complete(uint8_t *request, size_t *payload_length)
+{
+    uint8_t verify_result = PLDM_FWUP_VERIFY_SUCCESS;
+    uint8_t instance_id = 1;
+
+    *payload_length = sizeof (struct pldm_msg) + 1;
+
+    request[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(request + 1);
+    int status = encode_verify_complete_req(instance_id, reqMsg, verify_result);
+    
+    return status;
+}
+
+int verify_complete(struct cmd_interface *intf, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&response->data[1]);
+    uint8_t completion_code = 0;
+
+    int status = decode_verify_complete_resp(respMsg, &completion_code);
+
+    response->length = 0;
+
+    return status;
+
+}
+
+int issue_apply_complete(uint8_t *request, size_t *payload_length)
+{
+    bitfield16_t comp_activation_methods_modification;
+    comp_activation_methods_modification.value = 0;
+
+    struct pldm_apply_complete_req req_data;
+    req_data.apply_result = PLDM_FWUP_APPLY_SUCCESS;
+    req_data.comp_activation_methods_modification = comp_activation_methods_modification;
+    
+    uint8_t instance_id = 1;
+
+    *payload_length = sizeof (struct pldm_msg_hdr) 
+                + sizeof (struct pldm_apply_complete_req)
+                + 1;
+    
+    request[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(request + 1);
+    int status = encode_apply_complete_req(instance_id, reqMsg, &req_data);
+
+    return status;
+}
+
+int apply_complete(struct cmd_interface *intf, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&response->data[1]);
+    uint8_t completion_code = 0;
+
+    int status = decode_apply_complete_resp(respMsg, &completion_code);
+
+    response->length = 0;
+
+    return status;   
+}
+
+int activate_firmware(struct cmd_interface *intf, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
+    struct pldm_activate_firmware_req req_data;
+
+    int status = decode_activate_firmware_req(reqMsg, &req_data);
+
+    struct pldm_activate_firmware_resp resp_data;
+    resp_data.completion_code = PLDM_SUCCESS;
+    resp_data.estimated_time_activation = 0x64;
+
+    size_t payload_length = sizeof (struct pldm_msg_hdr)
+                        + sizeof (struct pldm_activate_firmware_resp)
+                        + 1;
+
+    uint8_t instance_id = 1;
+
+    request->length = payload_length;
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
+    status = encode_activate_firmware_resp(instance_id, respMsg, &resp_data);
+
+    return status;
+
+}
