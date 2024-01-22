@@ -39,7 +39,26 @@ int perform_firmware_update(struct mctp_interface *mctp, struct cmd_channel *cmd
 {
 
     mctp->cmd_mctp->process_request = query_device_identifiers;
-
     int status = cmd_channel_receive_and_process(cmd_channel, mctp, MS_TIMEOUT);
+    if (status != 0) {
+        return status;
+    }
+
+    mctp->cmd_mctp->process_request = get_firmware_parameters;
+    status = cmd_channel_receive_and_process(cmd_channel, mctp, MS_TIMEOUT);
+    if (status != 0) {
+        return status;
+    }
+
+
+    mctp->cmd_mctp->process_request = request_update;
+    status = cmd_channel_receive_and_process(cmd_channel, mctp, MS_TIMEOUT);
+    if (status != 0) {
+        return status;
+    }
+
+
+    mctp->cmd_mctp->process_request = request_update;
+    status = cmd_channel_receive_and_process(cmd_channel, mctp, MS_TIMEOUT);
     return status;
 }
