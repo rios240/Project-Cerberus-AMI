@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "utils.h"
 #include "pldm_fwup_commands.h"
 #include "firmware_update.h"
@@ -70,6 +71,7 @@ void get_comp_parameter_table(struct variable_field *comp_parameter_table)
 
 int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
+
     uint32_t iana_number = 135;
     struct pldm_descriptor_tlv iana;
     iana.descriptor_type = PLDM_FWUP_IANA_ENTERPRISE_ID;

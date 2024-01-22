@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "common/common_math.h"
 #include "common/buffer_util.h"
 #include "cmd_interface/cerberus_protocol.h"
@@ -376,6 +377,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 	memcpy (&mctp->req_buffer.data[mctp->req_buffer.length], payload, payload_len);
 	mctp->req_buffer.length += payload_len;
 	mctp->packet_seq = (mctp->packet_seq + 1) % 4;
+	
 
 	if (eom) {
 		if (tag_owner == MCTP_BASE_PROTOCOL_TO_RESPONSE) {
