@@ -7,17 +7,16 @@
 
 
 //Helper function that returns ComponentParameterTable
-void get_comp_parameter_table(struct variable_field *comp_parameter_table)
+void get_comp_parameter_table(uint8_t *comp_parameter_table_buf, 
+                        const char *active_comp_ver_str_arr, 
+                        const char *pending_comp_ver_str_arr)
 {
-
-    const char *active_comp_ver_str_arr = "BIOS_v1.0";
-    const char *pending_comp_ver_str_arr = "BIOS_v2.0";
 
     bitfield16_t comp_activation_methods;
     comp_activation_methods.value = 0xDEAD;
 
     bitfield32_t capabilities_during_update;
-    capabilities_during_update.value = 0xDEADDAED;
+    capabilities_during_update.value = 0;
     capabilities_during_update.bits.bit0 = 0;
     capabilities_during_update.bits.bit1 = 0;
     capabilities_during_update.bits.bit2 = 0;
@@ -53,18 +52,13 @@ void get_comp_parameter_table(struct variable_field *comp_parameter_table)
     bios_fw_comp.comp_activation_methods = comp_activation_methods;
     bios_fw_comp.capabilities_during_update = capabilities_during_update;
 
-    uint8_t comp_parameter_table_buf[sizeof (struct pldm_component_parameter_entry) + 
-                            bios_fw_comp.active_comp_ver_str_len +
-                            bios_fw_comp.pending_comp_ver_str_len];
+
     memcpy(comp_parameter_table_buf, &bios_fw_comp, sizeof (struct pldm_component_parameter_entry));
     memcpy(comp_parameter_table_buf + sizeof (struct pldm_component_parameter_entry),
             active_comp_ver_str_arr, bios_fw_comp.active_comp_ver_str_len);
     memcpy(comp_parameter_table_buf + sizeof (struct pldm_component_parameter_entry)
             + bios_fw_comp.active_comp_ver_str_len, pending_comp_ver_str_arr,
             bios_fw_comp.pending_comp_ver_str_len);
-
-    comp_parameter_table->ptr = comp_parameter_table_buf;
-    comp_parameter_table->length = sizeof (comp_parameter_table_buf);
 
 }
 
@@ -118,12 +112,12 @@ int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_ms
 
 int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
-
+   
     const char *active_comp_image_set_ver_str_arr = "cerberus_v1.0";
     const char *pending_comp_image_set_ver_str_arr = "cerberus_v2.0";
 
     bitfield32_t capabilities_during_update;
-    capabilities_during_update.value = 0xDEADBEEF;
+    capabilities_during_update.value = 0;
     capabilities_during_update.bits.bit0 = 0;
     capabilities_during_update.bits.bit1 = 0;
     capabilities_during_update.bits.bit2 = 0;
@@ -147,15 +141,24 @@ int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg
     pending_comp_image_set_ver_str.ptr = (const uint8_t *)pending_comp_image_set_ver_str_arr;
     pending_comp_image_set_ver_str.length = resp_data.pending_comp_image_set_ver_str_len;
 
-    struct variable_field *comp_parameter_table = { 0 };
-    get_comp_parameter_table(comp_parameter_table);
+    const char *active_comp_ver_str_arr = "BIOS_v1.0";
+    const char *pending_comp_ver_str_arr = "BIOS_v2.0";
+    uint8_t comp_parameter_table_buf[sizeof (struct pldm_component_parameter_entry) + 
+                            strlen(active_comp_ver_str_arr) +
+                            strlen(pending_comp_ver_str_arr)];
+    struct variable_field comp_parameter_table;
+    comp_parameter_table.ptr = comp_parameter_table_buf;
+    comp_parameter_table.length = sizeof (comp_parameter_table_buf);
+
+    get_comp_parameter_table(comp_parameter_table_buf, active_comp_ver_str_arr, pending_comp_ver_str_arr);
+   
 
     uint8_t instance_id = 1;
     size_t payload_length = sizeof (struct pldm_msg_hdr) 
                     + sizeof (struct pldm_get_firmware_parameters_resp)
                     + active_comp_image_set_ver_str.length
                     + pending_comp_image_set_ver_str.length
-                    + comp_parameter_table->length 
+                    + comp_parameter_table.length 
                     + 1;
 
     request->length = payload_length;
@@ -165,7 +168,8 @@ int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg
                                         &resp_data,
                                         &active_comp_image_set_ver_str,
                                         &pending_comp_image_set_ver_str,
-                                        comp_parameter_table);
+                                        &comp_parameter_table);
+
     return status;
 
 }
