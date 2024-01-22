@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdio.h>
 #include "platform_api.h"
 #include "cmd_channel.h"
 #include "cmd_logging.h"
@@ -162,7 +163,6 @@ int cmd_channel_receive_and_process (struct cmd_channel *channel, struct mctp_in
 		return CMD_CHANNEL_INVALID_ARGUMENT;
 	}
 
-	platform_printf("Receive fail.\n");
 	status = channel->receive_packet (channel, &packet, ms_timeout);
 	if (status != 0) {
 		debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_CMD_INTERFACE,
@@ -194,6 +194,7 @@ int cmd_channel_receive_and_process (struct cmd_channel *channel, struct mctp_in
 		debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_CMD_INTERFACE,
 			CMD_LOGGING_CHANNEL_PACKET_ERROR, channel->id, 0);
 	}
+
 
 	status = mctp_interface_process_packet (mctp, &packet, &message);
 	if (status == 0) {
