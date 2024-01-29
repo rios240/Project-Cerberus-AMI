@@ -15,14 +15,18 @@
 */
 
 //Requested by the UA, FD will issue a response.
-int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_respond_query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 //Requested by the UA, FD will issue a response.
-int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_response_get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 
 //Requested by the UA, FD will issue a response
-int request_update(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_response_request_update(struct cmd_interface *intf, struct cmd_interface_msg *request);
+
+int generate_get_package_data(uint8_t *request, size_t *payload_length);
+
+int process_get_package_data(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
 //Requested by the UA, FD will issue a response
 int pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request);
