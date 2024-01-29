@@ -4,7 +4,15 @@
 #include "utils.h"
 #include "pldm_fwup_commands.h"
 #include "firmware_update.h"
+#include "pldm_fwup_interface.h"
 
+
+//Helper function that supports memcpy
+void datacpy(uint8_t *dest, const uint8_t *src, size_t size) {
+    uint8_t *temp = realloc(dest, size * sizeof (uint8_t));
+    dest = temp;
+    memcpy(dest + size, src, size);
+}
 
 //Helper function that returns ComponentParameterTable
 void get_comp_parameter_table(uint8_t *comp_parameter_table_buf, 
@@ -63,8 +71,11 @@ void get_comp_parameter_table(uint8_t *comp_parameter_table_buf,
 }
 
 
-int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request)
+int process_and_respond_query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_fd_command = PLDM_QUERY_DEVICE_IDENTIFIERS;
+
 
     uint32_t iana_number = 135;
     struct pldm_descriptor_tlv iana;
@@ -104,15 +115,19 @@ int query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_ms
     int status = encode_query_device_identifiers_resp(instance_id, respMsg, 
                                     completion_code, device_identifiers_len, 
                                     descriptor_count, descriptors);
+
+    fwup->completion_code = completion_code;
     return status;
     
 
 }
 
 
-int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request)
+int process_and_response_get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
-   
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_fd_command = PLDM_GET_FIRMWARE_PARAMETERS;
+
     const char *active_comp_image_set_ver_str_arr = "cerberus_v1.0";
     const char *pending_comp_image_set_ver_str_arr = "cerberus_v2.0";
 
@@ -169,13 +184,16 @@ int get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg
                                         &active_comp_image_set_ver_str,
                                         &pending_comp_image_set_ver_str,
                                         &comp_parameter_table);
-
+    fwup->completion_code = resp_data.completion_code;
     return status;
 
 }
 
-int request_update(struct cmd_interface *intf, struct cmd_interface_msg *request)
+int process_and_response_request_update(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_fd_command = PLDM_REQUEST_UPDATE;
+
     struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
     struct pldm_request_update_req req_data;
     struct variable_field comp_img_set_ver_str;
@@ -185,19 +203,87 @@ int request_update(struct cmd_interface *intf, struct cmd_interface_msg *request
     struct pldm_request_update_resp resp_data;
     resp_data.fd_will_send_pkg_data = 0x00;
     resp_data.fd_meta_data_len = 0x0000;
-    resp_data.completion_code = PLDM_SUCCESS;
+    
+    if (fwup->current_fd_state != PLDM_FD_STATE_IDLE) {
+        resp_data.completion_code = PLDM_FWUP_ALREADY_IN_UPDATE_MODE;
+    }
+    if (fwup->error_testing.retry_request_update == 1) {
+        resp_data.completion_code = PLDM_FWUP_RETRY_REQUEST_UPDATE;
+    }
+    if (fwup->error_testing.unable_to_initiate_update == 1) {
+        resp_data.completion_code = PLDM_FWUP_UNABLE_TO_INITIATE_UPDATE;
+    }
 
     uint8_t instance_id = 1;
-
     size_t payload_length = sizeof (struct pldm_msg_hdr)
                         + sizeof (struct pldm_request_update_resp)
                         + 1;
+
     request->length = payload_length;
     request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
     struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
     status = encode_request_update_resp(instance_id, respMsg, &resp_data);
 
+    fwup->completion_code = resp_data.completion_code;
+
     return status;
+}
+
+
+int generate_get_package_data(uint8_t *request, size_t *payload_length)
+{
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_fd_command = PLDM_GET_PACKAGE_DATA;
+
+    struct pldm_transfer_multipart_req req_data;
+    
+    if (fwup->multipart_transfer.transfer_status == MPT_START) {
+        req_data.data_transfer_handle = PLDM_GET_FIRSTPART;
+        req_data.transfer_operation_flag = 0;
+    }
+    if (fwup->multipart_transfer.transfer_status == MPT_IN_PROGRESS) {
+        req_data.data_transfer_handle = fwup->multipart_transfer.last_data_transfer_handle;
+        req_data.transfer_operation_flag = PLDM_GET_NEXTPART;
+    }
+
+    uint8_t instance_id = 1;
+    *payload_length = sizeof (struct pldm_msg_hdr)
+                + sizeof (struct pldm_transfer_multipart_req)
+                + 1;
+    
+    request[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(request + 1);
+    int status = encode_get_package_data_req(instance_id, reqMsg, &req_data);
+
+    return status;
+}
+
+int process_get_package_data(struct cmd_interface *intf, struct cmd_interface_msg *response)
+{
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&response->data[1]);
+    struct pldm_transfer_multipart_resp resp_data;
+    struct variable_field portion_of_package_data;
+
+    int status = decode_get_package_data_resp(respMsg, &resp_data, &portion_of_package_data);
+    fwup->completion_code = resp_data.completion_code;
+
+    if (resp_data.transfer_flag == PLDM_START || resp_data.transfer_flag == PLDM_MIDDLE) {
+        fwup->multipart_transfer.transfer_status = MPT_IN_PROGRESS;
+    }
+    if (resp_data.transfer_flag == PLDM_END || resp_data.transfer_flag == PLDM_START_AND_END) {
+        fwup->multipart_transfer.transfer_status = MPT_END;
+    }
+    fwup->multipart_transfer.last_data_transfer_handle = resp_data.next_data_transfer_handle;
+
+    fwup->package_data_size += portion_of_package_data.length;
+    datacpy(fwup->package_data, portion_of_package_data.ptr, portion_of_package_data.length);
+
+    response->length = 0;
+
+    return status;
+    
 }
 
 int pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request)
