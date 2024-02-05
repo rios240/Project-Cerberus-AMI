@@ -18,42 +18,42 @@
 int process_and_respond_query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 //Requested by the UA, FD will issue a response.
-int process_and_response_get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_respond_get_firmware_parameters(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 
 //Requested by the UA, FD will issue a response
 int process_and_response_request_update(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
-int generate_get_package_data(uint8_t *request, size_t *payload_length);
+int request_get_package_data(uint8_t *request, size_t *payload_length);
 
 int process_get_package_data(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
 //Requested by the UA, FD will issue a response
-int pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_respond_pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 //Requested by the UA, FD will issue a response
-int update_component(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 //Requested by the FD, UA will issue a response
-int issue_request_firmware_data(uint8_t *request, size_t *payload_length);
+int request_firmware_data(uint8_t *request, size_t *payload_length);
 
-int request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *response);
-
-//Requested by the FD, UA will issue a response
-int issue_transfer_complete(uint8_t *request, size_t *payload_length);
-
-int transfer_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
+int process_request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
 //Requested by the FD, UA will issue a response
-int issue_verify_complete(uint8_t *request, size_t *payload_length);
+int request_transfer_complete(uint8_t *request, size_t *payload_length);
 
-int verify_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
+int process_transfer_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
 //Requested by the FD, UA will issue a response
-int issue_apply_complete(uint8_t *request, size_t *payload_length);
+int request_verify_complete(uint8_t *request, size_t *payload_length);
 
-int apply_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
+int process_verify_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
+
+//Requested by the FD, UA will issue a response
+int request_apply_complete(uint8_t *request, size_t *payload_length);
+
+int process_apply_complete(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
 //Requested by the UA, FD will issue a response
-int activate_firmware(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_respond_activate_firmware(struct cmd_interface *intf, struct cmd_interface_msg *request);
 #endif /* PLDM_FWUP_COMMANDS_H_ */
