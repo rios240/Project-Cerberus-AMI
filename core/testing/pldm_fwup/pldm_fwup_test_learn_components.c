@@ -10,13 +10,6 @@
 
 TEST_SUITE_LABEL ("pldm_fwup_test_learn_components");
 
-void print_bytes(uint8_t *bytes, size_t length) {
-    for (size_t i = 0; i < length; i++) {
-        printf("%02X ", bytes[i]);
-    }
-    printf("\n");
-}
-
 
 static void pldm_fwup_test_learn_components_good_responses (CuTest *test) {
 
@@ -44,7 +37,6 @@ static void pldm_fwup_test_learn_components_good_responses (CuTest *test) {
     CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, fwup->current_fd_state);
     CuAssertIntEquals(test, PLDM_SUCCESS, fwup->current_completion_code);
 
-
     do {
         status = generate_and_send_pldm_over_mctp(&mctp, &cmd_channel, request_get_package_data);
         CuAssertIntEquals(test, 0, status);
@@ -55,7 +47,23 @@ static void pldm_fwup_test_learn_components_good_responses (CuTest *test) {
         CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, fwup->current_fd_state);
     } while (fwup->multipart_transfer.transfer_in_progress != 0);
     
-    print_bytes(fwup->package_data, (size_t)fwup->package_data_size);
+    printf("Received the following Package Data: \n");
+    print_bytes(fwup->package_data, fwup->package_data_size);
+
+    /*
+    fwup->multipart_transfer.last_transfer_handle = 0;
+    fwup->multipart_transfer.transfer_in_progress = 0;
+
+    printf("Sending the following Device  MetaData: \n");
+    print_bytes(fwup->meta_data, (size_t)fwup->meta_data_size);
+    
+    do {
+        status = process_and_receive_pldm_over_mctp(&mctp, &cmd_channel, fwup, process_and_respond_get_device_meta_data);
+        CuAssertIntEquals(test, 0, status);
+        CuAssertIntEquals(test, PLDM_SUCCESS, fwup->current_completion_code);
+        CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, fwup->current_fd_state);
+    } while (fwup->multipart_transfer.transfer_in_progress != 0);
+    */
 
     clean_up_and_reset_firmware_update(&mctp, fwup);
 }

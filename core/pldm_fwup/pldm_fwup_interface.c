@@ -1,23 +1,36 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "utils.h"
 #include "pldm_fwup_cmd_channel.h"
 #include "cmd_interface/device_manager.h"
 #include "pldm_fwup_interface.h"
 #include "firmware_update.h"
 
-uint8_t *realloc_buf(uint8_t *ptr, size_t length) {
-    uint8_t *temp = realloc(ptr, length * sizeof (uint8_t));
-    return temp;
-}
-
-
 struct pldm_fwup_interface *get_fwup_interface()
 {
     static struct pldm_fwup_interface fwup;
     return &fwup;
 }
+uint8_t *realloc_buf(uint8_t *ptr, size_t length) {
+    uint8_t *temp = realloc(ptr, length * sizeof (uint8_t));
+    return temp;
+}
+
+void generate_random_data(uint8_t *data, size_t size) {
+    for (size_t i = 0; i < size; ++i) {
+        data[i] = (uint8_t)rand();
+    }
+}
+
+void print_bytes(uint8_t *bytes, size_t length) {
+    for (size_t i = 0; i < length; i++) {
+        printf("%02X ", bytes[i]);
+    }
+    printf("\n");
+}
+
 
 int initialize_firmware_update(struct mctp_interface *mctp, struct cmd_channel *cmd_channel, 
                         struct cmd_interface *cmd_mctp, 
@@ -35,8 +48,8 @@ int initialize_firmware_update(struct mctp_interface *mctp, struct cmd_channel *
         return status;
     }
 
-    device_mgr->entries->eid = 0xDA;
-    device_mgr->entries->smbus_addr = 0xDA;
+    device_mgr->entries->eid = SRC_EID;
+    device_mgr->entries->smbus_addr = SRC_ADDR;
 
     status = mctp_interface_init(mctp, cmd_cerberus, cmd_mctp, cmd_spdm, device_mgr);
     mctp->cmd_cerberus->generate_error_packet = generate_error_packet;
@@ -50,6 +63,11 @@ int initialize_firmware_update(struct mctp_interface *mctp, struct cmd_channel *
     
     fwup->package_data_size = 0;
     fwup->package_data = (uint8_t *)malloc(sizeof(uint8_t));
+
+    
+    fwup->meta_data_size = 50;
+    fwup->meta_data = (uint8_t *)malloc(fwup->meta_data_size * sizeof (uint8_t));
+    generate_random_data(fwup->meta_data, fwup->meta_data_size);
 
     return status;
 }
@@ -80,6 +98,7 @@ int process_and_receive_pldm_over_mctp(struct mctp_interface *mctp, struct cmd_c
                                 int (*process_pldm)(struct cmd_interface *, struct cmd_interface_msg *))
 {
     mctp->cmd_mctp->process_request = process_pldm;
+    mctp->cmd_mctp->process_response = process_pldm;
     int status = cmd_channel_receive_and_process(cmd_channel, mctp, MS_TIMEOUT);
 
     firmware_update_check_state(fwup);
@@ -133,4 +152,8 @@ void clean_up_and_reset_firmware_update(struct mctp_interface *mctp, struct pldm
 
     fwup->package_data_size = 0;
     free(fwup->package_data);
+
+
+    fwup->meta_data_size = 0;
+    free(fwup->meta_data);
 }

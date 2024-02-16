@@ -194,7 +194,7 @@ int process_and_response_request_update(struct cmd_interface *intf, struct cmd_i
     int status = decode_request_update_req(reqMsg, &req_data, &comp_img_set_ver_str);
 
     fwup->package_data_size = req_data.pkg_data_len;
-    fwup->package_data = realloc_buf(fwup->package_data, (size_t)req_data.pkg_data_len);
+    fwup->package_data = realloc_buf(fwup->package_data, req_data.pkg_data_len);
 
     struct pldm_request_update_resp resp_data;
 
@@ -203,7 +203,7 @@ int process_and_response_request_update(struct cmd_interface *intf, struct cmd_i
     } else {
         resp_data.fd_will_send_pkg_data = 0x00;
     }
-    resp_data.fd_meta_data_len = 0x0000;
+    resp_data.fd_meta_data_len = fwup->meta_data_size;
     
     if (fwup->current_fd_state != PLDM_FD_STATE_IDLE) {
         resp_data.completion_code = PLDM_FWUP_ALREADY_IN_UPDATE_MODE;
@@ -236,7 +236,7 @@ int request_get_package_data(uint8_t *request, size_t *payload_length)
     struct pldm_fwup_interface *fwup = get_fwup_interface();
     fwup->current_command = PLDM_GET_PACKAGE_DATA;
 
-    struct pldm_transfer_multipart_req req_data;
+    struct pldm_multipart_transfer_req req_data;
 
     if (fwup->multipart_transfer.transfer_in_progress == 0) {
         req_data.transfer_operation_flag = PLDM_GET_FIRSTPART;
@@ -248,7 +248,7 @@ int request_get_package_data(uint8_t *request, size_t *payload_length)
 
     uint8_t instance_id = 1;
     *payload_length = sizeof (struct pldm_msg_hdr)
-                + sizeof (struct pldm_transfer_multipart_req)
+                + sizeof (struct pldm_multipart_transfer_req)
                 + 1;
     
     request[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
@@ -263,10 +263,15 @@ int process_get_package_data(struct cmd_interface *intf, struct cmd_interface_ms
     struct pldm_fwup_interface *fwup = get_fwup_interface();
 
     struct pldm_msg *respMsg = (struct pldm_msg *)(&response->data[1]);
-    struct pldm_transfer_multipart_resp resp_data;
+    struct pldm_multipart_transfer_resp resp_data;
     struct variable_field portion_of_package_data;
 
-    int status = decode_get_package_data_resp(respMsg, &resp_data, &portion_of_package_data);
+    size_t payload_length = response->length - sizeof (struct pldm_msg_hdr) - 1;
+    int status = decode_get_package_data_resp(respMsg, &resp_data, &portion_of_package_data, payload_length);
+    printf("resp_data.transfer_flag %d\n", resp_data.transfer_flag);
+    printf("portion_of_package_data.length %d\n", portion_of_package_data.length);
+    printf("last_transfer_handle %d\n", fwup->multipart_transfer.last_transfer_handle);
+    printf("next transfer handle %d\n", resp_data.next_data_transfer_handle);
     
     if (resp_data.transfer_flag == PLDM_END || resp_data.transfer_flag == PLDM_START_AND_END) {
         fwup->multipart_transfer.transfer_in_progress = 0;
@@ -275,18 +280,90 @@ int process_get_package_data(struct cmd_interface *intf, struct cmd_interface_ms
     }
     
     if (resp_data.transfer_flag == PLDM_START) {
-        memcpy(fwup->package_data, portion_of_package_data.ptr, resp_data.next_data_transfer_handle);
+        memcpy(fwup->package_data, portion_of_package_data.ptr, portion_of_package_data.length);
     } else {
         memcpy(fwup->package_data + fwup->multipart_transfer.last_transfer_handle, portion_of_package_data.ptr, 
-            resp_data.next_data_transfer_handle - fwup->multipart_transfer.last_transfer_handle);
+                portion_of_package_data.length);
     }
     fwup->multipart_transfer.last_transfer_handle = resp_data.next_data_transfer_handle;
 
     response->length = 0;
+    print_bytes((uint8_t *)portion_of_package_data.ptr, portion_of_package_data.length);
+    print_bytes(fwup->package_data, fwup->package_data_size);
 
     return status;
     
 }
+
+/*
+int process_and_respond_get_device_meta_data(struct cmd_interface *intf, struct cmd_interface_msg *request)
+{
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_command = PLDM_GET_DEVICE_METADATA;
+    static uint32_t portion_size = 10;
+
+    size_t payload_length = request->length - sizeof (struct pldm_msg_hdr) - 1;
+    struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
+
+    struct pldm_multipart_transfer_req req_data;
+
+    int status = decode_get_device_meta_data_req(reqMsg, payload_length, &req_data);
+    if (status != 0) {
+        return status;
+    }
+
+    struct pldm_multipart_transfer_resp resp_data = { 0 };
+    resp_data.completion_code = PLDM_SUCCESS;
+    struct variable_field portion_of_device_meta_data;
+    portion_of_device_meta_data.length = portion_size;
+
+    if ((req_data.transfer_operation_flag == PLDM_GET_FIRSTPART && fwup->multipart_transfer.transfer_in_progress == 1) ||
+        (req_data.transfer_operation_flag == PLDM_GET_NEXTPART && fwup->multipart_transfer.transfer_in_progress == 0)) {
+        resp_data.completion_code = PLDM_FWUP_INVALID_TRANSFER_OPERATION_FLAG;
+    }
+    if (req_data.transfer_operation_flag != PLDM_GET_FIRSTPART && req_data.data_transfer_handle != fwup->multipart_transfer.last_transfer_handle) {
+        resp_data.completion_code = PLDM_FWUP_INVALID_TRANSFER_HANDLE;
+    }
+    if (fwup->meta_data_size == 0) {
+        resp_data.completion_code = PLDM_FWUP_NO_DEVICE_METADATA;
+    }
+  
+    if (req_data.transfer_operation_flag == PLDM_GET_FIRSTPART && fwup->multipart_transfer.transfer_in_progress == 0) {
+        if (fwup->meta_data_size <= portion_size) {
+            resp_data.transfer_flag = PLDM_START_AND_END;
+        } else {
+            resp_data.transfer_flag = PLDM_START;
+            fwup->multipart_transfer.transfer_in_progress = 1;
+        }
+    }
+    if (req_data.transfer_operation_flag == PLDM_GET_NEXTPART && fwup->multipart_transfer.transfer_in_progress == 1) {
+        resp_data.transfer_flag = PLDM_MIDDLE;
+    }
+    if (fwup->multipart_transfer.last_transfer_handle + portion_size == fwup->meta_data_size) {
+        resp_data.transfer_flag = PLDM_END;
+        fwup->multipart_transfer.transfer_in_progress = 0;
+    }
+
+    portion_of_device_meta_data.ptr = fwup->meta_data + fwup->multipart_transfer.last_transfer_handle;
+    fwup->multipart_transfer.last_transfer_handle += portion_size;
+    resp_data.next_data_transfer_handle = fwup->multipart_transfer.last_transfer_handle;
+
+    uint8_t instance_id = 1;
+    payload_length = sizeof (struct pldm_msg_hdr) + sizeof (struct pldm_multipart_transfer_resp) + portion_of_device_meta_data.length + 1;
+    size_t pldm_payload_length = sizeof (struct pldm_multipart_transfer_resp) + portion_of_device_meta_data.length;
+
+    request->length = payload_length;
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
+
+    status = encode_get_device_meta_data_resp(instance_id, respMsg, pldm_payload_length, &resp_data, &portion_of_device_meta_data);
+    fwup->current_completion_code = resp_data.completion_code;
+
+    return status;
+    
+
+}
+*/
 
 int process_and_respond_pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
