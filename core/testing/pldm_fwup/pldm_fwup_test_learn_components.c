@@ -37,6 +37,9 @@ static void pldm_fwup_test_learn_components_good_responses (CuTest *test) {
     CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, fwup->current_fd_state);
     CuAssertIntEquals(test, PLDM_SUCCESS, fwup->current_completion_code);
 
+    fwup->package_data_size = 50;
+    fwup->package_data = realloc_buf(fwup->package_data, fwup->package_data_size);
+
     do {
         status = generate_and_send_pldm_over_mctp(&mctp, &cmd_channel, request_get_package_data);
         CuAssertIntEquals(test, 0, status);
@@ -50,7 +53,7 @@ static void pldm_fwup_test_learn_components_good_responses (CuTest *test) {
     printf("Received the following Package Data: \n");
     print_bytes(fwup->package_data, fwup->package_data_size);
 
-    /*
+    
     fwup->multipart_transfer.last_transfer_handle = 0;
     fwup->multipart_transfer.transfer_in_progress = 0;
 
@@ -63,9 +66,12 @@ static void pldm_fwup_test_learn_components_good_responses (CuTest *test) {
         CuAssertIntEquals(test, PLDM_SUCCESS, fwup->current_completion_code);
         CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, fwup->current_fd_state);
     } while (fwup->multipart_transfer.transfer_in_progress != 0);
-    */
+    
+
 
     clean_up_and_reset_firmware_update(&mctp, fwup);
+
+
 }
 
 

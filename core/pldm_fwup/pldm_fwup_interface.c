@@ -150,6 +150,7 @@ void clean_up_and_reset_firmware_update(struct mctp_interface *mctp, struct pldm
     fwup->multipart_transfer.last_transfer_handle = 0;
     fwup->multipart_transfer.transfer_in_progress = 0;
 
+    
     fwup->package_data_size = 0;
     free(fwup->package_data);
 
