@@ -33,7 +33,7 @@ int process_get_package_data(struct cmd_interface *intf, struct cmd_interface_ms
 int process_and_respond_get_device_meta_data(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 //Requested by the UA, FD will issue a response
-int process_and_respond_pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request);
+int process_and_respond_ua_pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 //Requested by the UA, FD will issue a response
 int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_interface_msg *request);

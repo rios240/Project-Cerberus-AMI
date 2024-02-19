@@ -27,9 +27,11 @@ struct pldm_fwup_error_testing {
 };
 
 struct pldm_fwup_interface {
+    bool8_t update_mode;
     uint8_t current_fd_state;
     uint8_t current_command;
     uint8_t current_completion_code;
+    uint8_t pass_component_table_transfer_flag;
     struct multipart_transfer multipart_transfer;
     struct pldm_fwup_error_testing error_testing;
     uint32_t package_data_size;

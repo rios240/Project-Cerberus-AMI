@@ -359,18 +359,31 @@ int process_and_respond_get_device_meta_data(struct cmd_interface *intf, struct 
 }
 
 
-int process_and_respond_pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request)
+int process_and_respond_ua_pass_component_table(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_command = PLDM_PASS_COMPONENT_TABLE;
+
     struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
     struct pldm_pass_component_table_req req_data;
     struct variable_field comp_ver_str;
 
     int status = decode_pass_component_table_req(reqMsg, &req_data, &comp_ver_str);
+    fwup->pass_component_table_transfer_flag = req_data.transfer_flag;
+
 
     struct pldm_pass_component_table_resp resp_data;
     resp_data.comp_resp = PLDM_CR_COMP_CAN_BE_UPDATED;
     resp_data.comp_resp_code = PLDM_CRC_COMP_CAN_BE_UPDATED;
-    resp_data.completion_code = PLDM_SUCCESS;
+    if (fwup->update_mode != 1) {
+        resp_data.completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
+    } else if (fwup->current_fd_state != PLDM_FD_STATE_LEARN_COMPONENTS) {
+        resp_data.completion_code = PLDM_FWUP_INVALID_STATE_FOR_COMMAND;
+    } else if (status == PLDM_INVALID_TRANSFER_OPERATION_FLAG) {
+        resp_data.comp_resp_code = PLDM_INVALID_TRANSFER_OPERATION_FLAG;
+    } else {
+        resp_data.completion_code = PLDM_SUCCESS;
+    }
 
     uint8_t instance_id = 1;
 
@@ -382,11 +395,15 @@ int process_and_respond_pass_component_table(struct cmd_interface *intf, struct 
     struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
     status = encode_pass_component_table_resp(instance_id, respMsg, &resp_data);
 
+    fwup->current_completion_code = resp_data.completion_code;
     return status;
 }
 
 int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_interface_msg *request)
 {
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_command = PLDM_UPDATE_COMPONENT;
+
     struct pldm_msg *reqMsg = (struct pldm_msg *)(&request->data[1]);
     struct pldm_update_component_req req_data;
     struct variable_field comp_ver_str;
@@ -395,6 +412,7 @@ int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_
 
     bitfield32_t update_option_flags_enabled;
     update_option_flags_enabled.value = 0xDEADBEEF;
+    update_option_flags_enabled.bits.bit0 = 1;
 
 
     struct pldm_update_component_resp resp_data;
@@ -402,7 +420,11 @@ int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_
     resp_data.comp_compatibility_resp_code = PLDM_CCRC_NO_RESPONSE_CODE;
     resp_data.update_option_flags_enabled = update_option_flags_enabled;
     resp_data.time_before_req_fw_data = 0x64;
-    resp_data.completion_code = PLDM_SUCCESS;
+    if (fwup->update_mode != 1) {
+        resp_data.completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
+    } else {
+        resp_data.completion_code = PLDM_SUCCESS;
+    }
 
     size_t payload_length = sizeof (struct pldm_msg_hdr)
                         + sizeof (struct pldm_update_component_resp)
@@ -415,6 +437,7 @@ int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_
     struct pldm_msg *respMsg = (struct pldm_msg *)(&request->data[1]);
     status = encode_update_component_resp(instance_id, respMsg, &resp_data);
 
+    fwup->current_completion_code = resp_data.completion_code;
     return status;
 }
 

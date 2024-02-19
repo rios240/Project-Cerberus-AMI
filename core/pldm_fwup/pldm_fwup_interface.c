@@ -57,6 +57,7 @@ int initialize_firmware_update(struct mctp_interface *mctp, struct cmd_channel *
     struct pldm_fwup_error_testing error_testing = { 0 };
     struct multipart_transfer multipart_transfer = { 0 };
 
+    fwup->update_mode = 0;
     fwup->current_fd_state = PLDM_FD_STATE_IDLE;
     fwup->error_testing = error_testing;
     fwup->multipart_transfer = multipart_transfer;
@@ -114,6 +115,7 @@ void firmware_update_check_state(struct pldm_fwup_interface *fwup)
         case PLDM_FD_STATE_IDLE:
             if (fwup->current_command == PLDM_REQUEST_UPDATE && fwup->current_completion_code == PLDM_SUCCESS) {
                 fwup->current_fd_state = PLDM_FD_STATE_LEARN_COMPONENTS;
+                fwup->update_mode = 1;
                 break;
             } else if (fwup->current_command == PLDM_REQUEST_UPDATE && (fwup->current_completion_code == PLDM_FWUP_UNABLE_TO_INITIATE_UPDATE
                         || fwup->current_completion_code == PLDM_FWUP_RETRY_REQUEST_UPDATE)) {
@@ -129,6 +131,22 @@ void firmware_update_check_state(struct pldm_fwup_interface *fwup)
             if (fwup->current_command == PLDM_GET_PACKAGE_DATA && fwup->current_completion_code == PLDM_SUCCESS) {
                 break;
             } else if (fwup->current_command == PLDM_GET_DEVICE_METADATA && fwup->current_completion_code == PLDM_SUCCESS) {
+                break;
+            } else if (fwup->current_command == PLDM_PASS_COMPONENT_TABLE && fwup->current_completion_code == PLDM_SUCCESS && 
+                        (fwup->pass_component_table_transfer_flag == PLDM_START_AND_END || fwup->pass_component_table_transfer_flag == PLDM_END)) {
+                fwup->current_fd_state = PLDM_FD_STATE_READY_XFER;
+                break;
+            } else if (fwup->current_command == PLDM_PASS_COMPONENT_TABLE && fwup->current_completion_code == PLDM_SUCCESS && 
+                        (fwup->pass_component_table_transfer_flag == PLDM_START || fwup->pass_component_table_transfer_flag == PLDM_MIDDLE)) {
+            } else if (fwup->current_command == PLDM_PASS_COMPONENT_TABLE && fwup->current_completion_code == PLDM_INVALID_TRANSFER_OPERATION_FLAG ) {
+            } else if (fwup->current_command == PLDM_PASS_COMPONENT_TABLE && (fwup->current_completion_code == PLDM_FWUP_NOT_IN_UPDATE_MODE 
+                        || fwup->current_completion_code == PLDM_FWUP_INVALID_STATE_FOR_COMMAND)) {
+            } else {
+                break;
+            }
+        case PLDM_FD_STATE_READY_XFER:
+            if (fwup->current_command == PLDM_UPDATE_COMPONENT && fwup->current_completion_code == PLDM_SUCCESS) {
+                fwup->current_fd_state = PLDM_FD_STATE_DOWNLOAD;
                 break;
             } else {
                 break;
