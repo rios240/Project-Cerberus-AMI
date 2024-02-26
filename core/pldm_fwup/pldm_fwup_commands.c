@@ -7,6 +7,9 @@
 #include "pldm_fwup_interface.h"
 
 
+static struct pldm_firmware_data_transfer firmware_data_transfer = {.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE, .offset = 0};
+
+
 //Helper function that returns ComponentParameterTable
 void get_comp_parameter_table(uint8_t *comp_parameter_table_buf, 
                         const char *active_comp_ver_str_arr, 
@@ -226,6 +229,7 @@ int process_and_response_request_update(struct cmd_interface *intf, struct cmd_i
     status = encode_request_update_resp(instance_id, respMsg, &resp_data);
 
     fwup->current_completion_code = resp_data.completion_code;
+    fwup->update_mode = 1;
 
     return status;
 }
@@ -443,9 +447,12 @@ int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_
 
 int request_firmware_data(uint8_t *request, size_t *payload_length)
 {
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    fwup->current_command = PLDM_REQUEST_FIRMWARE_DATA;
+
     struct pldm_request_firmware_data_req req_data;
-    req_data.offset = 0;
-    req_data.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE;
+    req_data.offset = firmware_data_transfer.offset;
+    req_data.length = firmware_data_transfer.length;
 
     uint8_t instance_id = 1;
 
@@ -457,21 +464,28 @@ int request_firmware_data(uint8_t *request, size_t *payload_length)
     struct pldm_msg *reqMsg = (struct pldm_msg *)(request + 1);
     int status = encode_request_firmware_data_req(instance_id, reqMsg, &req_data);
 
+    firmware_data_transfer.offset += firmware_data_transfer.length;
+
     return status;
     
 }
 
 int process_request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *response)
 {
+    struct pldm_fwup_interface *fwup = get_fwup_interface();
+    
     struct pldm_msg *respMsg = (struct pldm_msg *)(&response->data[1]);
+    size_t payload_length = response->length - sizeof (struct pldm_msg_hdr) - 1;
+
     uint8_t completion_code = 0;
     struct variable_field comp_image_portion;
-    comp_image_portion.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE;
 
-    int status = decode_request_firmware_data_resp(respMsg, &completion_code, &comp_image_portion);
+    int status = decode_request_firmware_data_resp(respMsg, payload_length, &completion_code, &comp_image_portion);
 
+    fwup->current_completion_code = completion_code;
     response->length = 0;
 
+    print_bytes((uint8_t *)comp_image_portion.ptr, comp_image_portion.length);
     return status;
 }
 

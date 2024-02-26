@@ -14,6 +14,12 @@
  * These API make use of openbmc's libpldm to construct or deconstruct PLDM messages.
 */
 
+struct pldm_firmware_data_transfer {
+    uint32_t offset;
+    uint32_t length;
+};
+
+
 //Requested by the UA, FD will issue a response.
 int process_and_respond_query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
