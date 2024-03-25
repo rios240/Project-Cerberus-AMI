@@ -148,16 +148,3 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     return 0;
 }
-
-
-
-int generate_error_packet(struct cmd_interface *intf, struct cmd_interface_msg *request,
-		uint8_t error_code, uint32_t error_data, uint8_t cmd_set)
-{
-    uint8_t error[2] = {0xDE, 0xAD};
-    request->data = (uint8_t *) error;
-    request->length = 16;
-
-    printf("MCTP ERROR\n");
-    return 0;
-}
