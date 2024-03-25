@@ -16,7 +16,7 @@ struct cmd_interface_pldm_fwup {
 
 
 int cmd_interface_mctp_control_init (struct cmd_interface_pldm_fwup *intf);
-void cmd_interface_mctp_control_deinit (struct cmd_interface_pldm_fwup *intf);
+// void cmd_interface_mctp_control_deinit (struct cmd_interface_pldm_fwup *intf);
 
 
 #endif /* CMD_INTERFACE_PLDM_FWUP_H_ */

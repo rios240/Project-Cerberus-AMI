@@ -25,13 +25,14 @@
  * 	messages.
  * @param cmd_mctp The command interface to use for processing and generating MCTP protocol message.
  * @param cmd_spdm The command interface to use for processing and generating SPDM protocol
+ * @param cmd_pldm The command interface to use for processing and generating PLDM FWUP protocol message.
  * 	messages. Optional parameter which can be set to NULL if not utilized.
  * @param device_mgr The device manager linked to command interface.
  *
  * @return Initialization status, 0 if success or an error code.
  */
 int mctp_interface_init (struct mctp_interface *mctp, struct cmd_interface *cmd_cerberus,
-	struct cmd_interface *cmd_mctp, struct cmd_interface *cmd_spdm,
+	struct cmd_interface *cmd_mctp, struct cmd_interface *cmd_spdm, struct cmd_interface *cmd_pldm,
 	struct device_manager *device_mgr)
 {
 #ifdef CMD_ENABLE_ISSUE_REQUEST
@@ -61,6 +62,7 @@ int mctp_interface_init (struct mctp_interface *mctp, struct cmd_interface *cmd_
 	mctp->cmd_cerberus = cmd_cerberus;
 	mctp->cmd_mctp = cmd_mctp;
 	mctp->cmd_spdm = cmd_spdm;
+	mctp->cmd_pldm = cmd_pldm;
 
 	mctp->req_buffer.data =
 		&mctp->msg_buffer[sizeof (mctp->msg_buffer) - MCTP_BASE_PROTOCOL_MAX_MESSAGE_BODY];
@@ -392,7 +394,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 				}
 			}
 			else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
-				status = mctp->cmd_mctp->process_response (mctp->cmd_mctp, &mctp->req_buffer);
+				status = mctp->cmd_pldm->process_response (mctp->cmd_pldm, &mctp->req_buffer);
 				if (status != 0) {
 					debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_MCTP,
 						MCTP_LOGGING_MCTP_PLDM_RSP_FAIL, status, mctp->channel_id);
@@ -450,7 +452,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
 			mctp->req_buffer.max_response = MCTP_BASE_PROTOCOL_MAX_PACKET_LEN;
 
-			status = mctp->cmd_mctp->process_request (mctp->cmd_mctp, &mctp->req_buffer);
+			status = mctp->cmd_pldm->process_request (mctp->cmd_pldm, &mctp->req_buffer);
 			if (status != 0) {
 				debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_MCTP,
 					MCTP_LOGGING_MCTP_PLDM_REQ_FAIL, status, mctp->channel_id);
