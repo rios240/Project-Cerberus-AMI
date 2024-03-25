@@ -11,7 +11,9 @@
  * Command interface for processing received PLDM FWUP protocol requests.
  */
 struct cmd_interface_pldm_fwup {
-    struct cmd_interface base;                      /**< Base command interface */     
+    struct cmd_interface base;                      /**< Base command interface */    
+    struct observable observable;					/**< Observer manager for the interface. */
+	struct device_manager *device_manager;			/**< Device manager instance */ 
 };
 
 
