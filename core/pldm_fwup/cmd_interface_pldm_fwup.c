@@ -5,6 +5,7 @@
 #include "cmd_interface_pldm_fwup.h"
 #include "pldm_fwup_depricated/pldm_fwup_commands.h"
 #include "firmware_update.h"
+#include "base.h"
 
 /**
  * Pre-process received PLDM FWUP protocol message.
@@ -59,27 +60,6 @@ static int cmd_interface_pldm_fwup_process_request (struct cmd_interface *intf,
     }
 
     switch (command) {
-#ifdef PLDM_FWUP_ENABLE_FD
-        case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = process_and_respond_query_device_identifiers(intf, request);
-        case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = process_and_respond_get_firmware_parameters(intf, request);
-        case PLDM_REQUEST_UPDATE:
-            status = process_and_response_request_update(intf, request);
-        case PLDM_GET_DEVICE_METADATA:
-            status = process_and_respond_get_device_meta_data(intf, request);
-        case PLDM_PASS_COMPONENT_TABLE:
-            status = process_and_respond_ua_pass_component_table(intf, request);
-        case PLDM_UPDATE_COMPONENT:
-            status = process_and_respond_update_component(intf, request);
-        case PLDM_ACTIVATE_FIRMWARE:
-            status = process_and_respond_activate_firmware(intf, request);
-#elif PLDM_FWUP_ENABLE_UA
-        case PLDM_GET_PACKAGE_DATA:
-            status = process_and_respond_get_package_data(intf, request);
-        case PLDM_REQUEST_FIRMWARE_DATA;
-            status = process_and_respond_request_firmware_data(intf, request);
-#endif
         default:
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
     }
@@ -105,32 +85,6 @@ static int cmd_interface_pldm_fwup_process_response (struct cmd_interface *intf,
     }
 
     switch (command) {
-#ifdef PLDM_FWUP_ENABLE_FD
-        case PLDM_GET_PACKAGE_DATA:
-            status = process_get_package_data(intf, response);
-        case PLDM_REQUEST_FIRMWARE_DATA:
-            status = process_request_firmware_data(intf, response);
-        case PLDM_TRANSFER_COMPLETE:
-            status = process_transfer_complete(intf, response);
-        case PLDM_VERIFY_COMPLETE:
-            status = process_verify_complete(intf, response);
-        case PLDM_APPLY_COMPLETE:
-            status = process_apply_complete(intf, response);
-#elif PLDM_FWUP_ENABLE_UA
-        case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = process_query_device_identifiers(intf, reponse);
-        case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = PLDM_GET_FIRMWARE_PARAMETERS(intf, response);
-        case PLDM_REQUEST_UPDATE:
-            status = process_request_update(intf, response);
-        case PLDM_GET_DEVICE_METADATA:
-            status = process_get_device_meta_data(intf, response);
-        case PLDM_PASS_COMPONENT_TABLE:
-            status = process_pass_component_table_resp(intf, response);
-        case PLDM_UPDATE_COMPONENT:
-            status = process_update_component_resp(intf, response);
-#endif
-
         default:
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
     }
@@ -154,29 +108,86 @@ static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *
 /**
  * Initialize PLDM FWUP command interface instance
  *
- * @param intf The MCTP control command interface instance to initialize
+ * @param intf The PLDM FWUP control command interface instance to initialize
+ * @param flash_map The flash address mapping to use for PLDM FWUP
+ * @param state Variable context for the cmd interface.  This must be uninitialized.
+ * @param control The FW update control instance to use.
+ * @param init_state The initial state
  *
  * @return Initialization status, 0 if success or an error code.
  */
-int cmd_interface_mctp_control_init (struct cmd_interface_pldm_fwup *intf)
+int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct pldm_fwup_flash_map *flash_map,
+    const struct cmd_interface_pldm_fwup_state *state_ptr, const struct firmware_update_control *control, uint8_t init_state)
 {
 
-    if ((intf == NULL)) {
+    if ((intf == NULL) || flash_map == NULL || control == NULL) {
         return PLDM_ERROR_INVALID_DATA;
     }
 
     memset (intf, 0, sizeof (struct cmd_interface_pldm_fwup));
-    
+
+    intf->flash_map = flash_map;
+    intf->control = control;
+
+#ifdef PLDM_FWUP_FD_ENABLE
+    intf->multipart_transfer.transfer_handle = 0;
+    intf->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
+    intf->state = state_ptr;
+#elif PLDM_FWUP_UA_ENABLE
+    intf->multipart_transfer.next_transfer_handle = 0;
+    intf->multipart_transfer.transfer_flag = PLDM_START;
+#endif
+
     intf->base.process_request = cmd_interface_pldm_fwup_process_request;
 #ifdef CMD_ENABLE_ISSUE_REQUEST
     intf->base.process_response = cmd_interface_pldm_fwup_process_response;
 #endif
     intf->base.generate_error_packet = cmd_interface_pldm_fwup_generate_error_packet;
+
+#ifdef PLDM_FWUP_FD_ENABLE
+    return cmd_interface_pldm_fwup_init_state(intf->state, init_state);
+#elif PLDM_FWUP_UA_ENABLE
+    return 0;
+#endif
+
 }
 
-/*
-void cmd_interface_mctp_control_deinit (struct cmd_interface_pldm_fwup *intf)
+
+/**
+ * Deinitialize PLDM FWUP  command interface instance
+ *
+ * @param intf The PLDM FWUP command interface instance to deinitialize
+ */
+void cmd_interface_pldm_fwup_deinit (struct cmd_interface_pldm_fwup *intf)
 {
-    
+	if (intf != NULL) {
+		memset (intf, 0, sizeof (struct cmd_interface_pldm_fwup));
+	}
 }
-*/
+
+
+
+/**
+ * Initialize only the variable state for the cmd interface.  The rest of the cmd
+ * interface instance is assumed to have already been initialized.
+ *
+ * This would generally be used with a statically initialized instance.
+ *
+ * @param state The the state to initialize.
+ * @param init_state The initial PLDM FWUP state.
+ *
+ * @return 0 if the state was successfully initialized or an error code.
+ */
+int cmd_interface_pldm_fwup_init_state(struct cmd_interface_pldm_fwup_state *state, uint8_t init_state)
+{
+
+    if ((state == NULL)) {
+        return PLDM_ERROR_INVALID_DATA;
+    }
+
+    memset (state, 0, sizeof (struct cmd_interface_pldm_fwup_state));
+
+    state->state = init_state;
+
+    return 0;
+}
