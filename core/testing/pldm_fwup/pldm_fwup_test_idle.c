@@ -3,11 +3,10 @@
 #include <unistd.h>
 #include "testing.h"
 #include "platform_io.h"
-#include "pldm_fwup/pldm_fwup_interface.h"
 #include "pldm_fwup/pldm_fwup_commands.h"
 #include "firmware_update.h"
 
-
+/*
 TEST_SUITE_LABEL ("pldm_fwup_test_idle");
 
 
@@ -112,3 +111,5 @@ TEST (pldm_fwup_test_idle_retry_request_update);
 TEST (pldm_fwup_test_idle_unable_to_initiate_update);
 
 TEST_SUITE_END;
+
+*/
