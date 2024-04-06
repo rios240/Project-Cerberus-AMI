@@ -8,8 +8,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/time.h>
-#include "mctp/mctp_interface.h"
-#include "pldm_fwup_cmd_channel.h"
+#include "platform_api.h"
+#include "cmd_channel_tcp.h"
 
 #define PORT 5000
 
@@ -53,7 +53,8 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
-    
+
+
     // Bind the socket to the address
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("bind failed");
@@ -85,12 +86,15 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
         close(server_fd);
         return -1;
     }
+    
+    platform_mutex_lock(&channel->lock);
 
-    // Read data from the socket
     size_t valread = read(new_socket, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN);
 
+    platform_mutex_unlock(&channel->lock);
+
     packet->pkt_size = valread;
-    packet->dest_addr = 0xDA;
+    packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
     //printf("Received Packet \n");
     //print_packet_data(packet->data, packet->pkt_size);
@@ -141,7 +145,12 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         return -1;
     }
 
+    platform_mutex_lock(&channel->lock);
+
     send(sock, packet->data, packet->pkt_size, 0);
+
+    platform_mutex_unlock(&channel->lock);
+
     //printf("Sent Packet \n");
     //print_packet_data(packet->data, packet->pkt_size);
     close(sock);
