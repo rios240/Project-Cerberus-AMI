@@ -1,7 +1,6 @@
 #ifndef PLDM_FWUP_COMMANDS_H_
 #define PLDM_FWUP_COMMANDS_H_
 
-
 #include <stdint.h>
 #include "cmd_interface/cmd_interface.h"
 
@@ -14,6 +13,7 @@
  * These API make use of openbmc's libpldm to construct or deconstruct PLDM messages.
 */
 
+/*
 struct pldm_firmware_data_transfer {
     uint32_t offset;
     uint32_t length;
@@ -96,7 +96,8 @@ int update_component(uint8_t *request, size_t *mctp_payload_length);
 int process_update_component_resp(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
 int process_and_respond_request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *request);
-
 #endif
+
+*/
 
 #endif /* PLDM_FWUP_COMMANDS_H_ */

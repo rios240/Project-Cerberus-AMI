@@ -1,12 +1,14 @@
+
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "utils.h"
-#include "pldm_fwup_commands.h"
-#include "firmware_update.h"
-#include "pldm_fwup_interface.h"
+#include "libpldm/utils.h"
+#include "pldm_fwup_commands_dep.h"
+#include "libpldm/firmware_update.h"
+#include "pldm_fwup_interface_dep.h"
 
 
+/*
 static struct pldm_firmware_data_transfer firmware_data_transfer = {.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE, .offset = 0};
 
 
@@ -1057,3 +1059,5 @@ int process_and_respond_request_firmware_data(struct cmd_interface *intf, struct
 }
 
 #endif
+
+*/

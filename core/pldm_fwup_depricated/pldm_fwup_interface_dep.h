@@ -3,8 +3,9 @@
 
 #include "mctp/mctp_interface.h"
 #include "cmd_interface/cmd_channel.h"
-#include "pldm_types.h"
+#include "libpldm/pldm_types.h"
 
+/*
 #define PLDM_MAX_PAYLOAD_LENGTH 512
 
 #define MS_TIMEOUT 30000
@@ -62,6 +63,6 @@ int process_and_receive_pldm_over_mctp(struct mctp_interface *mctp, struct cmd_c
 void firmware_update_check_state(struct pldm_fwup_interface *fwup);
 
 void clean_up_and_reset_firmware_update(struct mctp_interface *mctp, struct pldm_fwup_interface *fwup);
-
+*/
 
 #endif /* PLDM_FWUP_INTERFACE_H_ */

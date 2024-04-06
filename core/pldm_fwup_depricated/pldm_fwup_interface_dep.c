@@ -2,11 +2,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "utils.h"
-#include "pldm_fwup_cmd_channel.h"
+#include "libpldm/utils.h"
+#include "pldm_fwup/cmd_channel/cmd_channel_tcp.h"
 #include "cmd_interface/device_manager.h"
-#include "pldm_fwup_interface.h"
-#include "firmware_update.h"
+#include "pldm_fwup_interface_dep.h"
+#include "libpldm/firmware_update.h"
+
+/*
 
 struct pldm_fwup_interface *get_fwup_interface()
 {
@@ -176,3 +178,4 @@ void clean_up_and_reset_firmware_update(struct mctp_interface *mctp, struct pldm
     fwup->meta_data_size = 0;
     free(fwup->meta_data);
 }
+*/
