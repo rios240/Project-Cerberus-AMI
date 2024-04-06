@@ -35,27 +35,27 @@ int flash_virtual_disk_read (const struct flash *virtual_flash, uint32_t address
 
 	platform_mutex_lock (&disk->state->lock);
 
-	disk->disk_ptr = fopen(VIRTUAL_FLASH_DISK_REGION, "rb");
-    if (disk->disk_ptr == NULL) {
+	FILE *file = fopen(disk->disk_region, "rb");
+    if (file == NULL) {
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_OPEN_FAILURE;
     }
 
-    if (fseek(disk->disk_ptr, address, SEEK_SET) != 0) {
-        fclose(disk->disk_ptr);
+    if (fseek(file, address, SEEK_SET) != 0) {
+        fclose(file);
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_SEEK_FAILURE;
     }
 
-    size_t bytes = fread(data, sizeof(uint8_t), length, disk->disk_ptr);
+    size_t bytes = fread(data, sizeof(uint8_t), length, file);
 
     if (bytes < length) {
-        fclose(disk->disk_ptr);
+        fclose(file);
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_READ_FAILURE;
     }
 
-    fclose(disk->disk_ptr);
+    fclose(file);
 
 	platform_mutex_unlock (&disk->state->lock);
 
@@ -89,27 +89,27 @@ int flash_virtual_disk_write (const struct flash *virtual_flash, uint32_t addres
 
 	platform_mutex_lock (&disk->state->lock);
 
-	disk->disk_ptr = fopen(VIRTUAL_FLASH_DISK_REGION, "r+b");
-    if (disk->disk_ptr == NULL) {
+	FILE *file = fopen(disk->disk_region, "r+b");
+    if (file == NULL) {
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_OPEN_FAILURE;
     }
 
-    if (fseek(disk->disk_ptr, address, SEEK_SET) != 0) {
-        fclose(disk->disk_ptr);
+    if (fseek(file, address, SEEK_SET) != 0) {
+        fclose(file);
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_SEEK_FAILURE;
     }
 
-    size_t bytes = fwrite(data, sizeof(uint8_t), length, disk->disk_ptr);
+    size_t bytes = fwrite(data, sizeof(uint8_t), length, file);
 
     if (bytes < length) {
-        fclose(disk->disk_ptr);
+        fclose(file);
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_WRITE_FAILURE;
     }
 
-    fclose(disk->disk_ptr);
+    fclose(file);
 
 	platform_mutex_unlock (&disk->state->lock);
 
@@ -131,33 +131,36 @@ int flash_virtual_disk_block_erase (const struct flash *virtual_flash, uint32_t 
 
 	address = FLASH_REGION_BASE (address, VIRTUAL_FLASH_DISK_BLOCK_SIZE);
 
+	uint8_t *buffer = malloc(VIRTUAL_FLASH_DISK_BLOCK_SIZE * sizeof (uint8_t));
+	memset(buffer, 0xFF, VIRTUAL_FLASH_DISK_BLOCK_SIZE);
+
 	platform_mutex_lock (&disk->state->lock);
 
-	disk->disk_ptr = fopen(VIRTUAL_FLASH_DISK_REGION, "r+b");
-    if (disk->disk_ptr == NULL) {
+	FILE *file = fopen(disk->disk_region, "r+b");
+    if (file == NULL) {
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_OPEN_FAILURE;
     }
 
-    if (fseek(disk->disk_ptr, address, SEEK_SET) != 0) {
-        fclose(disk->disk_ptr);
+    if (fseek(file, address, SEEK_SET) != 0) {
+        fclose(file);
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_SEEK_FAILURE;
     }
 
-    size_t bytes = fwrite(0xFF, sizeof(uint8_t), VIRTUAL_FLASH_DISK_BLOCK_SIZE, disk->disk_ptr);
+    size_t bytes = fwrite(buffer, sizeof(uint8_t), VIRTUAL_FLASH_DISK_BLOCK_SIZE, file);
 
     if (bytes < VIRTUAL_FLASH_DISK_BLOCK_SIZE) {
-        fclose(disk->disk_ptr);
+        fclose(file);
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_WRITE_FAILURE;
     }
 
-    fclose(disk->disk_ptr);
-
+    fclose(file);
 
 	platform_mutex_unlock (&disk->state->lock);
 
+	free(buffer);
 	return 0;
 }
 
@@ -170,26 +173,30 @@ int flash_virtual_disk_region_erase (const struct flash *virtual_flash)
 		return FLASH_INVALID_ARGUMENT;
 	}
 
+	uint8_t *buffer = malloc(disk->size * sizeof (uint8_t));
+	memset(buffer, 0xFF, disk->size);
+
 	platform_mutex_lock (&disk->state->lock);
 
-	disk->disk_ptr = fopen(VIRTUAL_FLASH_DISK_REGION, "r+b");
-    if (disk->disk_ptr == NULL) {
+	FILE *file = fopen(disk->disk_region, "r+b");
+    if (file == NULL) {
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_OPEN_FAILURE;
     }
 
-    size_t bytes = fwrite(0xFF, sizeof(uint8_t), disk->size, disk->disk_ptr);
+    size_t bytes = fwrite(buffer, sizeof(uint8_t), disk->size, file);
 
     if (bytes < VIRTUAL_FLASH_DISK_BLOCK_SIZE) {
-        fclose(disk->disk_ptr);
+        fclose(file);
         platform_mutex_unlock (&disk->state->lock);
         return VIRTUAL_FLASH_DISK_WRITE_FAILURE;
     }
 
-    fclose(disk->disk_ptr);
+    fclose(file);
 
 	platform_mutex_unlock (&disk->state->lock);
 
+	free(buffer);
 	return 0;
 }
 
@@ -243,7 +250,7 @@ int flash_virtual_disk_init (struct flash_virtual_disk *virtual_flash,
  *
  * @return 0 if the state was successfully initialized or an error code.
  */
-int flash_virtual_ram_init_state (struct flash_virtual_disk *virtual_flash)
+int flash_virtual_disk_init_state (struct flash_virtual_disk *virtual_flash)
 {
 	if ((virtual_flash == NULL) || (virtual_flash->state == NULL) ||
 	    (virtual_flash->size == 0)) {
@@ -261,7 +268,7 @@ int flash_virtual_ram_init_state (struct flash_virtual_disk *virtual_flash)
  *
  * @param virtual_flash The virtual flash instance to release.
  */
-void flash_virtual_ram_release (struct flash_virtual_disk *virtual_flash)
+void flash_virtual_disk_release (struct flash_virtual_disk *virtual_flash)
 {
 	if (virtual_flash) {
 		platform_mutex_free (&virtual_flash->state->lock);

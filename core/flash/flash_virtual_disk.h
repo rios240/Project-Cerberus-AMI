@@ -15,9 +15,7 @@
  * Block size of the virtual flash instance.
  */
 #define	VIRTUAL_FLASH_DISK_BLOCK_SIZE		256
-
-
-#define VIRTUAL_FLASH_DISK_REGION           "../pldm_fwup/utils/disk.bin"
+   
 
 enum {
     VIRTUAL_FLASH_DISK_OPEN_FAILURE,
@@ -31,7 +29,7 @@ enum {
  * Variable context for a virtual flash instance.
  */
 struct flash_virtual_disk_state {
-	platform_mutex lock;			/**< Lock to synchronize access to the hardware. */
+	platform_mutex lock;			            /**< Lock to synchronize access to the hardware. */
 };
 
 
@@ -42,7 +40,7 @@ struct flash_virtual_disk_state {
 struct flash_virtual_disk {
 	struct flash base;							/**< Base flash API. */
 	struct flash_virtual_disk_state *state;		/**< Variable context for the virtual  instance. */
-    FILE *disk_ptr;                             /**< Pointer to the disk stream. */
+    const char *disk_region;                    /**< Pointer to the disk region (file path must be in relation to the location of flash_virtual_disk.c). */
     size_t size;								/**< Size in bytes. */
 };
 
