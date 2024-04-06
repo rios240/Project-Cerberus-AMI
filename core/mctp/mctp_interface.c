@@ -399,7 +399,6 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 					debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_MCTP,
 						MCTP_LOGGING_MCTP_PLDM_RSP_FAIL, status, mctp->channel_id);
 
-					return status;
 				}
 			}
 			else if (MCTP_BASE_PROTOCOL_IS_VENDOR_MSG (mctp->msg_type)) {
