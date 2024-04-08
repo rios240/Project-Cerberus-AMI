@@ -17,14 +17,14 @@
  */
 struct pldm_fwup_flash_map {
 #ifdef PLDM_FWUP_FD_ENABLE
-    const struct flash_virtual_disk *package_data;                      /**< The flash device that contains the PackageData. */
+    const struct flash *package_data;                                   /**< The flash device that contains the PackageData. */
     uint32_t package_data_addr;                                         /**< The base address of the PackageData region. */
     size_t package_data_size;                                           /**< The size of the PackageData region. */
 #elif defined(PLDM_FWUP_UA_ENABLE)
-    const struct flash_virtual_disk *device_meta_data;                  /**< The flash device that contains the DeviceMetaData. */
+    const struct flash *device_meta_data;                                /**< The flash device that contains the DeviceMetaData. */
     uint32_t device_meta_data_addr;                                     /**< The base address of the DeviceMetaData region. */
     size_t device_meta_data_size;                                       /**< The size of the DeviceMetaData region. */
-    const struct flash_virtual_disk *firmware_update_package;           /**< The flash device that contains the Firmware Update Package. */
+    const struct flash *firmware_update_package;                        /**< The flash device that contains the Firmware Update Package. */
     uint32_t firmware_update_package_addr;                              /**< The base address of the Firmware Update Package region. */
     size_t firmware_update_package_size;                                /**< The size of the Firmware Update Package region. */
 #endif
