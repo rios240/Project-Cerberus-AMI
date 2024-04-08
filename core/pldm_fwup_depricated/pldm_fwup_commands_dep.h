@@ -4,21 +4,11 @@
 #include <stdint.h>
 #include "cmd_interface/cmd_interface.h"
 
-
-/**
- * Some PLDM commands are either recieved or requested by the Firmware Device.
- * The following API are either called by mctp_interface_process_packet() to process the PLDM payloads of recieved MCTP packets
- * or independently create PLDM payloads for mctp_interface_issue_request().
- * 
- * These API make use of openbmc's libpldm to construct or deconstruct PLDM messages.
-*/
-
 /*
 struct pldm_firmware_data_transfer {
     uint32_t offset;
     uint32_t length;
 };
-
 
 //Requested by the UA, FD will issue a response.
 int process_and_respond_query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *request);
@@ -45,9 +35,9 @@ int process_and_respond_ua_pass_component_table(struct cmd_interface *intf, stru
 int process_and_respond_update_component(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 //Requested by the FD, UA will issue a response
-int request_firmware_data(uint8_t *request, size_t *payload_length);
+//int request_firmware_data(uint8_t *request, size_t *payload_length);
 
-int process_request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *response);
+//int process_request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
 //Requested by the FD, UA will issue a response
 int request_transfer_complete(uint8_t *request, size_t *payload_length);
@@ -68,7 +58,6 @@ int process_apply_complete(struct cmd_interface *intf, struct cmd_interface_msg 
 int process_and_respond_activate_firmware(struct cmd_interface *intf, struct cmd_interface_msg *request);
 
 
-#ifdef PLDM_FWUP_ENABLE_UA
 int request_query_device_identifiers(uint8_t *request, size_t *payload_length);
 
 int process_query_device_identifiers(struct cmd_interface *intf, struct cmd_interface_msg *response);
@@ -95,9 +84,7 @@ int update_component(uint8_t *request, size_t *mctp_payload_length);
 
 int process_update_component_resp(struct cmd_interface *intf, struct cmd_interface_msg *response);
 
-int process_and_respond_request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *request);
-#endif
-
+//int process_and_respond_request_firmware_data(struct cmd_interface *intf, struct cmd_interface_msg *request);
 */
 
 #endif /* PLDM_FWUP_COMMANDS_H_ */
