@@ -9,6 +9,9 @@
 #include "flash/flash_virtual_disk.h"
 #include "firmware/firmware_update_control.h"
 
+
+#define FWUP_BASELINE_TRANSFER_SIZE 32
+
 /**
  * The flash addresses and devices to use for different PLDM FWUP regions.
  */
@@ -17,7 +20,7 @@ struct pldm_fwup_flash_map {
     const struct flash_virtual_disk *package_data;                      /**< The flash device that contains the PackageData. */
     uint32_t package_data_addr;                                         /**< The base address of the PackageData region. */
     size_t package_data_size;                                           /**< The size of the PackageData region. */
-#elif PLDM_FWUP_UA_ENABLE
+#elif defined(PLDM_FWUP_UA_ENABLE)
     const struct flash_virtual_disk *device_meta_data;                  /**< The flash device that contains the DeviceMetaData. */
     uint32_t device_meta_data_addr;                                     /**< The base address of the DeviceMetaData region. */
     size_t device_meta_data_size;                                       /**< The size of the DeviceMetaData region. */
@@ -35,7 +38,7 @@ struct pldm_fwup_multipart_transfer_handler {
 #ifdef PLDM_FWUP_FD_ENABLE
     uint32_t transfer_handle;                                           /**< Handle that is used to identify a package data transfer. */
     uint8_t transfer_op_flag;                                           /**< Operation flag that indiates whether this is the start of the transfer. */
-#elif PLDM_FWUP_UA_ENABLE
+#elif defined(PLDM_FWUP_UA_ENABLE)
     uint32_t next_transfer_handle;                                      /**< Handle that is used to identify the next portion of the transfer. */
     uint8_t transfer_flag;                                              /**< Transfer flag that indiates what part of the transfer this response represents. */
 #endif
@@ -71,9 +74,9 @@ struct cmd_interface_pldm_fwup {
      * @param buffer The buffer to store the PLDM message
      * @param buf_len The length of the buffer
      * 
-     * @return pldm_completion codes
+     * @return size of the request or pldm_completion_codes
     */
-    int (*generate_request) (struct cmd_interface_pldm_fwup *intf, uint8_t command, uint8_t *buffer, size_t buf_len);
+    int (*generate_request) (struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len);
 };
 
 
