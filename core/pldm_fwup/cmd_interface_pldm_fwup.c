@@ -3,12 +3,13 @@
 #include "common/unused.h"
 #include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm_fwup.h"
+#include "pldm_fwup_commands.h"
 
 
 #ifdef PLDM_FWUP_FD_ENABLE
 #include "libpldm/firmware_update.h"
 #include "libpldm/base.h"
-#elif PLDM_FWUP_UA_ENABLE
+#elif defined(PLDM_FWUP_UA_ENABLE)
 #include "firmware_update.h"
 #include "base.h"
 #endif
@@ -66,6 +67,12 @@ static int cmd_interface_pldm_fwup_process_request (struct cmd_interface *intf,
     }
 
     switch (command) {
+#ifdef PLDM_FWUP_FD_ENABLE
+#elif defined(PLDM_FWUP_UA_ENABLE)
+        case PLDM_GET_PACKAGE_DATA:
+            status = pldm_fwup_process_get_package_data_request(interface->flash_map, request);
+            break;
+#endif
         default:
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
     }
@@ -91,6 +98,12 @@ static int cmd_interface_pldm_fwup_process_response (struct cmd_interface *intf,
     }
 
     switch (command) {
+#ifdef PLDM_FWUP_FD_ENABLE
+        case PLDM_GET_PACKAGE_DATA:
+            status = pldm_fwup_process_get_package_data_response(interface->multipart_transfer, interface->flash_map, response);
+            break;
+#elif defined(PLDM_FWUP_UA_ENABLE)
+#endif
         default:
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
     }
@@ -108,6 +121,23 @@ static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *
 	UNUSED (cmd_set);
 
     return PLDM_ERROR_INVALID_DATA;
+}
+
+static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t *buffer, size_t buf_len, uint8_t command) {
+    struct cmd_interface_pldm_fwup *interface = (struct cmd_interface_pldm_fwup *)intf;
+    int status;
+
+    switch(command) {
+#ifdef PLDM_FWUP_FD_ENABLE
+        case PLDM_GET_PACKAGE_DATA:
+            status = pldm_fwup_generate_get_package_data_request(interface->multipart_transfer, buffer, buf_len);
+            break;
+#elif defined(PLDM_FWUP_UA_ENABLE)
+#endif
+    default:
+        status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;       
+    }
+    return status;
 }
 
 
@@ -166,7 +196,7 @@ int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct p
 
     intf->multipart_transfer.transfer_handle = 0;
     intf->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
-#elif PLDM_FWUP_UA_ENABLE
+#elif defined(PLDM_FWUP_UA_ENABLE)
     intf->multipart_transfer.next_transfer_handle = 0;
     intf->multipart_transfer.transfer_flag = PLDM_START;
 #endif
@@ -174,12 +204,13 @@ int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct p
     intf->base.process_request = cmd_interface_pldm_fwup_process_request;
 #ifdef CMD_ENABLE_ISSUE_REQUEST
     intf->base.process_response = cmd_interface_pldm_fwup_process_response;
+    intf->generate_request = cmd_interface_pldm_fwup_generate_request;
 #endif
     intf->base.generate_error_packet = cmd_interface_pldm_fwup_generate_error_packet;
 
 #ifdef PLDM_FWUP_FD_ENABLE
     return cmd_interface_pldm_fwup_init_state(intf->state, init_state);
-#elif PLDM_FWUP_UA_ENABLE
+#elif defined(PLDM_FWUP_UA_ENABLE)
     return 0;
 #endif
 
