@@ -364,7 +364,7 @@ static void setup_attestation_requester_mock_test (CuTest *test,
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&testing->mctp, &testing->cmd_cerberus.base,
-		&testing->cmd_mctp.base, &testing->cmd_spdm.base, &testing->device_mgr);
+		&testing->cmd_mctp.base, &testing->cmd_spdm.base, NULL, &testing->device_mgr);
 	CuAssertIntEquals (test, 0, status);
 
 	if (init_attestation) {
@@ -4739,7 +4739,7 @@ static void attestation_requester_test_init_state (CuTest *test)
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&testing.mctp, &testing.cmd_cerberus.base,
-		&testing.cmd_mctp.base, &testing.cmd_spdm.base, &testing.device_mgr);
+		&testing.cmd_mctp.base, &testing.cmd_spdm.base, NULL, &testing.device_mgr);
 	CuAssertIntEquals (test, 0, status);
 
 	status = attestation_requester_init_state (&attestation);
@@ -21779,7 +21779,7 @@ static void attestation_requester_test_attest_device_spdm_get_digests_rsp_not_re
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&testing.mctp, &testing.cmd_cerberus.base,
-		&testing.cmd_mctp.base, &testing.cmd_spdm.base, &testing.device_mgr);
+		&testing.cmd_mctp.base, &testing.cmd_spdm.base, NULL, &testing.device_mgr);
 	CuAssertIntEquals (test, 0, status);
 
 	testing.max_cert_buffer_portion = SPDM_GET_CERTIFICATE_MAX_CERT_BUFFER;
@@ -28272,7 +28272,7 @@ static void attestation_requester_test_attest_device_unknown_device (CuTest *tes
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&testing.mctp, &testing.cmd_cerberus.base,
-		&testing.cmd_mctp.base, &testing.cmd_spdm.base, &testing.device_mgr);
+		&testing.cmd_mctp.base, &testing.cmd_spdm.base, NULL, &testing.device_mgr);
 	CuAssertIntEquals (test, 0, status);
 
 	status = attestation_requester_init (&testing.test, &testing.state, &testing.mctp,
@@ -30010,7 +30010,7 @@ static void attestation_requester_test_discovery_and_attestation_loop_multiple_d
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&testing.mctp, &testing.cmd_cerberus.base, &testing.cmd_mctp.base,
-		&testing.cmd_spdm.base, &testing.device_mgr);
+		&testing.cmd_spdm.base, NULL, &testing.device_mgr);
 	CuAssertIntEquals (test, 0, status);
 
 	testing.max_cert_buffer_portion = SPDM_GET_CERTIFICATE_MAX_CERT_BUFFER;

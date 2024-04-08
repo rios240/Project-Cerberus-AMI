@@ -82,11 +82,11 @@ static void setup_mctp_interface_with_interface_mock_test_common (CuTest *test,
 
 	if (spdm_supported) {
 		status = mctp_interface_init (&mctp->mctp, &mctp->cmd_cerberus.base, &mctp->cmd_mctp.base,
-			&mctp->cmd_spdm.base, &mctp->device_mgr);
+			&mctp->cmd_spdm.base, NULL, &mctp->device_mgr);
 	}
 	else {
 		status = mctp_interface_init (&mctp->mctp, &mctp->cmd_cerberus.base, &mctp->cmd_mctp.base,
-			NULL, &mctp->device_mgr);
+			NULL, NULL, &mctp->device_mgr);
 	}
 
 	CuAssertIntEquals (test, 0, status);
@@ -287,7 +287,7 @@ static void mctp_interface_test_init (CuTest *test)
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&mctp.mctp, &mctp.cmd_cerberus.base, &mctp.cmd_mctp.base,
-		&mctp.cmd_spdm.base, &mctp.device_mgr);
+		&mctp.cmd_spdm.base, NULL, &mctp.device_mgr);
 	CuAssertIntEquals (test, 0, status);
 
 	status = cmd_interface_mock_validate_and_release (&mctp.cmd_cerberus);
@@ -321,7 +321,7 @@ static void mctp_interface_test_init_spdm_not_supported (CuTest *test)
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&mctp.mctp, &mctp.cmd_cerberus.base, &mctp.cmd_mctp.base, NULL,
-		&mctp.device_mgr);
+		NULL, &mctp.device_mgr);
 	CuAssertIntEquals (test, 0, status);
 
 	status = cmd_interface_mock_validate_and_release (&mctp.cmd_mctp);
@@ -349,18 +349,18 @@ static void mctp_interface_test_init_null (CuTest *test)
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (NULL, &mctp.cmd_cerberus.base, &mctp.cmd_mctp.base, NULL,
-		&mctp.device_mgr);
+		NULL, &mctp.device_mgr);
 	CuAssertIntEquals (test, MCTP_BASE_PROTOCOL_INVALID_ARGUMENT, status);
 
-	status = mctp_interface_init (&mctp.mctp, NULL, &mctp.cmd_mctp.base, NULL, &mctp.device_mgr);
+	status = mctp_interface_init (&mctp.mctp, NULL, &mctp.cmd_mctp.base, NULL, NULL, &mctp.device_mgr);
 	CuAssertIntEquals (test, MCTP_BASE_PROTOCOL_INVALID_ARGUMENT, status);
 
 	status = mctp_interface_init (&mctp.mctp, &mctp.cmd_cerberus.base, NULL, NULL,
-		&mctp.device_mgr);
+		NULL, &mctp.device_mgr);
 	CuAssertIntEquals (test, MCTP_BASE_PROTOCOL_INVALID_ARGUMENT, status);
 
 	status = mctp_interface_init (&mctp.mctp, &mctp.cmd_cerberus.base, &mctp.cmd_mctp.base, NULL,
-		NULL);
+		NULL, NULL);
 	CuAssertIntEquals (test, MCTP_BASE_PROTOCOL_INVALID_ARGUMENT, status);
 
 	status = cmd_interface_mock_validate_and_release (&mctp.cmd_cerberus);

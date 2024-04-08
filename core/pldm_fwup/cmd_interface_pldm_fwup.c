@@ -32,11 +32,11 @@ static int cmd_interface_pldm_fwup_process_pldm_protocol_message (
 
     status = unpack_pldm_header((const struct pldm_msg_hdr *)&msg->hdr, &header);
 
-    if (header->pldm_type != PLDM_FWUP) {
+    if (header.pldm_type != PLDM_FWUP) {
         return PLDM_ERROR_INVALID_PLDM_TYPE;
     }
 
-    *command = header->command;
+    *command = header.command;
 
     return status;
 

@@ -64,7 +64,7 @@ static void cmd_channel_handler_testing_init_dependencies (CuTest *test,
 	CuAssertIntEquals (test, 0, status);
 
 	status = mctp_interface_init (&handler->mctp, &handler->cmd_cerberus.base,
-		&handler->cmd_mctp.base, NULL, &handler->device_mgr);
+		&handler->cmd_mctp.base, NULL, NULL, &handler->device_mgr);
 	CuAssertIntEquals (test, 0, status);
 }
 

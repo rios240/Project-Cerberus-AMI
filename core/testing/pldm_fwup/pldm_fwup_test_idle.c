@@ -4,7 +4,7 @@
 #include "testing.h"
 #include "platform_io.h"
 #include "pldm_fwup/pldm_fwup_commands.h"
-#include "firmware_update.h"
+#include "libpldm/firmware_update.h"
 
 /*
 TEST_SUITE_LABEL ("pldm_fwup_test_idle");
