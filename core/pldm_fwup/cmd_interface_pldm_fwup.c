@@ -3,8 +3,15 @@
 #include "common/unused.h"
 #include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm_fwup.h"
+
+
+#ifdef PLDM_FWUP_FD_ENABLE
 #include "libpldm/firmware_update.h"
 #include "libpldm/base.h"
+#elif PLDM_FWUP_UA_ENABLE
+#include "firmware_update.h"
+#include "base.h"
+#endif
 
 /**
  * Pre-process received PLDM FWUP protocol message.

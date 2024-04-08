@@ -2,10 +2,17 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "libpldm/utils.h"
 #include "pldm_fwup_commands_dep.h"
-#include "libpldm/firmware_update.h"
 #include "pldm_fwup_interface_dep.h"
+
+
+#ifdef PLDM_FWUP_FD_ENABLE
+#include "libpldm/firmware_update.h"
+#include "libpldm/utils.h"
+#elif PLDM_FWUP_UA_ENABLE
+#include "firmware_update.h"
+#include "utils.h"
+#endif
 
 /*
 
