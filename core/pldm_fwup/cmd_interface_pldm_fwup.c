@@ -100,7 +100,7 @@ static int cmd_interface_pldm_fwup_process_response (struct cmd_interface *intf,
     switch (command) {
 #ifdef PLDM_FWUP_FD_ENABLE
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_response(interface->multipart_transfer, interface->flash_map, response);
+            status = pldm_fwup_process_get_package_data_response(&interface->multipart_transfer, interface->flash_map, response);
             break;
 #elif defined(PLDM_FWUP_UA_ENABLE)
 #endif
@@ -132,7 +132,7 @@ static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, 
     switch(command) {
 #ifdef PLDM_FWUP_FD_ENABLE
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_generate_get_package_data_request(interface->multipart_transfer, buffer, buf_len);
+            status = pldm_fwup_generate_get_package_data_request(&interface->multipart_transfer, buffer, buf_len);
             break;
 #elif defined(PLDM_FWUP_UA_ENABLE)
 #endif
