@@ -3,9 +3,8 @@
 #include "common/unused.h"
 #include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm_fwup.h"
-#include "pldm_fwup_depricated/pldm_fwup_commands.h"
-#include "firmware_update.h"
-#include "base.h"
+#include "libpldm/firmware_update.h"
+#include "libpldm/base.h"
 
 /**
  * Pre-process received PLDM FWUP protocol message.
@@ -20,7 +19,7 @@ static int cmd_interface_pldm_fwup_process_pldm_protocol_message (
     struct cmd_interface_pldm_fwup *intf, struct cmd_interface_msg *message, uint8_t *command)
 {
     struct pldm_msg *msg = (struct pldm_msg *)&message->data[1];
-    struct pldm_header_info *header;
+    struct pldm_header_info header = { 0 };
     int status;
 
     UNUSED (intf);
@@ -31,15 +30,15 @@ static int cmd_interface_pldm_fwup_process_pldm_protocol_message (
         return PLDM_ERROR_INVALID_LENGTH;
     }
 
-    status = unpack_pldm_header((const struct pldm_msg_hdr *)&msg->hdr, header);
+    status = unpack_pldm_header((const struct pldm_msg_hdr *)&msg->hdr, &header);
 
-    if (header->pldm_type != PLDM_FWUP) {
+    if (header.pldm_type != PLDM_FWUP) {
         return PLDM_ERROR_INVALID_PLDM_TYPE;
     }
 
-    *command = header->command;
+    *command = header.command;
 
-    return 0;
+    return status;
 
 }
 
@@ -106,6 +105,32 @@ static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *
 
 
 /**
+ * Initialize only the variable state for the cmd interface.  The rest of the cmd
+ * interface instance is assumed to have already been initialized.
+ *
+ * This would generally be used with a statically initialized instance.
+ *
+ * @param state The the state to initialize.
+ * @param init_state The initial PLDM FWUP state.
+ *
+ * @return 0 if the state was successfully initialized or an error code.
+ */
+int cmd_interface_pldm_fwup_init_state(struct pldm_fwup_state *state, uint8_t init_state)
+{
+
+    if ((state == NULL)) {
+        return PLDM_ERROR_INVALID_DATA;
+    }
+
+    memset (state, 0, sizeof (struct pldm_fwup_state));
+
+    state->state = init_state;
+
+    return 0;
+}
+
+
+/**
  * Initialize PLDM FWUP command interface instance
  *
  * @param intf The PLDM FWUP control command interface instance to initialize
@@ -117,7 +142,7 @@ static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *
  * @return Initialization status, 0 if success or an error code.
  */
 int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct pldm_fwup_flash_map *flash_map,
-    const struct cmd_interface_pldm_fwup_state *state_ptr, const struct firmware_update_control *control, uint8_t init_state)
+    struct pldm_fwup_state *state_ptr, const struct firmware_update_control *control, uint8_t init_state)
 {
 
     if ((intf == NULL) || flash_map == NULL || control == NULL) {
@@ -130,9 +155,10 @@ int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct p
     intf->control = control;
 
 #ifdef PLDM_FWUP_FD_ENABLE
+    intf->state = state_ptr;
+
     intf->multipart_transfer.transfer_handle = 0;
     intf->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
-    intf->state = state_ptr;
 #elif PLDM_FWUP_UA_ENABLE
     intf->multipart_transfer.next_transfer_handle = 0;
     intf->multipart_transfer.transfer_flag = PLDM_START;
@@ -165,29 +191,3 @@ void cmd_interface_pldm_fwup_deinit (struct cmd_interface_pldm_fwup *intf)
 	}
 }
 
-
-
-/**
- * Initialize only the variable state for the cmd interface.  The rest of the cmd
- * interface instance is assumed to have already been initialized.
- *
- * This would generally be used with a statically initialized instance.
- *
- * @param state The the state to initialize.
- * @param init_state The initial PLDM FWUP state.
- *
- * @return 0 if the state was successfully initialized or an error code.
- */
-int cmd_interface_pldm_fwup_init_state(struct cmd_interface_pldm_fwup_state *state, uint8_t init_state)
-{
-
-    if ((state == NULL)) {
-        return PLDM_ERROR_INVALID_DATA;
-    }
-
-    memset (state, 0, sizeof (struct cmd_interface_pldm_fwup_state));
-
-    state->state = init_state;
-
-    return 0;
-}

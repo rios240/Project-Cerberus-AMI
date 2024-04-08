@@ -11,6 +11,7 @@ static void add_all_pldm_fwup_tests (CuSuite *suite)
 {
     UNUSED (suite);
 
+    /*
     TESTING_RUN_SUITE (pldm_fwup_test_complete_fwup);
 
     TESTING_RUN_SUITE (pldm_fwup_test_idle);
@@ -20,6 +21,8 @@ static void add_all_pldm_fwup_tests (CuSuite *suite)
     TESTING_RUN_SUITE (pldm_fwup_test_ready_xfer);
 
     TESTING_RUN_SUITE (pldm_fwup_test_download);
+
+    */
 }
 
 

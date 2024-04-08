@@ -1,5 +1,5 @@
-#ifndef PLDM_FWUP_COMMAND_CHANNEL_TCP_H_
-#define PLDM_FWUP_COMMAND_CHANNEL_TCP_H_
+#ifndef COMMAND_CHANNEL_TCP_H_
+#define COMMAND_CHANNEL_TCP_H_
 
 
 #include <stdint.h>
@@ -9,4 +9,4 @@
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet);
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout);
 
-#endif /* PLDM_FWUP_COMMAND_CHANNEL_TCP_H_ */
+#endif /* COMMAND_CHANNEL_TCP_H_ */

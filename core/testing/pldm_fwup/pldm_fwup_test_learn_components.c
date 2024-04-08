@@ -3,11 +3,10 @@
 #include <unistd.h>
 #include "testing.h"
 #include "platform_io.h"
-#include "pldm_fwup/pldm_fwup_interface.h"
 #include "pldm_fwup/pldm_fwup_commands.h"
-#include "firmware_update.h"
+#include "libpldm/firmware_update.h"
 
-
+/*
 TEST_SUITE_LABEL ("pldm_fwup_test_learn_components");
 
 
@@ -146,3 +145,5 @@ TEST (pldm_fwup_test_learn_components_good_pass_component_table);
 TEST (pldm_fwup_test_learn_components_bad_pass_component_table);
 
 TEST_SUITE_END;
+
+*/

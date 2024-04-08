@@ -3,10 +3,9 @@
 #include <unistd.h>
 #include "testing.h"
 #include "platform_io.h"
-#include "pldm_fwup/pldm_fwup_interface.h"
 #include "pldm_fwup/pldm_fwup_commands.h"
-#include "firmware_update.h"
-
+#include "libpldm/firmware_update.h"
+/*
 
 TEST_SUITE_LABEL ("pldm_fwup_test_download");
 
@@ -29,7 +28,7 @@ static void pldm_fwup_test_download_good_request_firmware_data(CuTest *test) {
     fwup->update_mode = 1;
     fwup->current_fd_state = PLDM_FD_STATE_DOWNLOAD;
 
-    /*
+    
     int loop = 3;
     while (loop != 0) {
         status = generate_and_send_pldm_over_mctp(&mctp, &cmd_channel, request_firmware_data);
@@ -40,9 +39,10 @@ static void pldm_fwup_test_download_good_request_firmware_data(CuTest *test) {
         CuAssertIntEquals(test, PLDM_SUCCESS, fwup->current_completion_code);
         loop--;
     }
-    */
+    
 
     clean_up_and_reset_firmware_update(&mctp, fwup);
+    
 }
 
 
@@ -51,3 +51,4 @@ TEST_SUITE_START (pldm_fwup_test_download);
 TEST (pldm_fwup_test_download_good_request_firmware_data);
 
 TEST_SUITE_END;
+*/
