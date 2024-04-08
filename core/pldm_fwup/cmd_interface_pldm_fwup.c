@@ -123,9 +123,11 @@ static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *
     return PLDM_ERROR_INVALID_DATA;
 }
 
-static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t *buffer, size_t buf_len, uint8_t command) {
+static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len) {
     struct cmd_interface_pldm_fwup *interface = (struct cmd_interface_pldm_fwup *)intf;
     int status;
+
+    UNUSED (interface);
 
     switch(command) {
 #ifdef PLDM_FWUP_FD_ENABLE

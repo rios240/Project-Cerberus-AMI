@@ -36,7 +36,7 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
 }
 
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_handler *multipart_transfer,
-    struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response)
+    const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response)
 {
     struct pldm_msg *rsp = (struct pldm_msg *)(&response->data[1]);
 
@@ -50,13 +50,13 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
     }
 
     if (rsp_data.transfer_flag == PLDM_START || rsp_data.transfer_flag == PLDM_START_AND_END) {
-        status = flash_map->package_data->base.write(flash_map->package_data, flash_map->package_data_addr, 
+        status = flash_map->package_data->write(flash_map->package_data, flash_map->package_data_addr, 
         portion_of_package_data.ptr, portion_of_package_data.length);
         if (rsp_data.transfer_flag == PLDM_START) {
             multipart_transfer->transfer_op_flag = PLDM_GET_NEXTPART;
         }
     } else {
-        status = flash_map->package_data->base.write(flash_map->package_data, flash_map->package_data_addr + multipart_transfer->transfer_handle, 
+        status = flash_map->package_data->write(flash_map->package_data, flash_map->package_data_addr + multipart_transfer->transfer_handle, 
         portion_of_package_data.ptr, portion_of_package_data.length);
         if (rsp_data.transfer_flag == PLDM_END) {
             multipart_transfer->transfer_op_flag = PLDM_GET_FIRSTPART;
@@ -73,7 +73,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 
 #elif defined(PLDM_FWUP_UA_ENABLE)
 
-int pldm_fwup_process_get_package_data_request(struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
+int pldm_fwup_process_get_package_data_request(const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
 {
         struct pldm_msg *rq = (struct pldm_msg *)(&request->data[1]);
 
@@ -89,17 +89,19 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_flash_map *flash
         struct variable_field portion_of_pkg_data;
 
         portion_of_pkg_data.length = FWUP_BASELINE_TRANSFER_SIZE;
-        uint8_t buffer[FWUP_BASELINE_TRANSFER_SIZE] = (uint8_t) portion_of_pkg_data.ptr;
+        uint8_t buffer[FWUP_BASELINE_TRANSFER_SIZE];
 
         memset(buffer, 0x00, FWUP_BASELINE_TRANSFER_SIZE);
 
         if (rq_data.transfer_operation_flag == PLDM_GET_FIRSTPART) {
-            status = flash_map->firmware_update_package->base.read(flash_map->firmware_update_package, 
+            status = flash_map->firmware_update_package->read(flash_map->firmware_update_package, 
                 flash_map->firmware_update_package_addr, buffer, sizeof (buffer));
         } else {
-             status = flash_map->firmware_update_package->base.read(flash_map->firmware_update_package, 
+             status = flash_map->firmware_update_package->read(flash_map->firmware_update_package, 
                 flash_map->firmware_update_package_addr + rq_data.data_transfer_handle, buffer, sizeof (buffer));
         }
+
+        portion_of_pkg_data.ptr = (const uint8_t *)buffer;
 
         if (rq_data.transfer_operation_flag == PLDM_GET_FIRSTPART) {
             if (flash_map->firmware_update_package_size == FWUP_BASELINE_TRANSFER_SIZE) {
