@@ -8,7 +8,7 @@
 #include "pldm_fwup_interface_dep.h"
 
 
-/*
+
 static struct pldm_firmware_data_transfer firmware_data_transfer = {.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE, .offset = 0};
 
 
@@ -605,8 +605,6 @@ int process_and_respond_activate_firmware(struct cmd_interface *intf, struct cmd
 
 }
 
-#ifdef PLDM_FWUP_ENABLE_UA
-
 static uint32_t maximum_transfer_size = 512;
 
 int request_query_device_identifiers(uint8_t *request, size_t *payload_length)
@@ -1058,6 +1056,3 @@ int process_and_respond_request_firmware_data(struct cmd_interface *intf, struct
 
 }
 
-#endif
-
-*/
