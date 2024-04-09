@@ -125,7 +125,7 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     uint8_t device_eid = 0xFA;
     uint8_t device_addr = 0xFB;
 
-    const char *flash_disk_region = "/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/Cerberus-Dev/core/testing/pldm_fwup/utils/disk_flash_region_test.bin";
+    const char *flash_disk_region = "/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/Flash/flash_disk_region_test.bin";
     struct flash_virtual_disk fup;
     struct flash_virtual_disk_state flash_state_ptr;
     size_t fup_size = 32 * 32768;

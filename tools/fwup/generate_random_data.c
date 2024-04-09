@@ -22,7 +22,7 @@ int main() {
 
     // Open the file for writing
     file = fopen("/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/Flash/flash_disk_region_test.bin", "wb");
-    if (file == NULL) {Cerberus
+    if (file == NULL) {
         fprintf(stderr, "Failed to open file for writing\n");
         free(data);
         return 1;
