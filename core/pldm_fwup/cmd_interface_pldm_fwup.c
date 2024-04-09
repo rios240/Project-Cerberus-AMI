@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include "common/unused.h"
 #include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm_fwup.h"
@@ -127,7 +128,8 @@ static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, 
     struct cmd_interface_pldm_fwup *interface = (struct cmd_interface_pldm_fwup *)intf;
     int status;
 
-    UNUSED (interface);
+
+    UNUSED (interface);   
 
     switch(command) {
 #ifdef PLDM_FWUP_FD_ENABLE
@@ -137,8 +139,9 @@ static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, 
 #elif defined(PLDM_FWUP_UA_ENABLE)
 #endif
     default:
-        status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;       
+        status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;    
     }
+
     return status;
 }
 

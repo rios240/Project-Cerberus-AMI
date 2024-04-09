@@ -101,7 +101,7 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     uint8_t request[MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN];
 
     do {
-        size_t request_size = cmd_pldm.generate_request(&cmd_pldm.base, 11, request, MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN);
+        size_t request_size = cmd_pldm.generate_request(&cmd_pldm.base, 0x11, request, MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN);
 
         status = mctp_interface_issue_request(&mctp, &channel, 0xFB, 0xFA, request, request_size, request, MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN, 0);
         CuAssertIntEquals(test, 0, status);
