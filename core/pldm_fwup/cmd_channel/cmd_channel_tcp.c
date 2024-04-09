@@ -14,7 +14,7 @@
 #define PORT 5000
 
 void print_packet_data(const uint8_t *data, size_t len) {
-    printf("Packet data:");
+    printf("Packet bytes:");
     for (size_t i = 0; i < len; ++i) {
         printf(" %02x", data[i]);
     }
@@ -96,7 +96,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
-    printf("Received a packet. Bytes: \n");
+    printf("Received a packet.\n");
     print_packet_data(packet->data, packet->pkt_size);
 
     close(new_socket);
@@ -151,7 +151,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     //platform_mutex_unlock(&channel->lock);
 
-    printf("Sent a packet. Bytes: \n");
+    printf("Sent a packet.\n");
     print_packet_data(packet->data, packet->pkt_size);
     close(sock);
 
