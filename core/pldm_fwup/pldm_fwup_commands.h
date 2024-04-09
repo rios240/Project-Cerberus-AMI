@@ -13,7 +13,8 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_handler *multipart_transfer,
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response);
 #elif defined(PLDM_FWUP_UA_ENABLE)
-int pldm_fwup_process_get_package_data_request(const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request);
+int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
+    const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request);
 #endif
 
 

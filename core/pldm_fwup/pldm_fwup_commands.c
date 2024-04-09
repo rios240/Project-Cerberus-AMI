@@ -73,7 +73,8 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 
 #elif defined(PLDM_FWUP_UA_ENABLE)
 
-int pldm_fwup_process_get_package_data_request(const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
+int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
+    const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
 {
         struct pldm_msg *rq = (struct pldm_msg *)(&request->data[1]);
 
@@ -118,6 +119,7 @@ int pldm_fwup_process_get_package_data_request(const struct pldm_fwup_flash_map 
         }
 
         rsp_data.next_data_transfer_handle = rq_data.data_transfer_handle + FWUP_BASELINE_TRANSFER_SIZE;
+        multipart_transfer->transfer_flag = rsp_data.transfer_flag;
 
         rsp_data.completion_code = PLDM_SUCCESS;
         static uint8_t instance_id = 1;
