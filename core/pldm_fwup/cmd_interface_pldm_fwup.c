@@ -45,6 +45,7 @@ static int cmd_interface_pldm_fwup_process_pldm_protocol_message (
     }
 
     *command = header.command;
+    printf("Command %x\n", *command);
 
     return status;
 
@@ -56,6 +57,8 @@ static int cmd_interface_pldm_fwup_process_request (struct cmd_interface *intf,
     struct cmd_interface_pldm_fwup *interface = (struct cmd_interface_pldm_fwup *)intf;
     uint8_t command;
     int status;
+
+    printf("Here in process request\n");
 
     if (request == NULL) {
         return PLDM_ERROR_INVALID_DATA;
