@@ -278,11 +278,13 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		return cerberus_eid;
 	}
 
+
 	*tx_message = NULL;
 
 	status = mctp_base_protocol_interpret (rx_packet->data, rx_packet->pkt_size,
 		rx_packet->dest_addr, &source_addr, &som, &eom, &src_eid, &dest_eid, &payload, &payload_len,
 		&msg_tag, &packet_seq, &crc, &mctp->msg_type, &tag_owner);
+	
 
 	response_addr = source_addr;
 
@@ -318,6 +320,8 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 			return status;
 		}
 	}
+
+
 
 	if ((dest_eid != cerberus_eid) && (dest_eid != MCTP_BASE_PROTOCOL_NULL_EID)) {
 		return 0;
@@ -369,6 +373,8 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		}
 	}
 
+	
+
 	if ((payload_len + mctp->req_buffer.length) > MCTP_BASE_PROTOCOL_MAX_MESSAGE_BODY) {
 		return mctp_interface_generate_error_packet (mctp, cerberus_eid, tx_message,
 			CERBERUS_PROTOCOL_ERROR_MSG_OVERFLOW, payload_len + mctp->req_buffer.length,
@@ -380,6 +386,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 	mctp->req_buffer.length += payload_len;
 	mctp->packet_seq = (mctp->packet_seq + 1) % 4;
 	
+
 
 	if (eom) {
 		if (tag_owner == MCTP_BASE_PROTOCOL_TO_RESPONSE) {
@@ -395,6 +402,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 			}
 			else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
 				status = mctp->cmd_pldm->process_response (mctp->cmd_pldm, &mctp->req_buffer);
+
 				if (status != 0) {
 					debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_MCTP,
 						MCTP_LOGGING_MCTP_PLDM_RSP_FAIL, status, mctp->channel_id);
@@ -438,7 +446,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		}
 		else if (MCTP_BASE_PROTOCOL_IS_CONTROL_MSG (mctp->msg_type)) {
 			mctp->req_buffer.max_response = MCTP_BASE_PROTOCOL_MIN_TRANSMISSION_UNIT;
-
+	
 			status = mctp->cmd_mctp->process_request (mctp->cmd_mctp, &mctp->req_buffer);
 			if (status != 0) {
 				debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_MCTP,
@@ -451,6 +459,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
 			mctp->req_buffer.max_response = MCTP_BASE_PROTOCOL_MAX_PACKET_LEN;
 
+	
 			status = mctp->cmd_pldm->process_request (mctp->cmd_pldm, &mctp->req_buffer);
 			if (status != 0) {
 				debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_MCTP,
