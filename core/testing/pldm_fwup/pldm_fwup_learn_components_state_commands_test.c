@@ -143,8 +143,6 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     initialize_mctp_interface_test(&mctp, &cmd_pldm, &pldm_state_ptr, &channel, 
         &device_mgr, &cmd_cerberus, &flash_map, device_eid, device_addr, test);
 
-    uint8_t buffer[MCTP_BASE_PROTOCOL_MAX_MESSAGE_BODY];
-
     do {
         status = cmd_channel_receive_and_process(&channel, &mctp, 10000);
         CuAssertIntEquals(test, 0, status);
