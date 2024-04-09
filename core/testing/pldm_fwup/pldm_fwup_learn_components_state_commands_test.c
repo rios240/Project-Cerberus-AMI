@@ -51,7 +51,7 @@ void initialize_mctp_interface_test(struct mctp_interface *mctp, struct cmd_inte
     CuAssertIntEquals(test, 0, status);
     device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].eid = eid;
     device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].smbus_addr = id;
-    printf("Initializes the device manager needed by the mctp interface: struct device_manager")
+    printf("Initializes the device manager needed by the mctp interface: struct device_manager.\n");
 
 
     status = cmd_channel_init(channel, id);

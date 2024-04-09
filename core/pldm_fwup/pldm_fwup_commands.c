@@ -40,32 +40,32 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_handler *multipart_transfer,
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response)
 {
-    printf("FD proccessing UA GetPackageData command response.")
+    printf("FD proccessing UA GetPackageData command response.\n");
     struct pldm_msg *rsp = (struct pldm_msg *)(&response->data[1]);
 
     struct pldm_multipart_transfer_resp rsp_data;
-    struct variable_field portion_of_package_data;
+    struct variable_field portion_of_pkg_data;
 
     size_t response_payload_length = response->length - sizeof (struct pldm_msg_hdr) - 1;
-    int status = decode_get_package_data_resp(rsp, &rsp_data, &portion_of_package_data, response_payload_length);
+    int status = decode_get_package_data_resp(rsp, &rsp_data, &portion_of_pkg_data, response_payload_length);
     if (status != 0 || rsp_data.completion_code != PLDM_SUCCESS) {
         return status;
     }
 
     if (rsp_data.transfer_flag == PLDM_START || rsp_data.transfer_flag == PLDM_START_AND_END) {
         status = flash_map->package_data->write(flash_map->package_data, flash_map->package_data_addr, 
-        portion_of_package_data.ptr, portion_of_package_data.length);
+        portion_of_pkg_data.ptr, portion_of_pkg_data.length);
         if (rsp_data.transfer_flag == PLDM_START) {
             multipart_transfer->transfer_op_flag = PLDM_GET_NEXTPART;
         }
     } else {
         status = flash_map->package_data->write(flash_map->package_data, flash_map->package_data_addr + multipart_transfer->transfer_handle, 
-        portion_of_package_data.ptr, portion_of_package_data.length);
+        portion_of_pkg_data.ptr, portion_of_pkg_data.length);
         if (rsp_data.transfer_flag == PLDM_END) {
             multipart_transfer->transfer_op_flag = PLDM_GET_FIRSTPART;
         }
     }
-    printf("Writing %d of package data to flash.\n", portion_of_package_data.length);
+    printf("Writing %d of package data to flash.\n", portion_of_pkg_data.length);
 
     if (ROT_IS_ERROR(status)) {
         return status;
@@ -87,7 +87,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
 {
-        printf("UA proccessing and responding to FD GetPackageData command request.")
+        printf("UA proccessing and responding to FD GetPackageData command request.\n");
         struct pldm_msg *rq = (struct pldm_msg *)(&request->data[1]);
 
         struct get_fd_data_req rq_data = { 0 };
@@ -119,7 +119,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         }
 
         portion_of_pkg_data.ptr = (const uint8_t *)buffer;
-        printf("Reads %d of package data from flash to send.\n", portion_of_package_data.length);
+        printf("Reads %d of package data from flash to send.\n", portion_of_pkg_data.length);
 
         if (rq_data.transfer_operation_flag == PLDM_GET_FIRSTPART) {
             if (flash_map->firmware_update_package_size == FWUP_BASELINE_TRANSFER_SIZE) {
