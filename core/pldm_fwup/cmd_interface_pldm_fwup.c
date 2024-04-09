@@ -70,7 +70,7 @@ static int cmd_interface_pldm_fwup_process_request (struct cmd_interface *intf,
 #ifdef PLDM_FWUP_FD_ENABLE
 #elif defined(PLDM_FWUP_UA_ENABLE)
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_request(interface->flash_map, request);
+            status = pldm_fwup_process_get_package_data_request(&interface->multipart_transfer, interface->flash_map, request);
             break;
 #endif
         default:
@@ -199,7 +199,6 @@ int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct p
     intf->multipart_transfer.transfer_handle = 0;
     intf->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
 #elif defined(PLDM_FWUP_UA_ENABLE)
-    intf->multipart_transfer.next_transfer_handle = 0;
     intf->multipart_transfer.transfer_flag = PLDM_START;
 #endif
 

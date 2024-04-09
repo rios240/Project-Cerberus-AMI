@@ -39,7 +39,6 @@ struct pldm_fwup_multipart_transfer_handler {
     uint32_t transfer_handle;                                           /**< Handle that is used to identify a package data transfer. */
     uint8_t transfer_op_flag;                                           /**< Operation flag that indiates whether this is the start of the transfer. */
 #elif defined(PLDM_FWUP_UA_ENABLE)
-    uint32_t next_transfer_handle;                                      /**< Handle that is used to identify the next portion of the transfer. */
     uint8_t transfer_flag;                                              /**< Transfer flag that indiates what part of the transfer this response represents. */
 #endif
 };
