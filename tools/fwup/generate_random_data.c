@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h> // Include this header for uint8_t
 
 int main() {
     // Size of the data to generate (2MB)
     const size_t dataSize = 2 * 1024 * 1024; // 2MB
     FILE *file;
-    unsigned char *data;
+    uint8_t *data; // Use uint8_t instead of unsigned char
 
     // Allocate memory to hold the data
-    data = (unsigned char*) malloc(dataSize);
+    data = (uint8_t*) malloc(dataSize);
     if (data == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
         return 1;
@@ -20,8 +21,8 @@ int main() {
     }
 
     // Open the file for writing
-    file = fopen("/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/Cerberus-Dev/core/testing/pldm_fwup/utils/disk_flash_region_test.bin", "wb");
-    if (file == NULL) {
+    file = fopen("/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/Flash/flash_disk_region_test.bin", "wb");
+    if (file == NULL) {Cerberus
         fprintf(stderr, "Failed to open file for writing\n");
         free(data);
         return 1;
@@ -39,7 +40,7 @@ int main() {
     fclose(file);
     free(data);
 
-    printf("Successfully wrote 2MB of random data to 'random_binary_data.bin'\n");
+    printf("Successfully wrote 2MB of random data to 'disk_flash_region_test.bin'\n");
 
     return 0;
 }
