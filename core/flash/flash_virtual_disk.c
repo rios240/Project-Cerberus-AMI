@@ -208,12 +208,13 @@ int flash_virtual_disk_region_erase (const struct flash *virtual_flash)
  * Initialize the virtual flash device using disk for the data storage.
  *
  * @param virtual_flash The device instance to initialize.
+ * @param disk_region The region (file path) of the disk region to flash to.
  * @param state_ptr Variable context for the virtual flash interface.
  * @param size Maximum size of the disk region.
  *
  * @return 0 if the device was successfully initialized or an error code.
  */
-int flash_virtual_disk_init (struct flash_virtual_disk *virtual_flash,
+int flash_virtual_disk_init (struct flash_virtual_disk *virtual_flash, const char *disk_region,
 	struct flash_virtual_disk_state *state_ptr, size_t size)
 {
 	if (virtual_flash == NULL) {
@@ -234,6 +235,7 @@ int flash_virtual_disk_init (struct flash_virtual_disk *virtual_flash,
 
 	virtual_flash->size = size;
 	virtual_flash->state = state_ptr;
+	virtual_flash->disk_region = disk_region;
 
 	return flash_virtual_disk_init_state (virtual_flash);
 }
