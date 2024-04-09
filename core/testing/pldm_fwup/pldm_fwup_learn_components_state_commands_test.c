@@ -136,7 +136,7 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     CuAssertIntEquals(test, 0, status);
 
     flash_map.firmware_update_package = &fup.base;
-    flash_map.firmware_update_package_addr = 32 * 32768;
+    flash_map.firmware_update_package_addr = 0;
     flash_map.firmware_update_package_size = fup_size;
 
 
