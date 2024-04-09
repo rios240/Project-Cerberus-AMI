@@ -199,7 +199,6 @@ int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct p
     intf->multipart_transfer.transfer_handle = 0;
     intf->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
 #elif defined(PLDM_FWUP_UA_ENABLE)
-    intf->multipart_transfer.next_transfer_handle = 0;
     intf->multipart_transfer.transfer_flag = PLDM_START;
 #endif
 
