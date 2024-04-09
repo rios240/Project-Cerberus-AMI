@@ -18,6 +18,7 @@
 int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
     uint8_t *buffer, size_t buf_len)
 {
+    printf("FD generating GetPackageData command request.\n");
     struct pldm_multipart_transfer_req rq_data;
     rq_data.data_transfer_handle = multipart_transfer->transfer_handle;
     rq_data.transfer_operation_flag = multipart_transfer->transfer_op_flag;
@@ -39,6 +40,7 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_handler *multipart_transfer,
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response)
 {
+    printf("FD proccessing UA GetPackageData command response.")
     struct pldm_msg *rsp = (struct pldm_msg *)(&response->data[1]);
 
     struct pldm_multipart_transfer_resp rsp_data;
@@ -63,6 +65,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
             multipart_transfer->transfer_op_flag = PLDM_GET_FIRSTPART;
         }
     }
+    printf("Writing %d of package data to flash.\n", portion_of_package_data.length);
 
     if (ROT_IS_ERROR(status)) {
         return status;
@@ -84,6 +87,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
 {
+        printf("UA proccessing and responding to FD GetPackageData command request.")
         struct pldm_msg *rq = (struct pldm_msg *)(&request->data[1]);
 
         struct get_fd_data_req rq_data = { 0 };
@@ -115,6 +119,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         }
 
         portion_of_pkg_data.ptr = (const uint8_t *)buffer;
+        printf("Reads %d of package data from flash to send.\n", portion_of_package_data.length);
 
         if (rq_data.transfer_operation_flag == PLDM_GET_FIRSTPART) {
             if (flash_map->firmware_update_package_size == FWUP_BASELINE_TRANSFER_SIZE) {

@@ -33,6 +33,8 @@ static int cmd_interface_pldm_fwup_process_pldm_protocol_message (
 
     UNUSED (intf);
 
+    printf("Unpacking PLDM header to get command type.\n");
+
     message->crypto_timeout = false;
 
     if (message->length < sizeof (struct pldm_msg) + 1) {

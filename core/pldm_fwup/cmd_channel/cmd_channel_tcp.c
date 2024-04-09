@@ -96,7 +96,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
-    printf("Received Packet \n");
+    printf("Received a packet. Bytes: \n");
     print_packet_data(packet->data, packet->pkt_size);
 
     close(new_socket);
@@ -151,7 +151,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     //platform_mutex_unlock(&channel->lock);
 
-    printf("Sent Packet \n");
+    printf("Sent a packet. Bytes: \n");
     print_packet_data(packet->data, packet->pkt_size);
     close(sock);
 
