@@ -108,7 +108,7 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
 
         status = cmd_channel_receive_and_process(&channel, &mctp, 10000);
         CuAssertIntEquals(test, 0, status);
-    } while (cmd_pldm.multipart_transfer.transfer_op_flag != 0);
+    } while (cmd_pldm.multipart_transfer.transfer_op_flag != 1);
 
 }
 
