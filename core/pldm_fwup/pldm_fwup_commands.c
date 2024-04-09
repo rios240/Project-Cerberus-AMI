@@ -26,7 +26,7 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
 
     struct pldm_msg *request = (struct pldm_msg *)(buffer + 1);
     int status = encode_get_package_data_req(instance_id, request, &rq_data);
-    if (status !=0) {
+    if (status != 0) {
         return status;
     }
 
