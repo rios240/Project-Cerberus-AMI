@@ -87,11 +87,11 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
         return -1;
     }
     
-    platform_mutex_lock(&channel->lock);
+    //platform_mutex_lock(&channel->lock);
 
     size_t valread = read(new_socket, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN);
 
-    platform_mutex_unlock(&channel->lock);
+    //platform_mutex_unlock(&channel->lock);
 
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
@@ -145,11 +145,11 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         return -1;
     }
 
-    platform_mutex_lock(&channel->lock);
+    //platform_mutex_lock(&channel->lock);
 
     send(sock, packet->data, packet->pkt_size, 0);
 
-    platform_mutex_unlock(&channel->lock);
+    //platform_mutex_unlock(&channel->lock);
 
     printf("Sent Packet \n");
     print_packet_data(packet->data, packet->pkt_size);
