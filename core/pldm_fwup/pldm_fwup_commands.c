@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "pldm_fwup_commands.h"
+#include "status/rot_status.h"
 
 #ifdef PLDM_FWUP_FD_ENABLE
 #include "libpldm/firmware_update.h"
@@ -63,6 +64,13 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
         }
     }
 
+    if (ROT_IS_ERROR(status)) {
+        return status;
+    } else {
+        status = 0;
+    }
+
+
     multipart_transfer->transfer_handle = rsp_data.next_data_transfer_handle;
 
     response->length = 0;
@@ -100,6 +108,10 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         } else {
              status = flash_map->firmware_update_package->read(flash_map->firmware_update_package, 
                 flash_map->firmware_update_package_addr + rq_data.data_transfer_handle, buffer, sizeof (buffer));
+        }
+
+        if (status != 0) {
+            return status;
         }
 
         portion_of_pkg_data.ptr = (const uint8_t *)buffer;
