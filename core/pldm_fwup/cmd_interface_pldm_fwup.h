@@ -10,7 +10,7 @@
 #include "firmware/firmware_update_control.h"
 
 
-#define FWUP_BASELINE_TRANSFER_SIZE 32
+#define FWUP_BASELINE_TRANSFER_SIZE 256
 
 /**
  * The flash addresses and devices to use for different PLDM FWUP regions.

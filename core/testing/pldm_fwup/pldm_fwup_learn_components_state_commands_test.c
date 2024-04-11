@@ -83,7 +83,7 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     const char *flash_disk_region = "/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/Flash/flash_disk_region_test.bin";
     struct flash_virtual_disk package_data;
     struct flash_virtual_disk_state flash_state_ptr;
-    size_t package_data_size = 256;
+    size_t package_data_size = 1048576;
 
     TEST_START;
 
@@ -130,7 +130,7 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     const char *flash_disk_region = "/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/Flash/flash_disk_region_test.bin";
     struct flash_virtual_disk fup;
     struct flash_virtual_disk_state flash_state_ptr;
-    size_t fup_size = 256;
+    size_t fup_size = 1048576;
 
     TEST_START;
 
