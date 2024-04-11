@@ -45,26 +45,21 @@ void initialize_mctp_interface_test(struct mctp_interface *mctp, struct cmd_inte
 
     int status = cmd_interface_pldm_fwup_init(cmd_pldm, flash_map, state_ptr, &control, 0);
     CuAssertIntEquals(test, 0, status);
-    printf("Initializes custom cmd interface for handling PLDM command processing and generation: struct cmd_interface_pldm_fwup extends base struct cmd_interface.\n");
 
     status = device_manager_init(device_mgr, 1, 1, DEVICE_MANAGER_AC_ROT_MODE, DEVICE_MANAGER_MASTER_BUS_ROLE, 1000, 1000, 1000, 0, 0, 0, 0);
     CuAssertIntEquals(test, 0, status);
     device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].eid = eid;
     device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].smbus_addr = id;
-    printf("Initializes the device manager needed by the mctp interface: struct device_manager.\n");
 
 
     status = cmd_channel_init(channel, id);
     CuAssertIntEquals(test, 0, status);
     channel->receive_packet = receive_packet;
     channel->send_packet = send_packet;
-    printf("Initializes the command channel: struct cmd_channel.\n");
-    printf("cmd_channel.receive packet and cmd_channel.send_packaet implemented using TCP.\n");
 
     cmd_cerberus->generate_error_packet = generate_error_packet;
 
     status = mctp_interface_init(mctp, cmd_cerberus, &cmd_mctp, &cmd_spdm, &cmd_pldm->base, device_mgr);
-    printf("Initializes the mctp interface: struct mctp_interface uses struct cmd_interface_pldm_fwup.\n");
     CuAssertIntEquals(test, 0, status);
 }
 
@@ -92,7 +87,6 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
 
     TEST_START;
 
-    printf("Firmware Device (FD Client) sends GetPackageData request to UA, initiating the multipart transfer.\n");
 
     int status = flash_virtual_disk_init (&package_data, flash_disk_region, &flash_state_ptr, package_data_size);
     CuAssertIntEquals(test, 0, status);
@@ -101,7 +95,6 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     flash_map.package_data_addr = 0;
     flash_map.package_data_size = package_data_size;
 
-    printf("Initializes virtual flash using disk io: struct flash_virtual_disk extends the base struct flash interface.\n");
 
 
     initialize_mctp_interface_test(&mctp, &cmd_pldm, &pldm_state_ptr, &channel, 
@@ -141,8 +134,6 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
 
     TEST_START;
 
-    printf("User Agent (UA Server) receives and responds to FD GetPackageData request. Cycle repeats until all package data is sent.\n");
-
 
     int status = flash_virtual_disk_init (&fup, flash_disk_region, &flash_state_ptr, fup_size);
     CuAssertIntEquals(test, 0, status);
@@ -151,8 +142,6 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     flash_map.firmware_update_package_addr = 0;
     flash_map.firmware_update_package_size = fup_size;
 
-    printf("Initializes virtual flash using disk io: struct flash_virtual_disk extends the base struct flash interface.\n");
-    printf("Total test package data is 1MB.\n");
 
     initialize_mctp_interface_test(&mctp, &cmd_pldm, &pldm_state_ptr, &channel, 
         &device_mgr, &cmd_cerberus, &flash_map, device_eid, device_addr, test);
@@ -160,7 +149,7 @@ static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTe
     do {
         status = cmd_channel_receive_and_process(&channel, &mctp, 10000);
         CuAssertIntEquals(test, 0, status);
-    } while (cmd_pldm.multipart_transfer.transfer_flag != 0x04 || cmd_pldm.multipart_transfer.transfer_flag != 0x05);
+    } while (cmd_pldm.multipart_transfer.transfer_flag != 0x04 && cmd_pldm.multipart_transfer.transfer_flag != 0x05);
 
 }
 #endif
