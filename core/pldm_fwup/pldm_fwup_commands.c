@@ -128,7 +128,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
                 rsp_data.transfer_flag = PLDM_START;
             }
         } else {
-            if (rq_data.data_transfer_handle >= flash_map->firmware_update_package_size) {
+            if (rq_data.data_transfer_handle + FWUP_BASELINE_TRANSFER_SIZE >= flash_map->firmware_update_package_size) {
                 rsp_data.transfer_flag = PLDM_END;
             } else {
                 rsp_data.transfer_flag = PLDM_MIDDLE;
