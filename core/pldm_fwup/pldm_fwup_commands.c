@@ -122,13 +122,13 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         printf("Reads %d of package data from flash to send.\n", portion_of_pkg_data.length);
 
         if (rq_data.transfer_operation_flag == PLDM_GET_FIRSTPART) {
-            if (flash_map->firmware_update_package_size == FWUP_BASELINE_TRANSFER_SIZE) {
+            if (flash_map->firmware_update_package_size <= FWUP_BASELINE_TRANSFER_SIZE) {
                 rsp_data.transfer_flag = PLDM_START_AND_END;
             } else {
                 rsp_data.transfer_flag = PLDM_START;
             }
         } else {
-            if (rq_data.data_transfer_handle == flash_map->firmware_update_package_size) {
+            if (rq_data.data_transfer_handle >= flash_map->firmware_update_package_size) {
                 rsp_data.transfer_flag = PLDM_END;
             } else {
                 rsp_data.transfer_flag = PLDM_MIDDLE;
