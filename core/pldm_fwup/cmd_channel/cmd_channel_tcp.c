@@ -27,6 +27,19 @@ int set_socket_non_blocking(int socket_fd) {
     return fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
 }
 
+
+
+/**
+* Receive a command packet from a communication channel.  This call will block until a packet
+* has been received or the timeout has expired.
+*
+* @param channel The channel to receive a packet from.
+* @param packet Output for the packet data being received.
+* @param ms_timeout The amount of time to wait for a received packet, in milliseconds.  A
+* negative value will wait forever, and a value of 0 will return immediately.
+*
+* @return 0 if a packet was successfully received or an error code.
+*/
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
     int server_fd, new_socket;
     struct sockaddr_in address;
@@ -105,6 +118,19 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     return 0;
 }
 
+
+/**
+* Send a command packet over a communication channel.
+*
+* Returning from this function does not guarantee the packet has been fully transmitted.
+* Depending on the channel implementation, it is possible the packet is still in flight with
+* the data buffered in the channel driver.
+*
+* @param channel The channel to send a packet on.
+* @param packet The packet to send.
+*
+* @return 0 if the the packet was successfully sent or an error code.
+*/
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     struct sockaddr_in serv_addr;
     int sock = 0;
