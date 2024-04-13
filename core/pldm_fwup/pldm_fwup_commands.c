@@ -14,7 +14,15 @@
 
 
 #ifdef PLDM_FWUP_FD_ENABLE
-
+/**
+* Generate a GetPackageData request.
+*
+* @param multipart_transfer Context for a multipart transfer.
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return 0 if the request was successfully generated or an error code.
+*/
 int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
     uint8_t *buffer, size_t buf_len)
 {
@@ -36,6 +44,15 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
     
 }
 
+/**
+* Process a GetPackageData response.
+*
+* @param multipart_transfer Context for a multipart transfer.
+* @param flash_map The flash_map for a PLDM FWUP.
+* @param response The response data to process.
+*
+* @return 0 if the response was successfully processed or an error code.
+*/
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_handler *multipart_transfer,
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response)
 {
@@ -80,7 +97,15 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 
 
 #elif defined(PLDM_FWUP_UA_ENABLE)
-
+/**
+* Process a GetPackageData request and generate a response.
+*
+* @param multipart_transfer Context for a multipart transfer.
+* @param flash_map The flash_map for a PLDM FWUP.
+* @param request The request data to process.  This will be updated to contain a response.
+*
+* @return 0 if the request was successfully processed and a request was generated or an error code.
+*/
 int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
 {
