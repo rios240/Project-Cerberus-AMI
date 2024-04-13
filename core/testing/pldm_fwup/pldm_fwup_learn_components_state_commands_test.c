@@ -43,7 +43,7 @@ void initialize_mctp_interface_test(struct mctp_interface *mctp, struct cmd_inte
     struct cmd_interface cmd_spdm;
     struct cmd_interface cmd_mctp;
 
-    int status = cmd_interface_pldm_fwup_init(cmd_pldm, flash_map, state_ptr, &control, 0);
+    int status = cmd_interface_pldm_fwup_init(cmd_pldm, flash_map, state_ptr, &control);
     CuAssertIntEquals(test, 0, status);
 
     status = device_manager_init(device_mgr, 1, 1, DEVICE_MANAGER_AC_ROT_MODE, DEVICE_MANAGER_MASTER_BUS_ROLE, 1000, 1000, 1000, 0, 0, 0, 0);
