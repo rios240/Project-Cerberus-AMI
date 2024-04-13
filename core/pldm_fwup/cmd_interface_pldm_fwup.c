@@ -53,6 +53,15 @@ static int cmd_interface_pldm_fwup_process_pldm_protocol_message (
 
 }
 
+/**
+* Process a PLDM FWUP received request.
+*
+* @param intf The command interface that will process the request.
+* @param request The request data to process.  This will be updated to contain a response, if
+* necessary.
+*
+* @return 0 if the request was successfully processed or an error code.
+*/
 static int cmd_interface_pldm_fwup_process_request (struct cmd_interface *intf,
     struct cmd_interface_msg *request)
 {
@@ -83,7 +92,14 @@ static int cmd_interface_pldm_fwup_process_request (struct cmd_interface *intf,
     return status;
 }
 
-
+/**
+* Process a PLDM FWUP received response.
+*
+* @param intf The command interface that will process the response.
+* @param response The response data to process.
+*
+* @return 0 if the response was successfully processed or an error code.
+*/
 static int cmd_interface_pldm_fwup_process_response (struct cmd_interface *intf,
     struct cmd_interface_msg *response)
 {
@@ -114,6 +130,19 @@ static int cmd_interface_pldm_fwup_process_response (struct cmd_interface *intf,
     return status;
 }
 
+/**
+* Generate a message to indicate an error condition.
+*
+* Unused by cmd_interface_pldm_fwup
+*
+* @param intf The command interface to utilize.
+* @param request The request container to utilize.
+* @param error_code Identifier for the error.
+* @param error_data Data for the error condition.
+* @param cmd_set Command set to respond on.
+*
+* @return PLDM_ERROR_INVALID_DATA
+*/
 static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *intf,
 	struct cmd_interface_msg *request, uint8_t error_code, uint32_t error_data, uint8_t cmd_set)
 {
@@ -126,6 +155,18 @@ static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *
     return PLDM_ERROR_INVALID_DATA;
 }
 
+/**
+* Generate a PLDM FWUP request message.
+*
+* To be used only by mctp_interface_issue_request
+*
+* @param intf The command interface to utilize.
+* @param command The PLDM FWUP command.
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length. 
+*
+* @return 0 if the request was successfully generated or an error code.
+*/
 static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len) {
     struct cmd_interface_pldm_fwup *interface = (struct cmd_interface_pldm_fwup *)intf;
     int status;
@@ -148,6 +189,7 @@ static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, 
 }
 
 
+#ifdef PLDM_FWUP_FD_ENABLE
 /**
  * Initialize only the variable state for the cmd interface.  The rest of the cmd
  * interface instance is assumed to have already been initialized.
@@ -155,11 +197,10 @@ static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, 
  * This would generally be used with a statically initialized instance.
  *
  * @param state The the state to initialize.
- * @param init_state The initial PLDM FWUP state.
  *
  * @return 0 if the state was successfully initialized or an error code.
  */
-int cmd_interface_pldm_fwup_init_state(struct pldm_fwup_state *state, uint8_t init_state)
+int cmd_interface_pldm_fwup_init_state(struct pldm_fwup_state *state)
 {
 
     if ((state == NULL)) {
@@ -168,11 +209,11 @@ int cmd_interface_pldm_fwup_init_state(struct pldm_fwup_state *state, uint8_t in
 
     memset (state, 0, sizeof (struct pldm_fwup_state));
 
-    state->state = init_state;
+    state->state = PLDM_FD_STATE_IDLE;
 
     return 0;
 }
-
+#endif
 
 /**
  * Initialize PLDM FWUP command interface instance
@@ -186,7 +227,7 @@ int cmd_interface_pldm_fwup_init_state(struct pldm_fwup_state *state, uint8_t in
  * @return Initialization status, 0 if success or an error code.
  */
 int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct pldm_fwup_flash_map *flash_map,
-    struct pldm_fwup_state *state_ptr, const struct firmware_update_control *control, uint8_t init_state)
+    struct pldm_fwup_state *state_ptr, const struct firmware_update_control *control)
 {
 
     if ((intf == NULL) || flash_map == NULL || control == NULL) {

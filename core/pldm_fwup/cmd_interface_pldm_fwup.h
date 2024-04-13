@@ -80,7 +80,7 @@ struct cmd_interface_pldm_fwup {
 
 
 int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct pldm_fwup_flash_map *flash_map,
-    struct pldm_fwup_state *state_ptr, const struct firmware_update_control *control, uint8_t init_state);
+    struct pldm_fwup_state *state_ptr, const struct firmware_update_control *control);
 void cmd_interface_pldm_fwup_deinit (struct cmd_interface_pldm_fwup *intf);
 
 
