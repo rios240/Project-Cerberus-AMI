@@ -4,7 +4,8 @@
 
 
 
-#include "utils.h"
+
+
 #include "fup_interface.h"
 #include "common/unused.h"
 
@@ -15,10 +16,11 @@ void fill_random_bytes(uint8_t *buffer, size_t length) {
     }
 }
 
+
 #ifdef PLDM_FWUP_UA_ENABLE
 
 #include "firmware_update.h"
-
+#include "utils.h"
 /**
  * Define a complete Firmware Update Package for testing and write to a virtual flash. This should only be used in a testing environment.
  * In producion the Firmware Update Package will be obtianed by the User Agent from another source.

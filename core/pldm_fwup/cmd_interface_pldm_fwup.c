@@ -256,7 +256,7 @@ int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct p
     intf->base.generate_error_packet = cmd_interface_pldm_fwup_generate_error_packet;
 
 #ifdef PLDM_FWUP_FD_ENABLE
-    return cmd_interface_pldm_fwup_init_state(intf->state, init_state);
+    return cmd_interface_pldm_fwup_init_state(intf->state);
 #elif defined(PLDM_FWUP_UA_ENABLE)
     return 0;
 #endif
