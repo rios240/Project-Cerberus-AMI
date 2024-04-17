@@ -3,7 +3,7 @@
 #include <string.h>
 
 
-#include "firmware_update.h"
+
 #include "utils.h"
 #include "fup_interface.h"
 #include "common/unused.h"
@@ -14,6 +14,10 @@ void fill_random_bytes(uint8_t *buffer, size_t length) {
         buffer[i] = (uint8_t)rand();
     }
 }
+
+#ifdef PLDM_FWUP_UA_ENABLE
+
+#include "firmware_update.h"
 
 /**
  * Define a complete Firmware Update Package for testing and write to a virtual flash. This should only be used in a testing environment.
@@ -256,3 +260,5 @@ int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint3
     return 0;
 
 }
+
+#endif
