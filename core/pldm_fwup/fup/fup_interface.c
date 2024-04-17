@@ -26,6 +26,8 @@ void fill_random_bytes(uint8_t *buffer, size_t length) {
  * In producion the Firmware Update Package will be obtianed by the User Agent from another source.
  * 
  * @param flash The virtual disk flash device to write the Firmware Update Package to.
+ * @param fup_size The size of the Firmware Update Package flash region.
+ * @param fup_base_addr The base address of the Firmware Update Package.
  * 
  * @return 0 if success otherwise 1
 */
