@@ -64,13 +64,13 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
     }
 
     if (rsp_data.transfer_flag == PLDM_START || rsp_data.transfer_flag == PLDM_START_AND_END) {
-        status = flash_map->package_data->write(flash_map->package_data, flash_map->package_data_addr, 
+        status = flash_map->pkg_data->write(flash_map->pkg_data, flash_map->pkg_data_addr, 
         portion_of_pkg_data.ptr, portion_of_pkg_data.length);
         if (rsp_data.transfer_flag == PLDM_START) {
             multipart_transfer->transfer_op_flag = PLDM_GET_NEXTPART;
         }
     } else {
-        status = flash_map->package_data->write(flash_map->package_data, flash_map->package_data_addr + multipart_transfer->transfer_handle, 
+        status = flash_map->pkg_data->write(flash_map->pkg_data, flash_map->pkg_data_addr + multipart_transfer->transfer_handle, 
         portion_of_pkg_data.ptr, portion_of_pkg_data.length);
         if (rsp_data.transfer_flag == PLDM_END) {
             multipart_transfer->transfer_op_flag = PLDM_GET_FIRSTPART;
