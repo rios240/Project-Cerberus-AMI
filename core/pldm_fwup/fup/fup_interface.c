@@ -4,7 +4,6 @@
 #include "fup_interface.h"
 #include "common/unused.h"
 
-#define PLDM_FWUP_UA_ENABLE
 
 
 void fill_random_bytes(uint8_t *buffer, size_t length) {

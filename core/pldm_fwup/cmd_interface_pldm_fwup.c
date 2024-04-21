@@ -156,18 +156,16 @@ static int cmd_interface_pldm_fwup_generate_error_packet (struct cmd_interface *
 }
 
 /**
-* Generate a PLDM FWUP request message.
-*
-* To be used only by mctp_interface_issue_request
-*
-* @param intf The command interface to utilize.
-* @param command The PLDM FWUP command.
-* @param buffer The buffer to contain the request data.
-* @param buf_len The buffer length. 
-*
-* @return 0 if the request was successfully generated or an error code.
+* Generate PLDM FWUP request for use in mctp_interface_issue_request
+* 
+* @param intf The PLDM FWUP control command interface instance
+* @param command The PLDM FWUP command
+* @param buffer The buffer to store the PLDM message
+* @param buf_len The length of the buffer
+* 
+* @return size of the request or pldm_completion_codes
 */
-static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len) {
+int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len) {
     struct cmd_interface_pldm_fwup *interface = (struct cmd_interface_pldm_fwup *)intf;
     int status;
 
@@ -189,7 +187,6 @@ static int cmd_interface_pldm_fwup_generate_request(struct cmd_interface *intf, 
 }
 
 
-#ifdef PLDM_FWUP_FD_ENABLE
 /**
  * Initialize only the variable state for the cmd interface.  The rest of the cmd
  * interface instance is assumed to have already been initialized.
@@ -209,25 +206,55 @@ int cmd_interface_pldm_fwup_init_state(struct pldm_fwup_state *state)
 
     memset (state, 0, sizeof (struct pldm_fwup_state));
 
-    state->state = PLDM_FD_STATE_IDLE;
+#ifdef PLDM_FWUP_FD_ENABLE
+    state->fwup_state = PLDM_FD_STATE_IDLE;
+#endif
 
     return 0;
 }
+
+/**
+ * Initialize only the multipart transfer for the cmd_interface. 
+ * The rest of the cmd interface instance is assumed to have already been initialized.
+ * 
+ * This would generally be used with a statically initialized instance.
+ * 
+ * @param multipart_transfer The multipart transfer to initialized
+ * 
+ * @return 0 if the multipart transfer was successfully initialized or an error code.
+*/
+int cmd_interface_pldm_fwup_init_multipart_transfer(struct pldm_fwup_multipart_transfer_context *multipart_transfer)
+{
+    if ((multipart_transfer == NULL)) {
+        return PLDM_ERROR_INVALID_DATA;
+    }
+
+    memset (multipart_transfer, 0, sizeof (struct pldm_fwup_multipart_transfer_context));
+
+#ifdef PLDM_FWUP_FD_ENABLE
+    multipart_transfer->transfer_op_flag = PLDM_GET_FIRSTPART;
+#elif defined(PLDM_FWUP_UA_ENABLE)
+    multipart_transfer->transfer_flag = PLDM_START;
 #endif
+
+    return 0;
+}
+
 
 /**
  * Initialize PLDM FWUP command interface instance
  *
  * @param intf The PLDM FWUP control command interface instance to initialize
  * @param flash_map The flash address mapping to use for PLDM FWUP
- * @param state Variable context for the cmd interface.  This must be uninitialized.
+ * @param state_ptr Variable context for the cmd interface.
  * @param control The FW update control instance to use.
- * @param init_state The initial state
+ * @param multipart_transfer_ptr Variable context for a multipart transfer.
  *
  * @return Initialization status, 0 if success or an error code.
  */
-int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct pldm_fwup_flash_map *flash_map,
-    struct pldm_fwup_state *state_ptr, const struct firmware_update_control *control)
+int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, 
+    struct pldm_fwup_flash_map *flash_map, struct pldm_fwup_state *state_ptr, 
+    const struct firmware_update_control *control, struct pldm_fwup_multipart_transfer_context *multipart_transfer_ptr)
 {
 
     if ((intf == NULL) || flash_map == NULL || control == NULL) {
@@ -237,29 +264,23 @@ int cmd_interface_pldm_fwup_init (struct cmd_interface_pldm_fwup *intf, struct p
     memset (intf, 0, sizeof (struct cmd_interface_pldm_fwup));
 
     intf->flash_map = flash_map;
-    intf->control = control;
 
 #ifdef PLDM_FWUP_FD_ENABLE
-    intf->state = state_ptr;
-
-    intf->multipart_transfer.transfer_handle = 0;
-    intf->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
-#elif defined(PLDM_FWUP_UA_ENABLE)
-    intf->multipart_transfer.transfer_flag = PLDM_START;
+    intf->control = control;
 #endif
 
     intf->base.process_request = cmd_interface_pldm_fwup_process_request;
 #ifdef CMD_ENABLE_ISSUE_REQUEST
     intf->base.process_response = cmd_interface_pldm_fwup_process_response;
-    intf->generate_request = cmd_interface_pldm_fwup_generate_request;
 #endif
     intf->base.generate_error_packet = cmd_interface_pldm_fwup_generate_error_packet;
 
-#ifdef PLDM_FWUP_FD_ENABLE
+    int status = cmd_interface_pldm_fwup_init_multipart_transfer(intf->multipart_transfer);
+    if (status != 0) {
+        return status;
+    }
+
     return cmd_interface_pldm_fwup_init_state(intf->state);
-#elif defined(PLDM_FWUP_UA_ENABLE)
-    return 0;
-#endif
 
 }
 

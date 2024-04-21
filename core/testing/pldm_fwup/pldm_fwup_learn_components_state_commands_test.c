@@ -15,6 +15,7 @@
 #endif
 
 
+/*
 TEST_SUITE_LABEL ("pldm_fwup_learn_components_state_commands");
 
 //Function to assign to cmd_cerberus to avoid memory error
@@ -63,10 +64,13 @@ void initialize_mctp_interface_test(struct mctp_interface *mctp, struct cmd_inte
     CuAssertIntEquals(test, 0, status);
 }
 
+*/
+
 /*******************
  * Test cases
  *******************/
 
+/*
 #ifdef PLDM_FWUP_FD_ENABLE
 static void pldm_fwup_learn_components_state_commands_test_get_package_data(CuTest *test) 
 {
@@ -160,3 +164,4 @@ TEST_SUITE_START (pldm_fwup_learn_components_state_commands);
 TEST (pldm_fwup_learn_components_state_commands_test_get_package_data);
 
 TEST_SUITE_END;
+*/

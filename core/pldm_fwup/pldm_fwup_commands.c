@@ -4,16 +4,12 @@
 #include "pldm_fwup_commands.h"
 #include "status/rot_status.h"
 
+//#define PLDM_FWUP_UA_ENABLE
+
 #ifdef PLDM_FWUP_FD_ENABLE
 #include "libpldm/firmware_update.h"
 #include "libpldm/utils.h"
-#elif defined(PLDM_FWUP_UA_ENABLE)
-#include "firmware_update.h"
-#include "utils.h"
-#endif
 
-
-#ifdef PLDM_FWUP_FD_ENABLE
 /**
 * Generate a GetPackageData request.
 *
@@ -23,7 +19,7 @@
 *
 * @return 0 if the request was successfully generated or an error code.
 */
-int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
+int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_transfer_context *multipart_transfer, 
     uint8_t *buffer, size_t buf_len)
 {
     struct pldm_multipart_transfer_req rq_data;
@@ -53,7 +49,7 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
 *
 * @return 0 if the response was successfully processed or an error code.
 */
-int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_handler *multipart_transfer,
+int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_context *multipart_transfer,
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response)
 {
     struct pldm_msg *rsp = (struct pldm_msg *)(&response->data[1]);
@@ -95,8 +91,11 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 
 }
 
-
 #elif defined(PLDM_FWUP_UA_ENABLE)
+
+#include "firmware_update.h"
+#include "utils.h"
+
 /**
 * Process a GetPackageData request and generate a response.
 *
@@ -106,7 +105,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 *
 * @return 0 if the request was successfully processed and a request was generated or an error code.
 */
-int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_handler *multipart_transfer, 
+int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_context *multipart_transfer, 
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
 {
         struct pldm_msg *rq = (struct pldm_msg *)(&request->data[1]);
@@ -128,11 +127,11 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         memset(buffer, 0x00, FWUP_BASELINE_TRANSFER_SIZE);
 
         if (rq_data.transfer_operation_flag == PLDM_GET_FIRSTPART) {
-            status = flash_map->firmware_update_package->read(flash_map->firmware_update_package, 
-                flash_map->firmware_update_package_addr, buffer, sizeof (buffer));
+            status = flash_map->fup->read(flash_map->fup, 
+                flash_map->fup_addr, buffer, sizeof (buffer));
         } else {
-             status = flash_map->firmware_update_package->read(flash_map->firmware_update_package, 
-                flash_map->firmware_update_package_addr + rq_data.data_transfer_handle, buffer, sizeof (buffer));
+             status = flash_map->fup->read(flash_map->fup, 
+                flash_map->fup_addr + rq_data.data_transfer_handle, buffer, sizeof (buffer));
         }
 
         if (status != 0) {
@@ -142,13 +141,13 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         portion_of_pkg_data.ptr = (const uint8_t *)buffer;
 
         if (rq_data.transfer_operation_flag == PLDM_GET_FIRSTPART) {
-            if (flash_map->firmware_update_package_size <= FWUP_BASELINE_TRANSFER_SIZE) {
+            if (flash_map->fup_size <= FWUP_BASELINE_TRANSFER_SIZE) {
                 rsp_data.transfer_flag = PLDM_START_AND_END;
             } else {
                 rsp_data.transfer_flag = PLDM_START;
             }
         } else {
-            if (rq_data.data_transfer_handle + FWUP_BASELINE_TRANSFER_SIZE >= flash_map->firmware_update_package_size) {
+            if (rq_data.data_transfer_handle + FWUP_BASELINE_TRANSFER_SIZE >= flash_map->fup_size) {
                 rsp_data.transfer_flag = PLDM_END;
             } else {
                 rsp_data.transfer_flag = PLDM_MIDDLE;
@@ -172,5 +171,35 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         return status;
 
 }
+
+/**
+* Generate a QueryDeviceIdentifiers request.
+*
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return 0 if the request was successfully generated or an error code.
+*/
+int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t buf_len)
+{
+    static uint8_t instance_id = 1;
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    struct pldm_msg *request = (struct pldm_msg *)(buffer + 1);
+
+    int status = encode_query_device_identifiers_req(instance_id, request, 0);
+
+    instance_id += 1;
+    return sizeof (struct pldm_msg_hdr) + 1;
+}
+
+/**
+ * Process a QueryDeviceIdentifiers response.
+ * 
+ * 
+*/
+
+
+
 
 #endif
