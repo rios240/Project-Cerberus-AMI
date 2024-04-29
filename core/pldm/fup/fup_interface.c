@@ -5,50 +5,13 @@
 #include "common/unused.h"
 
 
+#ifdef PLDM_FWUP_UA_ENABLE
 
 void fill_random_bytes(uint8_t *buffer, size_t length) {
     for (size_t i = 0; i < length; i++) {
         buffer[i] = (uint8_t)rand();
     }
 }
-
-
-#ifdef PLDM_FWUP_UA_ENABLE
-
-#include "firmware_update.h"
-#include "utils.h"
-
-/**
- * Get Firmware Update Package header information.
- * 
- * @param fup The flash device containing the Firmware Update Package.
- * @param fup_base_addr The base address of the Firmware Update Package in flash.
- * @param pkg_hdr_info Container for the package header information.
- * 
-*/
-void fup_interface_get_fup_header_info(const struct flash *fup, uint32_t fup_base_addr, struct package_header_information *pkg_hdr_info)
-{
-    uint32_t offset = fup_base_addr;
-    fup->read(fup, offset, (uint8_t *) pkg_hdr_info, sizeof (pkg_hdr_info));
-    return 0;
-}
-
-/**
- * Get Firmware Update Package version
- * 
- * @param fup The flash device containing the Firmware Update Package.
- * @param fup_base_addr The base address of the Firmware Update Package in flash.
- * @param pkg_version_str Container for the package version.
- * 
-*/
-void fup_interface_get_fup_package_version(const struct flash *fup, uint32_t fup_base_addr, const char *pkg_version_str, size_t pkg_version_str_len)
-{
-    uint32_t offset = fup_base_addr + sizeof (struct package_header_information);
-    fup->read(fup, offset, (uint8_t *) pkg_version_str, pkg_version_str_len);
-    return 0;
-}
-
-
 
 /**
  * Define a complete Firmware Update Package for testing and write to a virtual flash. 

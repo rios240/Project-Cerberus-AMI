@@ -4,9 +4,9 @@
 #include "pldm_fwup_commands.h"
 #include "status/rot_status.h"
 
-//#define PLDM_FWUP_UA_ENABLE
+#ifdef PASS
 
-#ifdef PLDM_FWUP_FD_ENABLE
+//#define PLDM_FWUP_UA_ENABLE
 #include "libpldm/firmware_update.h"
 #include "libpldm/utils.h"
 
@@ -91,7 +91,6 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 
 }
 
-#elif defined(PLDM_FWUP_UA_ENABLE)
 
 #include "firmware_update.h"
 #include "utils.h"
