@@ -2,18 +2,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "pldm_fwup/cmd_channel/cmd_channel_tcp.h"
+#include "pldm/cmd_channel/cmd_channel_tcp.h"
 #include "cmd_interface/device_manager.h"
 #include "pldm_fwup_interface_dep.h"
 
 
-#ifdef PLDM_FWUP_FD_ENABLE
-#include "libpldm/firmware_update.h"
-#include "libpldm/utils.h"
-#elif PLDM_FWUP_UA_ENABLE
-#include "firmware_update.h"
-#include "utils.h"
-#endif
+
 
 
 /*
