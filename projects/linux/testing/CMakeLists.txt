@@ -22,9 +22,6 @@ set(TARGET_NAME ${PROJECT_NAME})
 include (${CMAKE_CURRENT_LIST_DIR}/../../../Cerberus.cmake)
 include(Mbedtls)
 include(AllFeatures)
-if (PLDM_FWUP_UA_ENABLE)
-	include(Libpldm)
-endif()
 
 set(CORE_DIR ${CERBERUS_ROOT}/core)
 set(TESTING_DIR ${CERBERUS_ROOT}/testing)
@@ -41,48 +38,26 @@ file(GLOB_RECURSE TESTING_SOURCES "${TESTING_DIR}/*.c")
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-if (PLDM_FWUP_UA_ENABLE)
-	add_executable(
-		${TARGET_NAME}
-		${MBEDTLS_SOURCES}
-		${CORE_SOURCES}
-		${TESTING_SOURCES}
-		${PLATFORM_SOURCES}
-		${LIBPLDM_SOURCES}
-		)
-else()
-	add_executable(
-		${TARGET_NAME}
-		${MBEDTLS_SOURCES}
-		${CORE_SOURCES}
-		${TESTING_SOURCES}
-		${PLATFORM_SOURCES}
-		)
-endif()
 
-if (PLDM_FWUP_FD_ENABLE)
-	target_include_directories(
-		${TARGET_NAME}
-		PRIVATE
-			${MBEDTLS_INCLUDES}
-			${CORE_INCLUDES}
-			${PLATFORM_INCLUDES}
-			${TESTING_DIR}
-			${PLATFORM_INCLUDES}/testing/config
-			${CERBERUS_ROOT}/external/openbmc-libpldm/include
-		)
-elseif (PLDM_FWUP_UA_ENABLE)
-	target_include_directories(
-		${TARGET_NAME}
-		PRIVATE
-			${MBEDTLS_INCLUDES}
-			${CORE_INCLUDES}
-			${PLATFORM_INCLUDES}
-			${TESTING_DIR}
-			${PLATFORM_INCLUDES}/testing/config
-			${LIBPLDM_INCLUDES}
-		)	
-endif()
+add_executable(
+	${TARGET_NAME}
+	${MBEDTLS_SOURCES}
+	${CORE_SOURCES}
+	${TESTING_SOURCES}
+	${PLATFORM_SOURCES}
+	)
+
+
+target_include_directories(
+	${TARGET_NAME}
+	PRIVATE
+		${MBEDTLS_INCLUDES}
+		${CORE_INCLUDES}
+		${PLATFORM_INCLUDES}
+		${TESTING_DIR}
+		${PLATFORM_INCLUDES}/testing/config
+		${CERBERUS_ROOT}/external/openbmc-libpldm/include
+	)
 
 target_compile_options(
 	${TARGET_NAME}
@@ -102,24 +77,15 @@ target_compile_definitions(
 		${CERBERUS_ALL_FEATURES}
 	)
 
-if (PLDM_FWUP_FD_ENABLE)
-	target_link_libraries(
-		${TARGET_NAME}
-		PRIVATE
-			Threads::Threads
-			OpenSSL::Crypto
-			m
-			${CERBERUS_ROOT}/external/openbmc-libpldm/builddir/src/libpldm.so
-		)
-else()
-	target_link_libraries(
-		${TARGET_NAME}
-		PRIVATE
-			Threads::Threads
-			OpenSSL::Crypto
-			m
-		)
-endif()
+
+target_link_libraries(
+	${TARGET_NAME}
+	PRIVATE
+		Threads::Threads
+		OpenSSL::Crypto
+		m
+		${CERBERUS_ROOT}/external/openbmc-libpldm/builddir/src/libpldm.so
+)
 
 #include(Coverage)
 #SETUP_TARGET_FOR_COVERAGE(
