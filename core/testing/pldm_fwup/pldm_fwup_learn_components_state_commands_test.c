@@ -2,8 +2,8 @@
 #include <string.h>
 #include "testing.h"
 #include "common/unused.h"
-#include "pldm_fwup/cmd_interface_pldm_fwup.h"
-#include "pldm_fwup/cmd_channel/cmd_channel_tcp.h"
+#include "pldm/cmd_interface_pldm.h"
+#include "pldm/cmd_channel/cmd_channel_tcp.h"
 #include "mctp/mctp_interface.h"
 #include "flash/flash_virtual_disk.h"
 #include "cmd_interface/cmd_channel.h"

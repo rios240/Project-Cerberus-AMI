@@ -4,13 +4,6 @@
 #include "mctp/mctp_interface.h"
 #include "cmd_interface/cmd_channel.h"
 
-#ifdef PLDM_FWUP_FD_ENABLE
-#include "libpldm/pldm_types.h"
-#elif PLDM_FWUP_UA_ENABLE
-#include "pldm_types.h"
-#endif
-
-
 /*
 #define PLDM_MAX_PAYLOAD_LENGTH 512
 

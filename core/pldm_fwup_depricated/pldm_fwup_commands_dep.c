@@ -5,15 +5,6 @@
 #include "pldm_fwup_commands_dep.h"
 #include "pldm_fwup_interface_dep.h"
 
-
-#ifdef PLDM_FWUP_FD_ENABLE
-#include "libpldm/firmware_update.h"
-#include "libpldm/utils.h"
-#elif PLDM_FWUP_UA_ENABLE
-#include "firmware_update.h"
-#include "utils.h"
-#endif
-
 /*
 
 static struct pldm_firmware_data_transfer firmware_data_transfer = {.length = PLDM_FWUP_BASELINE_TRANSFER_SIZE, .offset = 0};
