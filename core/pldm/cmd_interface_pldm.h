@@ -6,9 +6,14 @@
 #include <stdbool.h>
 #include "platform_config.h"
 #include "cmd_interface/cmd_interface.h"
+#include "mctp/mctp_base_protocol.h"
 #include "flash/flash.h"
 #include "firmware/firmware_update.h"
+#include "libpldm/base.h"
 
+
+#define PLDM_MCTP_BINDING_MSG_OVERHEAD                                          (sizeof (struct pldm_msg_hdr) + MCTP_BASE_PROTOCOL_MSG_TYPE_SIZE);
+#define PLDM_MCTP_BINDING_MSG_OFFSET                                            MCTP_BASE_PROTOCOL_MSG_TYPE_SIZE
 
 /**
  * The flash addresses and devices to use for different PLDM FWUP regions.

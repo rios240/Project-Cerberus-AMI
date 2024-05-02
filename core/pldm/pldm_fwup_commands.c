@@ -1,14 +1,16 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "cmd_interface_pldm.h"
 #include "pldm_fwup_commands.h"
 #include "status/rot_status.h"
 
-#ifdef PASS
-
-//#define PLDM_FWUP_UA_ENABLE
 #include "libpldm/firmware_update.h"
 #include "libpldm/utils.h"
+
+
+
+//#ifdef PLDM_FWUP_FD_ENABLE
 
 /**
 * Generate a GetPackageData request.
@@ -19,6 +21,7 @@
 *
 * @return 0 if the request was successfully generated or an error code.
 */
+/*
 int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_transfer_context *multipart_transfer, 
     uint8_t *buffer, size_t buf_len)
 {
@@ -40,6 +43,8 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
     
 }
 
+*/
+
 /**
 * Process a GetPackageData response.
 *
@@ -49,6 +54,7 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_trans
 *
 * @return 0 if the response was successfully processed or an error code.
 */
+/*
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer_context *multipart_transfer,
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *response)
 {
@@ -90,11 +96,10 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
     return status;
 
 }
+*/
 
 
-#include "firmware_update.h"
-#include "utils.h"
-
+//#elif defined(PLDM_FWUP_UA_ENABLE)
 /**
 * Process a GetPackageData request and generate a response.
 *
@@ -104,6 +109,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 *
 * @return 0 if the request was successfully processed and a request was generated or an error code.
 */
+/*
 int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transfer_context *multipart_transfer, 
     const struct pldm_fwup_flash_map *flash_map, struct cmd_interface_msg *request)
 {
@@ -170,6 +176,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
         return status;
 
 }
+*/
 
 /**
 * Generate a QueryDeviceIdentifiers request.
@@ -177,7 +184,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
 * @param buffer The buffer to contain the request data.
 * @param buf_len The buffer length.
 *
-* @return 0 if the request was successfully generated or an error code.
+* @return size of the message payload or an error code.
 */
 int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t buf_len)
 {
@@ -186,19 +193,52 @@ int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t 
 
     struct pldm_msg *request = (struct pldm_msg *)(buffer + 1);
 
-    int status = encode_query_device_identifiers_req(instance_id, request, 0);
+    size_t payload_length = 0;
+
+    int status = encode_query_device_identifiers_req(instance_id, payload_length, request);
+    if (status != 0) {
+        return status;
+    }
 
     instance_id += 1;
-    return sizeof (struct pldm_msg_hdr) + 1;
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
 }
 
 /**
  * Process a QueryDeviceIdentifiers response.
  * 
+ * @param fwup_state - Variable context for a FWUP.
+ * @param device_manager - Module which holds a table of all devices.
+ * @param response - The response data to process.
+ * 
+ * @return 0 on success or an error code.
  * 
 */
+int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *fwup_state, 
+    struct device_manager *device_manager, struct cmd_interface_msg *response)
+{
+    int status;
+    size_t payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+    fwup_state->previous_cmd = PLDM_QUERY_DEVICE_IDENTIFIERS;
+    
+    uint8_t completion_code = 0;
+	uint32_t device_identifiers_len = 0;
+	uint8_t descriptor_count = 0;
+	uint8_t *descriptor_data = 0;
 
+    struct pldm_msg *response = (struct pldm_msg *)&response->data[PLDM_MCTP_BINDING_MSG_OFFSET];
+    status = decode_query_device_identifiers_resp(response, payload_length, 
+        &completion_code, &device_identifiers_len, &descriptor_count, &descriptor_data);
+    if (status != 0) {
+        return status;
+    }
+    fwup_state->previous_completion_code = completion_code;
+    if (completion_code != PLDM_SUCCESS) {
+        return 0;
+    }
 
+    
 
+}
 
-#endif
+//#endif
