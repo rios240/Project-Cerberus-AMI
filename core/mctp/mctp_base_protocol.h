@@ -105,11 +105,13 @@
 #define MCTP_BASE_PROTOCOL_UPDATE_VERSION					0
 
 
+
 /********************
  * MCTP header fields
  ********************/
 
 /* Explained in section 8.1 of the MCTP Base Specification DSP0236 */
+#define MCTP_BASE_PROTOCOL_MSG_TYPE_SIZE                    1
 #define MCTP_BASE_PROTOCOL_MSG_TYPE_SHIFT					0
 #define MCTP_BASE_PROTOCOL_MSG_TYPE_SET_MASK				(0x7F << MCTP_BASE_PROTOCOL_MSG_TYPE_SHIFT)
 
