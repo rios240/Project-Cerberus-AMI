@@ -67,7 +67,7 @@ This will the typical method for initializing the local repository.
 ```bash
 mkdir Project-Cerberus
 cd Project-Cerberus
-repo init -u https://github.com/rios240/cerberus-pldm-manifest.git -b main
+repo init -u https://github.com/rios240/project-cerberus-ami-manifest.git -b main
 repo sync
 ```
 
@@ -77,7 +77,7 @@ If an SSH connection is desired or required to retrieve the Cerberus code, the r
 ```bash
 mkdir Project-Cerberus
 cd Project-Cerberus
-repo init -u git@github.com:rios240/cerberus-pldm-manifest.git -m default-ssh.xml -b main
+repo init -u git@github.com:rios240/project-cerberus-ami-manifest.git -m default-ssh.xml -b main
 repo sync
 ```
 
