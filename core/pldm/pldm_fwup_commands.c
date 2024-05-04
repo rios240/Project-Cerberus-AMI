@@ -4,6 +4,7 @@
 #include "cmd_interface_pldm.h"
 #include "pldm_fwup_commands.h"
 #include "status/rot_status.h"
+#include "platform.h"
 
 #include "libpldm/firmware_update.h"
 #include "libpldm/utils.h"
@@ -26,13 +27,15 @@
 int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *fwup_state,
     struct device_manager *device_manager, struct cmd_interface_msg *request)
 {
-    struct pldm_msg *rsp = (struct pldm_msg *)&request[PLDM_MCTP_BINDING_MSG_OFFSET];
+    fwup_state->previous_cmd = PLDM_QUERY_DEVICE_IDENTIFIERS;
+
+    struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
 
     static uint8_t instance_id;
     
     struct variable_field descriptors;
     descriptors.length = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t);
-    descriptors.ptr = (const uint8_t *)malloc(DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t));
+    descriptors.ptr = (const uint8_t *)platform_calloc(DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS, sizeof (uint16_t));
 
     uint32_t device_identifiers_len = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t);
     uint8_t descriptor_count = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS;
@@ -51,15 +54,70 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *f
 
     size_t rsp_payload_length = sizeof (struct pldm_query_device_identifiers_resp) + device_identifiers_len;
     int status = encode_query_device_identifiers_resp(instance_id, rsp_payload_length, rsp,
-        completion_code, device_identifiers_len, descriptor_count, (const struct variable_field *)&descriptors);
+        completion_code, device_identifiers_len, descriptor_count, &descriptors);
 
-    fwup_state->previous_cmd = PLDM_QUERY_DEVICE_IDENTIFIERS;
     fwup_state->previous_completion_code = completion_code;
 
     free((uint8_t *) descriptors.ptr);
 
+    instance_id += 1;
     return status;
 }
+
+
+/**
+ * Process a GetFirmwareParameters request.
+ * 
+ * @param fwup_state - Variable context for a FWUP.
+ * @param device_manager - Module which holds a table of all devices.
+ * @param request - The request data to process. This will be updated to contain a response
+ * 
+ * @return 0 on success or an error code.
+ * 
+*/
+int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_state *fwup_state,
+    struct device_manager *device_manager, struct cmd_interface_msg *request)
+{
+    fwup_state->previous_cmd = PLDM_GET_FIRMWARE_PARAMETERS;
+
+    struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+
+    static uint8_t instance_id;
+
+    struct variable_field active_comp_image_set_ver_str;
+    active_comp_image_set_ver_str.length = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].active_comp_img_set_ver_str_len;
+    active_comp_image_set_ver_str.ptr = (const uint8_t *)device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].active_comp_img_set_ver_str;
+
+    struct variable_field pending_comp_image_set_ver_str;
+    pending_comp_image_set_ver_str.length = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pending_comp_img_set_ver_str_len;
+    pending_comp_image_set_ver_str.ptr = (const uint8_t *)device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pending_comp_img_set_ver_str;
+
+    struct variable_field comp_parameter_table;
+    comp_parameter_table.length = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].num_components * 
+        sizeof (struct device_manager_component_entry);
+    comp_parameter_table.ptr = (const uint8_t *)device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].comp_entries;
+
+    struct pldm_get_firmware_parameters_resp rsp_data;
+    rsp_data.capabilities_during_update.value = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].update_capabilities.value;
+    rsp_data.comp_count = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].num_components;
+    rsp_data.active_comp_image_set_ver_str_type = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].active_comp_img_set_ver_str_type;
+    rsp_data.active_comp_image_set_ver_str_len = active_comp_image_set_ver_str.length;
+    rsp_data.pending_comp_image_set_ver_str_type = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pending_comp_img_set_ver_str_type;
+    rsp_data.pending_comp_image_set_ver_str_len = pending_comp_image_set_ver_str.length;
+    rsp_data.completion_code = PLDM_SUCCESS;
+
+    size_t rsp_payload_length = sizeof (rsp_data) + active_comp_image_set_ver_str.length + 
+        pending_comp_image_set_ver_str.length + 
+        comp_parameter_table.length;
+
+    int status = encode_get_firmware_parameters_resp(instance_id, rsp, rsp_payload_length,
+        &rsp_data, &active_comp_image_set_ver_str, &pending_comp_image_set_ver_str, &comp_parameter_table);
+
+    fwup_state->previous_completion_code = rsp_data.completion_code;
+
+    instance_id += 1;
+    return status;
+}   
 
 /**
 * Generate a GetPackageData request.
@@ -244,9 +302,9 @@ int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t 
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
 
-    size_t request_payload_length = 0;
+    size_t rq_payload_length = 0;
 
-    int status = encode_query_device_identifiers_req(instance_id, request_payload_length, rq);
+    int status = encode_query_device_identifiers_req(instance_id, rq_payload_length, rq);
     if (status != 0) {
         return status;
     }
@@ -268,21 +326,23 @@ int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t 
 int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *fwup_state, 
     struct device_manager *device_manager, struct cmd_interface_msg *response)
 {
-    int status;
-    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
     fwup_state->previous_cmd = PLDM_QUERY_DEVICE_IDENTIFIERS;
+
+    struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+
+    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
     
     uint8_t completion_code = 0;
 	uint32_t device_identifiers_len = 0;
 	uint8_t descriptor_count = 0;
 	uint8_t *descriptor_data = 0;
 
-    struct pldm_msg *rsp = (struct pldm_msg *)&response->data[PLDM_MCTP_BINDING_MSG_OFFSET];
-    status = decode_query_device_identifiers_resp(rsp, rsp_payload_length, 
+    int status = decode_query_device_identifiers_resp(rsp, rsp_payload_length, 
         &completion_code, &device_identifiers_len, &descriptor_count, &descriptor_data);
     if (status != 0) {
         return status;
     }
+
     fwup_state->previous_completion_code = completion_code;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
@@ -290,8 +350,7 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *
 
     for (int i = 0; i < device_manager->num_devices; i++) {
         int device_eid = device_manager_get_device_eid(device_manager, i);
-        int device_addr = device_manager_get_device_addr(device_manager, i);
-        if(device_eid == response->source_eid && device_addr == response->source_addr) {
+        if(device_eid == response->source_eid) {
             memcpy(&device_manager->entries[i].pci_vid, 
             descriptor_data, sizeof (uint16_t));
             memcpy(&device_manager->entries[i].pci_device_id + sizeof (uint16_t), 
@@ -301,7 +360,84 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *
             memcpy(&device_manager->entries[i].pci_vid + (3 * sizeof (uint16_t)), 
             descriptor_data, sizeof (uint16_t));
             break;
-        } else if (ROT_IS_ERROR(device_eid) || ROT_IS_ERROR(device_addr)) {
+        } else if (ROT_IS_ERROR(device_eid)) {
+            return device_eid;
+        }
+    }
+
+    return status;
+}
+
+
+/**
+* Generate a GetFirmwareParameters request.
+*
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return size of the message payload or an error code.
+*/
+int pldm_fwup_generate_get_firmware_parameters_request(uint8_t *buffer, size_t buf_len)
+{   
+    static uint8_t instance_id;
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
+
+    size_t rq_payload_length = 0;
+
+    int status = encode_get_firmware_parameters_req(instance_id, rq_payload_length, rq);
+    if (status != 0) {
+        return status;
+    }
+
+    instance_id += 1;
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+
+/**
+ * Process a GetFirmwareParameters response.
+ * 
+ * @param fwup_state - Variable context for a FWUP.
+ * @param device_manager - Module which holds a table of all devices.
+ * @param response - The response data to process.
+ * 
+ * @return 0 on success or an error code.
+ * 
+*/
+int pldm_fwup_process_get_firmware_parameters_response(struct pldm_fwup_state *fwup_state,
+    struct device_manager *device_manager, struct cmd_interface_msg *response)
+{
+    fwup_state->previous_cmd = PLDM_GET_FIRMWARE_PARAMETERS;
+
+    struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+
+    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    struct pldm_get_firmware_parameters_resp rsp_data = {0};
+	struct variable_field active_comp_image_set_ver_str = {0};
+	struct variable_field pending_comp_image_set_ver_str = {0};
+	struct variable_field comp_parameter_table = {0};
+
+    int status = decode_get_firmware_parameters_resp(rsp, rsp_payload_length, &rsp_data, &active_comp_image_set_ver_str,
+        &pending_comp_image_set_ver_str, &comp_parameter_table);
+    if (status != 0) {
+        return status;
+    }
+
+    fwup_state->previous_completion_code = rsp_data.completion_code;
+    if (rsp_data.completion_code != PLDM_SUCCESS) {
+        return 0;
+    }
+
+    for (int i = 0; i < device_manager->num_devices; i++) {
+        int device_eid = device_manager_get_device_eid(device_manager, i);
+        if(device_eid == response->source_eid) {
+            device_manager->entries[i].comp_entries = (struct device_manager_component_entry *)platform_realloc(device_manager->entries[i].comp_entries, 
+            comp_parameter_table.length);
+            memcpy((uint8_t *)device_manager->entries[i].comp_entries, comp_parameter_table.ptr, comp_parameter_table.length);
+            break;
+        } else if (ROT_IS_ERROR(device_eid)) {
             return device_eid;
         }
     }
