@@ -10,6 +10,9 @@
 
 //#ifdef PLDM_FWUP_FD_ENABLE
 
+int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *fwup_state,
+    struct device_manager *device_manager, struct cmd_interface_msg *request);
+    
 int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_transfer *multipart_transfer, 
     uint8_t *buffer, size_t buf_len);
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer *multipart_transfer,

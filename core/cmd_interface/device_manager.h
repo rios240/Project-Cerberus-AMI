@@ -31,6 +31,9 @@
 // MCTP control protocol default timeout
 #define DEVICE_MANAGER_MCTP_CTRL_PROTOCOL_TIMEOUT_MS			1000
 
+// PLDM FWUP number of device descriptors
+#define DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS                     4
+
 /**
  * Convert response timeout in milliseconds to timeout in 10ms multiples
  *

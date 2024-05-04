@@ -12,6 +12,55 @@
 
 //#ifdef PLDM_FWUP_FD_ENABLE
 
+
+/**
+ * Process a QueryDeviceIdentifiers request.
+ * 
+ * @param fwup_state - Variable context for a FWUP.
+ * @param device_manager - Module which holds a table of all devices.
+ * @param request - The request data to process. This will be updated to contain a response
+ * 
+ * @return 0 on success or an error code.
+ * 
+*/
+int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *fwup_state,
+    struct device_manager *device_manager, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)&request[PLDM_MCTP_BINDING_MSG_OFFSET];
+
+    static uint8_t instance_id;
+    
+    struct variable_field descriptors;
+    descriptors.length = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t);
+    descriptors.ptr = (const uint8_t *)malloc(DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t));
+
+    uint32_t device_identifiers_len = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t);
+    uint8_t descriptor_count = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS;
+
+    //copied in the order they appear in the device_manager_entry
+    memcpy((uint8_t *)descriptors.ptr, 
+    &device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_vid, sizeof (uint16_t));            
+    memcpy((uint8_t *)descriptors.ptr + sizeof (uint16_t), 
+    &device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_device_id, sizeof (uint16_t));
+    memcpy((uint8_t *)descriptors.ptr + (2 * sizeof (uint16_t)), 
+    &device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_subsystem_vid, sizeof (uint16_t));
+    memcpy((uint8_t *)descriptors.ptr + (3 * sizeof (uint16_t)), 
+    &device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_subsystem_id, sizeof (uint16_t));
+
+    uint8_t completion_code = PLDM_SUCCESS;
+
+    size_t rsp_payload_length = sizeof (struct pldm_query_device_identifiers_resp) + device_identifiers_len;
+    int status = encode_query_device_identifiers_resp(instance_id, rsp_payload_length, rsp,
+        completion_code, device_identifiers_len, descriptor_count, (const struct variable_field *)&descriptors);
+
+    fwup_state->previous_cmd = PLDM_QUERY_DEVICE_IDENTIFIERS;
+    fwup_state->previous_completion_code = completion_code;
+
+    free((uint8_t *) descriptors.ptr);
+
+    return status;
+}
+
 /**
 * Generate a GetPackageData request.
 *
@@ -100,6 +149,8 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 
 
 //#elif defined(PLDM_FWUP_UA_ENABLE)
+
+
 /**
 * Process a GetPackageData request and generate a response.
 *
@@ -191,11 +242,11 @@ int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t 
     static uint8_t instance_id = 1;
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
-    struct pldm_msg *request = (struct pldm_msg *)(buffer + 1);
+    struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
 
-    size_t payload_length = 0;
+    size_t request_payload_length = 0;
 
-    int status = encode_query_device_identifiers_req(instance_id, payload_length, request);
+    int status = encode_query_device_identifiers_req(instance_id, request_payload_length, rq);
     if (status != 0) {
         return status;
     }
@@ -218,7 +269,7 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *
     struct device_manager *device_manager, struct cmd_interface_msg *response)
 {
     int status;
-    size_t payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
     fwup_state->previous_cmd = PLDM_QUERY_DEVICE_IDENTIFIERS;
     
     uint8_t completion_code = 0;
@@ -226,8 +277,8 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *
 	uint8_t descriptor_count = 0;
 	uint8_t *descriptor_data = 0;
 
-    struct pldm_msg *response = (struct pldm_msg *)&response->data[PLDM_MCTP_BINDING_MSG_OFFSET];
-    status = decode_query_device_identifiers_resp(response, payload_length, 
+    struct pldm_msg *rsp = (struct pldm_msg *)&response->data[PLDM_MCTP_BINDING_MSG_OFFSET];
+    status = decode_query_device_identifiers_resp(rsp, rsp_payload_length, 
         &completion_code, &device_identifiers_len, &descriptor_count, &descriptor_data);
     if (status != 0) {
         return status;
@@ -237,8 +288,25 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *
         return 0;
     }
 
-    
+    for (int i = 0; i < device_manager->num_devices; i++) {
+        int device_eid = device_manager_get_device_eid(device_manager, i);
+        int device_addr = device_manager_get_device_addr(device_manager, i);
+        if(device_eid == response->source_eid && device_addr == response->source_addr) {
+            memcpy(&device_manager->entries[i].pci_vid, 
+            descriptor_data, sizeof (uint16_t));
+            memcpy(&device_manager->entries[i].pci_device_id + sizeof (uint16_t), 
+            descriptor_data, sizeof (uint16_t));
+            memcpy(&device_manager->entries[i].pci_vid + (2 * sizeof (uint16_t)), 
+            descriptor_data, sizeof (uint16_t));
+            memcpy(&device_manager->entries[i].pci_vid + (3 * sizeof (uint16_t)), 
+            descriptor_data, sizeof (uint16_t));
+            break;
+        } else if (ROT_IS_ERROR(device_eid) || ROT_IS_ERROR(device_addr)) {
+            return device_eid;
+        }
+    }
 
+    return status;
 }
 
 //#endif
