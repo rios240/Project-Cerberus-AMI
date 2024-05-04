@@ -13,6 +13,7 @@
 #include "crypto/rsa.h"
 #include "status/rot_status.h"
 #include "cmd_interface/device_manager_observer.h"
+#include "libpldm/firmware_update.h"
 
 
 // Reserved device manager table entry numbers
@@ -30,6 +31,9 @@
 
 // MCTP control protocol default timeout
 #define DEVICE_MANAGER_MCTP_CTRL_PROTOCOL_TIMEOUT_MS			1000
+
+// PLDM FWUP number of device descriptors
+#define DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS                     4
 
 /**
  * Convert response timeout in milliseconds to timeout in 10ms multiples
@@ -148,9 +152,9 @@ struct device_manager_capabilities {
  * format.
  */
 struct device_manager_full_capabilities {
-	struct device_manager_capabilities request;					/**< Capabilities request information. */
-	uint8_t max_timeout;										/**< Maximum timeout in 10ms multiples. */
-	uint8_t max_sig;											/**< Maximum cryptographic response delay in 100ms multiples. */
+	struct device_manager_capabilities request;					        /**< Capabilities request information */
+	uint8_t max_timeout;										        /**< Maximum timeout in 10ms multiples */
+	uint8_t max_sig;											        /**< Maximum cryptographic response delay in 100ms multiples */
 };
 #pragma pack(pop)
 
@@ -163,22 +167,52 @@ struct device_manager_key {
 	int key_type;												/**< Key type */
 };
 
+
+#pragma pack(push, 1)
+struct device_manager_component_entry {
+    uint16_t comp_classification;
+	uint16_t comp_identifier;
+	uint8_t comp_classification_index;
+	uint32_t active_comp_comparison_stamp;
+	uint8_t active_comp_ver_str_type;
+	uint8_t active_comp_ver_str_len;
+	uint8_t active_comp_release_date[8];
+	uint32_t pending_comp_comparison_stamp;
+	uint8_t pending_comp_ver_str_type;
+	uint8_t pending_comp_ver_str_len;
+	uint8_t pending_comp_release_date[8];
+	bitfield16_t comp_activation_methods;
+	bitfield32_t capabilities_during_update;
+    uint8_t active_comp_ver_str[255];
+    uint8_t pending_comp_ver_str[255];
+};
+#pragma pack(pop)
+
 /**
  * Entry type in a device manager table
  */
 struct device_manager_entry {
-	struct device_manager_full_capabilities capabilities;		/**< Device capabilities */
-	platform_clock attestation_timeout;							/**< Clock tracking when device should be attested */
-	uint32_t component_id;										/**< Component ID in PCD and CFM */
-	enum device_manager_device_state state;						/**< Device state */
-	uint16_t pci_vid;											/**< PCI Vendor ID */
-	uint16_t pci_device_id;										/**< PCI Device ID */
-	uint16_t pci_subsystem_vid;									/**< PCI Subsystem Vendor ID */
-	uint16_t pci_subsystem_id;									/**< PCI Subsystem ID */
-	uint8_t slot_num;											/**< Device certificate chain slot number */
-	uint8_t smbus_addr;											/**< SMBUS address */
-	uint8_t eid;												/**< Endpoint ID */
-	uint8_t pcd_component_index;								/**< Index of component in PCD */
+	struct device_manager_full_capabilities capabilities;		                /**< Device capabilities */
+	platform_clock attestation_timeout;							                /**< Clock tracking when device should be attested */
+	uint32_t component_id;										                /**< Component ID in PCD and CFM */
+	enum device_manager_device_state state;						                /**< Device state */
+	uint16_t pci_vid;											                /**< PCI Vendor ID */
+	uint16_t pci_device_id;										                /**< PCI Device ID */
+	uint16_t pci_subsystem_vid;									                /**< PCI Subsystem Vendor ID */
+	uint16_t pci_subsystem_id;									                /**< PCI Subsystem ID */
+	uint8_t slot_num;											                /**< Device certificate chain slot number */
+	uint8_t smbus_addr;											                /**< SMBUS address */
+	uint8_t eid;												                /**< Endpoint ID */
+	uint8_t pcd_component_index;								                /**< Index of component in PCD */
+    bitfield32_t update_capabilities;                                           /**< Capability of the firmware device during an update. PLDM specific */
+    enum pldm_firmware_update_string_type active_comp_img_set_ver_str_type;     /**< Active component image set version string type */
+    uint8_t active_comp_img_set_ver_str[255];                                   /**< Active component image set version string */
+    uint8_t active_comp_img_set_ver_str_len;                                    /**< Active component image set version string length */
+    enum pldm_firmware_update_string_type pending_comp_img_set_ver_str_type;    /**< Pending component image set version string type */
+    uint8_t pending_comp_img_set_ver_str[255];                                  /**< Pending component image set version string*/
+    uint8_t pending_comp_img_set_ver_str_len;                                   /**< Pending component image set version string length */
+    uint16_t num_components;                                                    /**< Number of FW components that reside within the device. */
+    struct device_manager_component_entry *comp_entries;                        /**< Component parameter table entries. */   
 };
 
 /**

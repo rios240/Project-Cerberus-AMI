@@ -10,6 +10,11 @@
 
 //#ifdef PLDM_FWUP_FD_ENABLE
 
+int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *fwup_state,
+    struct device_manager *device_manager, struct cmd_interface_msg *request);
+int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_state *fwup_state,
+    struct device_manager *device_manager, struct cmd_interface_msg *request);
+    
 int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_multipart_transfer *multipart_transfer, 
     uint8_t *buffer, size_t buf_len);
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_transfer *multipart_transfer,
@@ -23,6 +28,10 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
 
 int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t buf_len);
 int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *fwup_state, 
+    struct device_manager *device_manager, struct cmd_interface_msg *response);
+
+int pldm_fwup_generate_get_firmware_parameters_request(uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_get_firmware_parameters_response(struct pldm_fwup_state *fwup_state,
     struct device_manager *device_manager, struct cmd_interface_msg *response);
 
 //#endif
