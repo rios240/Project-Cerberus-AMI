@@ -9,14 +9,14 @@
 
 
 
-int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channel, uint8_t inventory_cmds, uint8_t updating_device_eid, int ms_timeout)
+int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channel, uint8_t inventory_cmds, uint8_t device_eid, int ms_timeout)
 {
     struct cmd_interface_pldm *interface = (struct cmd_interface_pldm *)mctp->cmd_pldm;
-    interface->updating_device_eid = updating_device_eid;
+    interface->updating_device_eid = device_eid;
     uint8_t request_buf[MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN];
     size_t request_size;
     int status;
-//#ifdef PLDM_FWUP_FD_ENABLE
+#ifdef PLDM_FWUP_FD_ENABLE
     if (inventory_cmds) {
         // QueryDeviceIdentifiers
         status = cmd_channel_receive_and_process(channel, mctp, ms_timeout);
@@ -43,7 +43,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
             request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_GET_PACKAGE_DATA, request_buf, sizeof (request_buf));
 
             status = mctp_interface_issue_request(mctp, channel, 
-                device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+                device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
                 request_buf, request_size, request_buf, sizeof (request_buf), 0);
             if (status != 0) {
                 return status;
@@ -85,7 +85,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
            request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_REQUEST_FIRMWARE_DATA, request_buf, sizeof (request_buf));
 
             status = mctp_interface_issue_request(mctp, channel, 
-                device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+                device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
                 request_buf, request_size, request_buf, sizeof (request_buf), 0);
             if (status != 0) {
                 return status;
@@ -100,7 +100,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
         //TransferComplete
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_TRANSFER_COMPLETE, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -114,7 +114,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
         //VerifyComplete
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_VERIFY_COMPLETE, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -127,7 +127,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
         //ApplyComplete
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_APPLY_COMPLETE, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -144,12 +144,12 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
     status = cmd_channel_receive_and_process(channel, mctp, ms_timeout);
     return status;
     
-//#elif defined(PLDM_FWUP_UA_ENABLE)
+#elif defined(PLDM_FWUP_UA_ENABLE)
     if (inventory_cmds) {
         //QueryDeviceIdentifiers
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_QUERY_DEVICE_IDENTIFIERS, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -162,7 +162,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
         //GetFirmwareParameters
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_GET_FIRMWARE_PARAMETERS, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -176,7 +176,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
     //RequestUpdate
     request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_REQUEST_UPDATE, request_buf, sizeof (request_buf));
     status = mctp_interface_issue_request(mctp, channel, 
-        device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+        device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
         request_buf, request_size, request_buf, sizeof (request_buf), 0);
     if (status != 0) {
         return status;
@@ -202,7 +202,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
        request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_GET_DEVICE_METADATA, request_buf, sizeof (request_buf));
 
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -218,7 +218,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
 
     uint8_t num_components = fup_interface_get_num_components(interface->fwup_flash->fw_update_package_flash,
         interface->fwup_flash->fw_update_package_addr, 
-        &interface->device_manager->entries[device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid)]);
+        &interface->device_manager->entries[device_manager_get_device_addr_by_eid(interface->device_manager, device_eid)]);
 
     int i = 0;
     interface->current_component = 1;
@@ -226,7 +226,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
         //PassComponentTable
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_PASS_COMPONENT_TABLE, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -239,7 +239,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
         //UpdateComponent
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_UPDATE_COMPONENT, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(mctp, channel, 
-            device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+            device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
             request_buf, request_size, request_buf, sizeof (request_buf), 0);
         if (status != 0) {
             return status;
@@ -282,13 +282,13 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
     //ActivateFirmware
     request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_ACTIVATE_FIRMWARE, request_buf, sizeof (request_buf));
     status = mctp_interface_issue_request(mctp, channel, 
-        device_manager_get_device_addr_by_eid(&interface->device_manager, updating_device_eid), updating_device_eid,
+        device_manager_get_device_addr_by_eid(interface->device_manager, device_eid), device_eid,
         request_buf, request_size, request_buf, sizeof (request_buf), 0);
     if (status != 0) {
         return status;
     }
     status = cmd_channel_receive_and_process(channel, mctp, ms_timeout);
     return status;
-//#endif
+#endif
 
 }

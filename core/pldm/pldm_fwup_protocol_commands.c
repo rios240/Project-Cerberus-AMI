@@ -616,7 +616,7 @@ int pldm_fwup_process_request_update_response(struct cmd_interface_pldm *cmd_pld
 }
 */
 
-//#ifdef PLDM_FWUP_FD_ENABLE
+#ifdef PLDM_FWUP_FD_ENABLE
 
 
 int pldm_fwup_process_query_device_identifiers_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
@@ -860,7 +860,7 @@ int pldm_fwup_process_activate_firmware_request(struct cmd_interface_pldm *inter
     return 0;
 }
 
-//#elif defined(PLDM_FWUP_UA_ENABLE)
+#elif defined(PLDM_FWUP_UA_ENABLE)
 
 int pldm_fwup_generate_query_device_identifiers_request(struct cmd_interface_pldm *interface, 
     uint8_t *buffer, size_t buf_len)
@@ -1110,4 +1110,4 @@ int pldm_fwup_process_activate_firmware_response(struct cmd_interface_pldm *inte
     return 0; 
 }
 
-//#endif
+#endif
