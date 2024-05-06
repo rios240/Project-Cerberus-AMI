@@ -16,7 +16,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
     uint8_t request_buf[MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN];
     size_t request_size;
     int status;
-#ifdef PLDM_FWUP_FD_ENABLE
+//#ifdef PLDM_FWUP_FD_ENABLE
     if (inventory_cmds) {
         // QueryDeviceIdentifiers
         status = cmd_channel_receive_and_process(channel, mctp, ms_timeout);
