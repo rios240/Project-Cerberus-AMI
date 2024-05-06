@@ -113,4 +113,13 @@
 // #define CERBERUS_VID_SET_RESPONSE							0xFF
 
 
+
+/********************
+ * MCTP protocol
+ ********************/
+
+//  #define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                MCTP_BASE_PROTOCOL_MAX_TRANSMISSION_UNIT
+//  #define PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ     1
+
+
 #endif /* PLATFORM_CONFIG_H_ */
