@@ -2,8 +2,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "cmd_interface_pldm.h"
-#include "pldm_fwup_commands.h"
+#include "pldm_fwup_protocol_commands.h"
+#include "fup/fup_interface.h"
 #include "status/rot_status.h"
+#include "common/unused.h"
 #include "platform.h"
 
 #include "libpldm/firmware_update.h"
@@ -31,7 +33,7 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *f
 
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
 
-    static uint8_t instance_id;
+    static uint8_t instance_id = 1;
     
     struct variable_field descriptors;
     descriptors.length = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t);
@@ -82,7 +84,7 @@ int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_state *f
 
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
 
-    static uint8_t instance_id;
+    static uint8_t instance_id = 1;
 
     struct variable_field active_comp_image_set_ver_str;
     active_comp_image_set_ver_str.length = device_manager->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].active_comp_img_set_ver_str_len;
@@ -118,6 +120,64 @@ int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_state *f
     instance_id += 1;
     return status;
 }   
+
+/**
+ * Process a RequestUpdate request.
+ * 
+ * @param cmd_pldm - Command interface for PLDM
+ * @param request - The request data to process. This will be updated to contain a response
+ * 
+ * @return 0 on success or an error code.
+ * 
+*/
+int pldm_fwup_process_request_update_request(struct cmd_interface_pldm *cmd_pldm, struct cmd_interface_msg *request)
+{
+    cmd_pldm->fwup_state->previous_cmd = PLDM_REQUEST_UPDATE;
+
+    struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+
+    size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+    
+    struct variable_field comp_img_set_ver_str;
+    comp_img_set_ver_str.ptr = (const uint8_t *)cmd_pldm->comp_img_set_ver_str;
+
+    int status = decode_request_update_req(rq, rq_payload_length, &cmd_pldm->max_transfer_size,
+        &cmd_pldm->num_components, &cmd_pldm->max_outstanding_transfer_requests, &cmd_pldm->package_data_len,
+        &cmd_pldm->comp_img_set_ver_str_type, &cmd_pldm->comp_img_set_ver_str_len, &comp_img_set_ver_str);
+    if (status != 0) {
+        return status;
+    }
+
+    struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = sizeof (struct pldm_request_update_resp);
+
+    static uint8_t instance_id = 1;
+
+    uint8_t completion_code = 0;
+	uint16_t fd_meta_data_len = sizeof (cmd_pldm->fwup_state);
+	uint8_t fd_will_send_pkg_data = 0;
+    if (cmd_pldm->package_data_len > 0) {
+        fd_will_send_pkg_data = 1;
+    }
+
+    if (cmd_pldm->fwup_state->update_mode) {
+        completion_code = PLDM_FWUP_ALREADY_IN_UPDATE_MODE;
+    } else if (cmd_pldm->fwup_flash == NULL || cmd_pldm->device_manager == NULL) {
+        completion_code = PLDM_FWUP_UNABLE_TO_INITIATE_UPDATE;
+    } else {
+        completion_code = PLDM_SUCCESS;
+        cmd_pldm->fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    }
+
+    cmd_pldm->fwup_state->previous_completion_code = completion_code;
+    cmd_pldm->fwup_state->update_mode = 1;
+
+    status = encode_request_update_resp(instance_id, rsp_payload_length, rsp, completion_code, 
+        fd_meta_data_len, fd_will_send_pkg_data);
+   
+    instance_id += 1;
+    return status;
+}
 
 /**
 * Generate a GetPackageData request.
@@ -441,6 +501,101 @@ int pldm_fwup_process_get_firmware_parameters_response(struct pldm_fwup_state *f
             return device_eid;
         }
     }
+
+    return status;
+}
+
+/**
+* Generate a RequestUpdate request.
+*
+* @param fwup_flash The flash addresses and devices to use for different PLDM FWUP regions.
+* @param device_manager Device manager instance.
+* @param device_eid EID of the device to be updated.
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return size of the message payload or an error code.
+*/
+int pldm_fwup_generate_request_update_request(struct pldm_fwup_flash_map *fwup_flash, struct device_manager *device_manager, 
+    uint8_t device_eid, uint8_t *buffer, size_t buf_len)
+{
+    static uint8_t instance_id;
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
+
+    uint32_t max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
+	uint8_t max_outstanding_transfer_req = PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ;
+	struct variable_field comp_img_set_ver_str;
+
+    struct pldm_firmware_device_id_record device_id_record;
+    struct variable_field applicable_components;
+    struct variable_field record_descriptors;
+    struct variable_field fw_device_pkg_data;
+    
+
+    int status = fup_interface_get_device_id_record(fwup_flash->fw_update_package_flash, fwup_flash->fw_update_package_addr,
+        &device_manager->entries[device_eid], &device_id_record, &applicable_components, 
+        &comp_img_set_ver_str, &record_descriptors, &fw_device_pkg_data);
+    if (status != 0) {
+        return status;
+    }
+
+   	uint16_t pkg_data_len = device_id_record.fw_device_pkg_data_length;
+    uint8_t comp_image_set_ver_str_type = device_id_record.comp_image_set_version_string_type;
+    uint8_t comp_image_set_ver_str_len = device_id_record.comp_image_set_version_string_length;
+
+    uint16_t num_of_comp = 0;
+    for (int i = 0; i < (int)applicable_components.length; i++) {
+        for (int j = 0; j < 8; j++) {
+            uint8_t mask = 1 << j;
+            if (buffer[i] & mask) {
+                num_of_comp++;
+            }
+        }
+    }
+
+    size_t rq_payload_length = sizeof (struct pldm_request_update_req) + comp_img_set_ver_str.length;
+
+    status = encode_request_update_req(instance_id, max_transfer_size, num_of_comp, max_outstanding_transfer_req,
+        pkg_data_len, comp_image_set_ver_str_type, comp_image_set_ver_str_len, &comp_img_set_ver_str, rq, rq_payload_length);
+    if (status != 0) {
+        return status;
+    }
+
+    instance_id += 1;
+    return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+
+
+
+/**
+ * Process a RequestUpdate response.
+ * 
+ * @param cmd_pldm - Command interface for PLDM.
+ * @param response - The response data to process.
+ * 
+ * @return 0 on success or an error code.
+ * 
+*/
+int pldm_fwup_process_request_update_response(struct cmd_interface_pldm *cmd_pldm, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    cmd_pldm->fwup_state->previous_cmd = PLDM_REQUEST_UPDATE;
+
+    uint8_t fd_will_send_pkg_data_cmd = 0;
+    int status = decode_request_update_resp(rsp, rsp_payload_length, &cmd_pldm->fwup_state->previous_completion_code,
+    &cmd_pldm->fw_device_meta_data_len, &fd_will_send_pkg_data_cmd);
+    if (status != 0) {
+        return status;
+    }
+    if (cmd_pldm->fwup_state->previous_completion_code!= PLDM_SUCCESS) {
+        return 0;
+    }
+    
+    cmd_pldm->fd_will_send_pkg_data_cmd = fd_will_send_pkg_data_cmd;
 
     return status;
 }
