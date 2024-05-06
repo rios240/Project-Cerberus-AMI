@@ -8,11 +8,6 @@
 #include "flash/flash_virtual_disk.h"
 #include "cmd_interface/cmd_channel.h"
 
-#ifdef PLDM_FWUP_FD_ENABLE
-#include "libpldm/firmware_update.h"
-#elif defined(PLDM_FWUP_UA_ENABLE)
-#include "firmware_update.h"
-#endif
 
 
 /*
