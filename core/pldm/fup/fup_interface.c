@@ -3,14 +3,115 @@
 #include <string.h>
 #include "fup_interface.h"
 #include "common/unused.h"
+#include "common/buffer_util.h"
+
+#include "libpldm/firmware_update.h"
+#include "libpldm/utils.h"
 
 
-#ifdef PLDM_FWUP_UA_ENABLE
+//#ifdef PLDM_FWUP_UA_ENABLE
 
 void fill_random_bytes(uint8_t *buffer, size_t length) {
     for (size_t i = 0; i < length; i++) {
         buffer[i] = (uint8_t)rand();
     }
+}
+
+
+/**
+ * Get the Firmware Update Package device id record given PCI destrictors.
+ * @param fup_flash The virtual disk flash device to write the Firmware Update Package to.
+ * @param fup_size The size of the Firmware Update Package flash region.
+ * @param fup_base_addr The base address of the Firmware Update Package.
+ * @param entry Device entry
+ * @param fw_device_id_record - pointer to fixed part of firmware device
+ *                                    id record
+ * @param applicable_components - pointer to ApplicableComponents
+ * @param comp_image_set_version_str - pointer to
+ *                                           ComponentImageSetVersionString
+ * @param record_descriptors - pointer to RecordDescriptors
+ * @param fw_device_pkg_data - pointer to FirmwareDevicePackageData
+ * 
+ * @return 0 on success
+*/
+int fup_interface_get_device_id_record(const struct flash *fup_flash, 
+    uint32_t fup_base_addr, struct device_manager_entry *entry,
+    struct pldm_firmware_device_id_record *device_id_record, struct variable_field *applicable_components,
+    struct variable_field *comp_image_set_version_str, struct variable_field *record_descriptors,
+    struct variable_field *fw_device_pkg_data)
+{
+    struct pldm_package_header_information pkg_hdr_info = {0};
+    int status = fup_flash->read(fup_flash, fup_base_addr, (uint8_t *)&pkg_hdr_info, sizeof (pkg_hdr_info));
+    if (status != 0) {
+        return status;
+    }
+
+    size_t record_offset = fup_base_addr + sizeof (pkg_hdr_info) + pkg_hdr_info.package_version_string_length;
+
+    uint8_t device_id_record_count = 0;
+    status = fup_flash->read(fup_flash, record_offset, (uint8_t *)&device_id_record_count, sizeof (device_id_record_count));
+    if (status !=0 ) {
+        return status;
+    }
+
+    record_offset += sizeof (device_id_record_count);
+
+    int i = 0;
+    while (i < device_id_record_count) {
+        uint16_t record_length = 0;
+        status = fup_flash->read(fup_flash, record_offset, (uint8_t *)&record_length, sizeof (record_length));
+        if (status != 0) {
+            return status;
+        }
+
+        uint8_t record_buf[record_length];
+        status = fup_flash->read(fup_flash, record_offset, record_buf, sizeof (record_buf));
+        if (status != 0) {
+            return status;
+        }
+
+        status = decode_firmware_device_id_record(record_buf, sizeof (record_buf), pkg_hdr_info.component_bitmap_bit_length,
+            device_id_record, applicable_components, comp_image_set_version_str, record_descriptors, fw_device_pkg_data);
+        if (status != 0) {
+            return status;
+        }
+
+        uint16_t descriptor_type = 0;
+		struct variable_field descriptor_data = {0};
+        size_t descriptor_offset = 0;
+        bool this_device = 0;
+        int j = 0;
+        while (j < device_id_record->descriptor_count) {
+            status = decode_descriptor_type_length_value(record_descriptors->ptr + descriptor_offset, record_descriptors->length, 
+                &descriptor_type,  &descriptor_data);
+            if (descriptor_type == PLDM_FWUP_PCI_VENDOR_ID && 
+                buffer_compare(descriptor_data.ptr, (uint8_t *)&entry->pci_vid, PLDM_FWUP_PCI_VENDOR_ID_LENGTH) == 0) {
+                this_device = 1;
+                break;
+            } else if (descriptor_type == PLDM_FWUP_PCI_DEVICE_ID && 
+                buffer_compare(descriptor_data.ptr, (uint8_t *)&entry->pci_device_id, PLDM_FWUP_PCI_DEVICE_ID_LENGTH) == 0) {
+                this_device = 1;
+                break;
+            } else if (descriptor_type == PLDM_FWUP_PCI_SUBSYSTEM_VENDOR_ID && 
+                buffer_compare(descriptor_data.ptr, (uint8_t *)&entry->pci_subsystem_vid, PLDM_FWUP_PCI_SUBSYSTEM_VENDOR_ID_LENGTH) == 0) {
+                this_device = 1;
+                break;
+            } else if (descriptor_type == PLDM_FWUP_PCI_SUBSYSTEM_ID && 
+                buffer_compare(descriptor_data.ptr, (uint8_t *)&entry->pci_subsystem_id, PLDM_FWUP_PCI_SUBSYSTEM_ID_LENGTH) == 0) {
+                this_device = 1;
+                break;
+            } else {
+                descriptor_offset += descriptor_data.length;
+            }
+        }  
+        if (this_device) {
+            break;
+        } else {
+            record_offset += record_length;
+        }
+    }
+
+    return status;
 }
 
 /**
@@ -19,17 +120,17 @@ void fill_random_bytes(uint8_t *buffer, size_t length) {
  * This is an AMI specific function used for testing purposes.
  * In producion the Firmware Update Package will be obtianed by the User Agent from another source.
  * 
- * @param flash The virtual disk flash device to write the Firmware Update Package to.
+ * @param fup_flash The virtual disk flash device to write the Firmware Update Package to.
  * @param fup_size The size of the Firmware Update Package flash region.
  * @param fup_base_addr The base address of the Firmware Update Package.
  * 
  * @return 0 if success otherwise 1
 */
-int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint32_t fup_base_addr)
+int fup_interface_setup_test_fup(const struct flash *fup_flash, size_t fup_size, uint32_t fup_base_addr)
 {
 
     //setup package header information
-    struct package_header_information pkg_hdr_info;
+    struct pldm_package_header_information pkg_hdr_info;
     pkg_hdr_info.uuid[0] = 0xf0;
     pkg_hdr_info.uuid[1] = 0x18;
     pkg_hdr_info.uuid[2] = 0x87;
@@ -81,12 +182,12 @@ int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint3
     uint8_t device_id_record_count = 1;
 
 
-    struct firmware_device_id_record fw_device_id_record;
+    struct pldm_firmware_device_id_record fw_device_id_record;
     fw_device_id_record.descriptor_count = 2;
     fw_device_id_record.device_update_option_flags.value = 0;
     fw_device_id_record.device_update_option_flags.bits.bit0 = 0x01;
 
-    const char *comp_image_set_version_str = "test_cerberus_v1.0";
+    const char *comp_image_set_version_str = "test_cerberus_v2.0";
     fw_device_id_record.comp_image_set_version_string_type = 1;
     fw_device_id_record.comp_image_set_version_string_length = strlen(comp_image_set_version_str);
 
@@ -102,30 +203,30 @@ int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint3
     applicable_comp.bits.bit2 = 1;
 
     uint16_t pci_vid = 0x10DE;
-    size_t pci_vendor_descriptor_size = sizeof (struct descriptor_tlv) - sizeof (uint8_t) + sizeof (pci_vid);
-    struct descriptor_tlv *pci_vendor_descriptor = (struct descriptor_tlv *)malloc(pci_vendor_descriptor_size);
+    size_t pci_vendor_descriptor_size = sizeof (struct pldm_descriptor_tlv) - sizeof (uint8_t) + sizeof (pci_vid);
+    struct pldm_descriptor_tlv *pci_vendor_descriptor = (struct pldm_descriptor_tlv *)malloc(pci_vendor_descriptor_size);
     pci_vendor_descriptor->descriptor_type = 0x0000;
     pci_vendor_descriptor->descriptor_length = sizeof (pci_vid);
     memcpy(pci_vendor_descriptor->descriptor_data, &pci_vid, sizeof (pci_vid));
 
 
     uint16_t pci_did = 0x0408;
-    size_t pci_device_descriptor_size = sizeof (struct descriptor_tlv) - sizeof (uint8_t) + sizeof (pci_did);
-    struct descriptor_tlv *pci_device_descriptor = (struct descriptor_tlv *)malloc(pci_device_descriptor_size);
+    size_t pci_device_descriptor_size = sizeof (struct pldm_descriptor_tlv) - sizeof (uint8_t) + sizeof (pci_did);
+    struct pldm_descriptor_tlv *pci_device_descriptor = (struct pldm_descriptor_tlv *)malloc(pci_device_descriptor_size);
     pci_device_descriptor->descriptor_type = 0x0100;
     pci_device_descriptor->descriptor_length = sizeof (pci_did);
     memcpy(pci_device_descriptor->descriptor_data, &pci_did, sizeof (pci_did));
 
 
-    fw_device_id_record.record_length = sizeof (struct firmware_device_id_record) + fw_device_id_record.comp_image_set_version_string_length
+    fw_device_id_record.record_length = sizeof (struct pldm_firmware_device_id_record) + fw_device_id_record.comp_image_set_version_string_length
                                         + fw_device_id_record.fw_device_pkg_data_length + sizeof (applicable_comp)
-                                        + (2 * (sizeof (struct descriptor_tlv) - sizeof (uint8_t)))
+                                        + (2 * (sizeof (struct pldm_descriptor_tlv) - sizeof (uint8_t)))
                                         + pci_vendor_descriptor->descriptor_length + pci_device_descriptor->descriptor_length;
 
 
     uint16_t comp_image_count = 3;
 
-    struct component_image_information comp_one_info;
+    struct pldm_component_image_information comp_one_info;
     comp_one_info.comp_classification = 0x000a;
     comp_one_info.comp_identifier = 0x3e7a;
     comp_one_info.comp_comparison_stamp = 0xa2f4c18b;
@@ -137,11 +238,11 @@ int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint3
     uint8_t comp_one[1048576];
     fill_random_bytes(comp_one, 1048576);
 
-    const char *comp_one_version_str = "test_firmware_v1.0";
+    const char *comp_one_version_str = "test_firmware_v2.0";
     comp_one_info.comp_version_string_type = 1;
     comp_one_info.comp_version_string_length = strlen(comp_one_version_str);
 
-    struct component_image_information comp_two_info;
+    struct pldm_component_image_information comp_two_info;
     comp_two_info.comp_classification = 0x0006;
     comp_two_info.comp_identifier = 0xb4f3;
     comp_two_info.comp_comparison_stamp = 0x7e4c9d23;
@@ -153,11 +254,11 @@ int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint3
     uint8_t comp_two[1048576];
     fill_random_bytes(comp_two, 1048576);
 
-    const char *comp_two_version_str = "test_firmware/bios_v1.0";
+    const char *comp_two_version_str = "test_firmware/bios_v2.0";
     comp_two_info.comp_version_string_type = 1;
     comp_two_info.comp_version_string_length = strlen(comp_two_version_str);
 
-    struct component_image_information comp_three_info;
+    struct pldm_component_image_information comp_three_info;
     comp_three_info.comp_classification = 0x0003;
     comp_three_info.comp_identifier = 0x1a3f;
     comp_three_info.comp_comparison_stamp = 0x5f3a2c8b;
@@ -169,31 +270,31 @@ int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint3
     uint8_t comp_three[1048576];
     fill_random_bytes(comp_three, 1048576);
 
-    const char *comp_three_version_str = "test_configuration_v1.0";
+    const char *comp_three_version_str = "test_configuration_v2.0";
     comp_three_info.comp_version_string_type = 1;
     comp_three_info.comp_version_string_length = strlen(comp_three_version_str);
 
     comp_one_info.comp_location_offset = sizeof (pkg_hdr_info) + pkg_hdr_info.package_version_string_length
                                         + sizeof (device_id_record_count) + fw_device_id_record.record_length
-                                        + sizeof (comp_image_count) + (3 * sizeof (struct component_image_information))
+                                        + sizeof (comp_image_count) + (3 * sizeof (struct pldm_component_image_information))
                                         + comp_one_info.comp_version_string_length + comp_two_info.comp_version_string_length
                                         + comp_three_info.comp_version_string_length;
 
     comp_two_info.comp_location_offset = sizeof (pkg_hdr_info) + pkg_hdr_info.package_version_string_length
                                         + sizeof (device_id_record_count) + fw_device_id_record.record_length
-                                        + sizeof (comp_image_count) + (3 * sizeof (struct component_image_information))
+                                        + sizeof (comp_image_count) + (3 * sizeof (struct pldm_component_image_information))
                                         + comp_one_info.comp_version_string_length + comp_two_info.comp_version_string_length
                                         + comp_three_info.comp_version_string_length + comp_one_info.comp_size;
 
     comp_three_info.comp_location_offset = sizeof (pkg_hdr_info) + pkg_hdr_info.package_version_string_length
                                         + sizeof (device_id_record_count) + fw_device_id_record.record_length
-                                        + sizeof (comp_image_count) + (3 * sizeof (struct component_image_information))
+                                        + sizeof (comp_image_count) + (3 * sizeof (struct pldm_component_image_information))
                                         + comp_one_info.comp_version_string_length + comp_two_info.comp_version_string_length
                                         + comp_three_info.comp_version_string_length + comp_one_info.comp_size + comp_two_info.comp_size;
 
     pkg_hdr_info.package_header_size = sizeof (pkg_hdr_info) + pkg_hdr_info.package_version_string_length
                                         + sizeof (device_id_record_count) + fw_device_id_record.record_length
-                                        + sizeof (comp_image_count) + (3 * sizeof (struct component_image_information))
+                                        + sizeof (comp_image_count) + (3 * sizeof (struct pldm_component_image_information))
                                         + comp_one_info.comp_version_string_length + comp_two_info.comp_version_string_length
                                         + comp_three_info.comp_version_string_length;
 
@@ -247,16 +348,16 @@ int fup_interface_setup_test_fup(const struct flash *fup, size_t fup_size, uint3
             + sizeof (comp_two_info) + comp_two_info.comp_version_string_length + sizeof (comp_three_info) + comp_three_info.comp_version_string_length,
             &crc, sizeof (crc));
 
-    if (fup == NULL || fup_size < sizeof (fup_buf)) {
+    if (fup_flash == NULL || fup_size < sizeof (fup_buf)) {
         free(pci_vendor_descriptor);
         free(pci_device_descriptor);
         return 1;
     }
     
-    fup->write(fup, fup_base_addr, fup_buf, sizeof (fup_buf));
+    fup_flash->write(fup_flash, fup_base_addr, fup_buf, sizeof (fup_buf));
 
     return 0;
 
 }
 
-#endif
+//#endif
