@@ -4,6 +4,7 @@
 #include "common/unused.h"
 #include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm.h"
+#include "pldm_fwup_protocol_commands.h"
 
 
 #include "libpldm/firmware_update.h"
@@ -71,8 +72,9 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
 
     switch (pldm_command) {
 //#ifdef PLDM_FWUP_FD_ENABLE
-
-
+        case PLDM_QUERY_DEVICE_IDENTIFIERS:
+            status = pldm_fwup_process_query_device_identifiers_request(interface->fwup_state, interface->device_manager, request);
+            break;
 //#elif defined(PLDM_FWUP_UA_ENABLE)
 
 //#endif
@@ -80,7 +82,7 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
     }
 
-    return 0;
+    return status;
 }
 
 /**
@@ -111,7 +113,9 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
 //#ifdef PLDM_FWUP_FD_ENABLE
         
 //#elif defined(PLDM_FWUP_UA_ENABLE)
-
+        case PLDM_QUERY_DEVICE_IDENTIFIERS:
+            status = pldm_fwup_process_query_device_identifiers_response(interface->fwup_state, interface->device_manager, response);
+            break;
 //#endif
         default:
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
@@ -166,9 +170,11 @@ int cmd_interface_pldm_generate_request(struct cmd_interface *intf, uint8_t pldm
 //#ifdef PLDM_FWUP_FD_ENABLE
         
 //#elif defined(PLDM_FWUP_UA_ENABLE)
-
+        case PLDM_QUERY_DEVICE_IDENTIFIERS:
+            status = pldm_fwup_generate_query_device_identifiers_request(buffer, buf_len);
+            break;
 //#endif
-    default:
+        default:
         status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;    
     }
 
@@ -238,11 +244,13 @@ int cmd_interface_pldm_init_fwup_state(struct pldm_fwup_state *fwup_state)
  * @param intf The PLDM control command interface instance to initialize
  * @param fwup_flash_ptr The flash address mapping to use for FWUP
  * @param fwup_state_ptr Variable FWUP context for the cmd interface.
+ * @param device_manager Device manager instance
  *
  * @return Initialization status, 0 if success or an error code.
  */
 int cmd_interface_pldm_init (struct cmd_interface_pldm *intf, 
-    struct pldm_fwup_flash_map *fwup_flash_ptr, struct pldm_fwup_state *fwup_state_ptr)
+    struct pldm_fwup_flash_map *fwup_flash_ptr, struct pldm_fwup_state *fwup_state_ptr,
+    struct device_manager *device_manager_ptr, uint8_t device_eid)
 {
 
     if ((intf == NULL) || fwup_flash_ptr == NULL) {
@@ -252,6 +260,11 @@ int cmd_interface_pldm_init (struct cmd_interface_pldm *intf,
     memset (intf, 0, sizeof (struct cmd_interface_pldm));
 
     intf->fwup_flash = fwup_flash_ptr;
+    intf->device_manager = device_manager_ptr;
+
+//#ifdef PLDM_FWUP_UA_ENABLE
+    intf->device_eid = device_eid;
+//#endif
 
     intf->base.process_request = cmd_interface_pldm_process_request;
 #ifdef CMD_ENABLE_ISSUE_REQUEST
