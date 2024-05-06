@@ -55,6 +55,8 @@ struct pldm_fwup_state {
     uint8_t previous_cmd;                                                       /**< The previous PLDM FWUP command that was processed/generated. */
     uint8_t previous_completion_code;                                           /**< The previous PLDM completion code. */
     struct pldm_fwup_multipart_transfer fwup_multipart_transfer;                /**< Context for multipart transfer of Get commands. */
+    uint32_t comp_size;
+    uint32_t comp_offset;
 };
 
 /**
@@ -76,7 +78,8 @@ struct cmd_interface_pldm {
 //#elif defined(PLDM_FWUP_UA_ENABLE)
     uint16_t fw_device_meta_data_len;                                           /**< The length of the meta data the FD will transfer. */
     uint8_t fd_will_send_pkg_data_cmd:1;                                        /**< If set the FD will send the GetPackageData command. */
-    int device_eid;                                                             /**< The device that is currently being updated. */
+    uint8_t updating_device_eid;                                                /**< The device that is currently being updated. */
+    uint8_t current_component;
 //#endif
 };
 

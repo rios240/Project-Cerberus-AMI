@@ -17,6 +17,15 @@ void fill_random_bytes(uint8_t *buffer, size_t length) {
     }
 }
 
+uint8_t fup_interface_get_num_components(const struct flash *fup_flash, uint32_t fup_base_addr,
+    struct device_manager_entry *entry)
+{
+    UNUSED(fup_flash);
+    UNUSED(fup_base_addr);
+    UNUSED(entry);
+
+    return 3;
+}
 
 /**
  * Get the Firmware Update Package device id record given PCI destrictors.

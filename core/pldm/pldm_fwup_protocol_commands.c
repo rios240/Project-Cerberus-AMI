@@ -13,7 +13,6 @@
 
 
 
-//#ifdef PLDM_FWUP_FD_ENABLE
 
 
 /**
@@ -26,6 +25,7 @@
  * @return 0 on success or an error code.
  * 
 */
+/*
 int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *fwup_state,
     struct device_manager *device_manager, struct cmd_interface_msg *request)
 {
@@ -65,7 +65,7 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *f
     instance_id += 1;
     return status;
 }
-
+*/
 
 /**
  * Process a GetFirmwareParameters request.
@@ -77,6 +77,7 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_state *f
  * @return 0 on success or an error code.
  * 
 */
+/*
 int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_state *fwup_state,
     struct device_manager *device_manager, struct cmd_interface_msg *request)
 {
@@ -120,6 +121,7 @@ int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_state *f
     instance_id += 1;
     return status;
 }   
+*/
 
 /**
  * Process a RequestUpdate request.
@@ -130,6 +132,7 @@ int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_state *f
  * @return 0 on success or an error code.
  * 
 */
+/*
 int pldm_fwup_process_request_update_request(struct cmd_interface_pldm *cmd_pldm, struct cmd_interface_msg *request)
 {
     cmd_pldm->fwup_state->previous_cmd = PLDM_REQUEST_UPDATE;
@@ -178,6 +181,8 @@ int pldm_fwup_process_request_update_request(struct cmd_interface_pldm *cmd_pldm
     instance_id += 1;
     return status;
 }
+*/
+
 
 /**
 * Generate a GetPackageData request.
@@ -266,7 +271,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_multipart_trans
 */
 
 
-//#elif defined(PLDM_FWUP_UA_ENABLE)
+
 
 
 /**
@@ -355,6 +360,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_multipart_transf
 *
 * @return size of the message payload or an error code.
 */
+/*
 int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
@@ -372,6 +378,7 @@ int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t 
     instance_id += 1;
     return PLDM_MCTP_BINDING_MSG_OVERHEAD;
 }
+*/
 
 /**
  * Process a QueryDeviceIdentifiers response.
@@ -383,6 +390,7 @@ int pldm_fwup_generate_query_device_identifiers_request(uint8_t *buffer, size_t 
  * @return 0 on success or an error code.
  * 
 */
+/*
 int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *fwup_state, 
     struct device_manager *device_manager, struct cmd_interface_msg *response)
 {
@@ -427,7 +435,7 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *
 
     return status;
 }
-
+*/
 
 /**
 * Generate a GetFirmwareParameters request.
@@ -437,6 +445,7 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_state *
 *
 * @return size of the message payload or an error code.
 */
+/*
 int pldm_fwup_generate_get_firmware_parameters_request(uint8_t *buffer, size_t buf_len)
 {   
     static uint8_t instance_id;
@@ -454,6 +463,7 @@ int pldm_fwup_generate_get_firmware_parameters_request(uint8_t *buffer, size_t b
     instance_id += 1;
     return PLDM_MCTP_BINDING_MSG_OVERHEAD;
 }
+*/
 
 /**
  * Process a GetFirmwareParameters response.
@@ -465,6 +475,7 @@ int pldm_fwup_generate_get_firmware_parameters_request(uint8_t *buffer, size_t b
  * @return 0 on success or an error code.
  * 
 */
+/*
 int pldm_fwup_process_get_firmware_parameters_response(struct pldm_fwup_state *fwup_state,
     struct device_manager *device_manager, struct cmd_interface_msg *response)
 {
@@ -504,6 +515,7 @@ int pldm_fwup_process_get_firmware_parameters_response(struct pldm_fwup_state *f
 
     return status;
 }
+*/
 
 /**
 * Generate a RequestUpdate request.
@@ -516,6 +528,7 @@ int pldm_fwup_process_get_firmware_parameters_response(struct pldm_fwup_state *f
 *
 * @return size of the message payload or an error code.
 */
+/*
 int pldm_fwup_generate_request_update_request(struct pldm_fwup_flash_map *fwup_flash, struct device_manager *device_manager, 
     uint8_t device_eid, uint8_t *buffer, size_t buf_len)
 {
@@ -566,6 +579,7 @@ int pldm_fwup_generate_request_update_request(struct pldm_fwup_flash_map *fwup_f
     instance_id += 1;
     return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
 }
+*/
 
 
 
@@ -578,6 +592,7 @@ int pldm_fwup_generate_request_update_request(struct pldm_fwup_flash_map *fwup_f
  * @return 0 on success or an error code.
  * 
 */
+/*
 int pldm_fwup_process_request_update_response(struct cmd_interface_pldm *cmd_pldm, struct cmd_interface_msg *response)
 {
     struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
@@ -598,6 +613,501 @@ int pldm_fwup_process_request_update_response(struct cmd_interface_pldm *cmd_pld
     cmd_pldm->fd_will_send_pkg_data_cmd = fd_will_send_pkg_data_cmd;
 
     return status;
+}
+*/
+
+//#ifdef PLDM_FWUP_FD_ENABLE
+
+
+int pldm_fwup_process_query_device_identifiers_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_QUERY_DEVICE_IDENTIFIERS;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->state = PLDM_FD_STATE_IDLE;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_prcocess_get_firmware_parameters_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_GET_FIRMWARE_PARAMETERS;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->state = PLDM_FD_STATE_IDLE;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_process_request_update_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request) 
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_REQUEST_UPDATE;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    interface->package_data_len = 1;
+    interface->num_components = 3;
+
+    return 0;
+}
+
+
+int pldm_fwup_generate_get_package_data_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_GET_PACKAGE_DATA;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+
+int pldm_fwup_process_get_package_data_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response) {
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_GET_FIRMWARE_PARAMETERS;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    interface->fwup_state->fwup_multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
+
+    return 0;
+}
+
+
+int pldm_fwup_process_get_device_meta_data_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_GET_DEVICE_METADATA;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    interface->fwup_state->fwup_multipart_transfer.transfer_flag = PLDM_START_AND_END;
+
+    return 0;
+}
+int pldm_fwup_process_pass_component_table_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_PASS_COMPONENT_TABLE;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->state = PLDM_FD_STATE_READY_XFER;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+int pldm_fwup_process_update_component_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request) {
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_UPDATE_COMPONENT;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->state = PLDM_FD_STATE_DOWNLOAD;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_generate_request_firmware_data_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_REQUEST_FIRMWARE_DATA;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->state = PLDM_FD_STATE_DOWNLOAD;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_request_firmware_data_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response) {
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_REQUEST_FIRMWARE_DATA;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->state = PLDM_FD_STATE_DOWNLOAD;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    interface->fwup_state->comp_offset = 1;
+    interface->fwup_state->comp_size = 1;
+
+    return 0;
+}
+
+int pldm_fwup_generate_transfer_complete_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_TRANSFER_COMPLETE;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->state = PLDM_FD_STATE_VERIFY;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_transfer_complete_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_TRANSFER_COMPLETE;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->state = PLDM_FD_STATE_VERIFY;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_generate_verify_complete_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_VERIFY_COMPLETE;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->state = PLDM_FD_STATE_APPLY;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_verify_complete_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response) 
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_VERIFY_COMPLETE;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->state = PLDM_FD_STATE_APPLY;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_generate_apply_complete_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_APPLY_COMPLETE;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->state = PLDM_FD_STATE_READY_XFER;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_apply_complete_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_APPLY_COMPLETE;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->state = PLDM_FD_STATE_READY_XFER;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_process_activate_firmware_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_ACTIVATE_FIRMWARE;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->state = PLDM_FD_STATE_IDLE;
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+//#elif defined(PLDM_FWUP_UA_ENABLE)
+
+int pldm_fwup_generate_query_device_identifiers_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_QUERY_DEVICE_IDENTIFIERS;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_query_device_identifiers_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_QUERY_DEVICE_IDENTIFIERS;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_generate_get_firmware_parameters_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_GET_FIRMWARE_PARAMETERS;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_get_firmware_parameters_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_GET_FIRMWARE_PARAMETERS;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_generate_request_update_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_REQUEST_UPDATE;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_request_update_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_REQUEST_UPDATE;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+    interface->fd_will_send_pkg_data_cmd = 1;
+
+    return 0; 
+}
+
+int pldm_fwup_process_get_package_data_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_GET_PACKAGE_DATA;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+    interface->fwup_state->fwup_multipart_transfer.transfer_flag = PLDM_START_AND_END;
+
+    return 0;
+}
+
+int pldm_fwup_generate_get_device_meta_data_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_GET_DEVICE_METADATA;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+}
+int pldm_fwup_process_get_device_meta_data_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_GET_DEVICE_METADATA;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+    interface->fwup_state->fwup_multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
+
+    return 0; 
+}
+
+int pldm_fwup_generate_pass_component_table_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_PASS_COMPONENT_TABLE;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_pass_component_table_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_PASS_COMPONENT_TABLE;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0; 
+}
+
+int pldm_fwup_generate_update_component_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_UPDATE_COMPONENT;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+int pldm_fwup_process_update_component_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_UPDATE_COMPONENT;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0; 
+}
+
+
+int pldm_fwup_process_request_firmware_data_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_REQUEST_FIRMWARE_DATA;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+    interface->fwup_state->comp_offset = 1;
+    interface->fwup_state->comp_size = 1;
+
+    return 0;
+}
+
+int pldm_fwup_process_transfer_complete_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_TRANSFER_COMPLETE;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_process_verify_complete_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_VERIFY_COMPLETE;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_process_apply_complete_request(struct cmd_interface_pldm *interface, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)request->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_APPLY_COMPLETE;
+
+    request->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    request->length = PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0;
+}
+
+int pldm_fwup_generate_activate_firmware_request(struct cmd_interface_pldm *interface, 
+    uint8_t *buffer, size_t buf_len)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)buffer + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rq->hdr.command = PLDM_ACTIVATE_FIRMWARE;
+
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+
+int pldm_fwup_process_activate_firmware_response(struct cmd_interface_pldm *interface, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)response->data + PLDM_MCTP_BINDING_MSG_OFFSET;
+    rsp->hdr.command = PLDM_ACTIVATE_FIRMWARE;
+
+    response->data[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+    response->length = 0;
+
+    interface->fwup_state->previous_completion_code = PLDM_SUCCESS;
+
+    return 0; 
 }
 
 //#endif

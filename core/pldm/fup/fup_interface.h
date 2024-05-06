@@ -18,6 +18,9 @@ int fup_interface_get_device_id_record(const struct flash *fup_flash,
     struct variable_field *comp_image_set_version_str, struct variable_field *record_descriptors,
     struct variable_field *fw_device_pkg_data);
 
+uint8_t fup_interface_get_num_components(const struct flash *fup_flash, uint32_t fup_base_addr,
+    struct device_manager_entry *entry);
+
 //#endif
 
 #endif /* FUP_INTERFACE_H_ */
