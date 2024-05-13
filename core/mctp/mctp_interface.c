@@ -320,6 +320,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 			return status;
 		}
 	}
+    printf("Did we interpret?\n");
 
 
 
@@ -401,6 +402,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 				}
 			}
 			else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
+                printf("Is the message type PLDM?\n");
 				status = mctp->cmd_pldm->process_response (mctp->cmd_pldm, &mctp->req_buffer);
 
 				if (status != 0) {
@@ -457,7 +459,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 
 		} 
 		else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
-			mctp->req_buffer.max_response = MCTP_BASE_PROTOCOL_MAX_PACKET_LEN;
+			mctp->req_buffer.max_response = MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN;
 
 	
 			status = mctp->cmd_pldm->process_request (mctp->cmd_pldm, &mctp->req_buffer);
