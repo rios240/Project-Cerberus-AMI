@@ -130,6 +130,8 @@ static void pldm_fwup_transfers_test_one_mb_transfer(CuTest *test)
     CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.cmd_pldm.fwup_state->command);
 
 #else
+    UNUSED(request_buf);
+    
     testing.fwup_flash.package_data_flash = &testing.base_flash.base;
     testing.fwup_flash.package_data_addr = 0;
     testing.fwup_flash.package_data_size = 1048576;

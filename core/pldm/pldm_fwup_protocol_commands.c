@@ -684,7 +684,7 @@ exit:;
 
     printf("REQUEST/RESPONSE | instance: %d, data transfer handle %d, transfer op flag %d, next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
         instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, 
-        transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
+        transfer_flag, crc32(portion_of_pkg_data.ptr, portion_of_pkg_data.length));
     
     fwup_state->completion_code = completion_code;
     fwup_state->multipart_transfer.next_data_transfer_handle = next_data_transfer_handle;
