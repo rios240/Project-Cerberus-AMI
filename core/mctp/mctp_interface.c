@@ -320,7 +320,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 			return status;
 		}
 	}
-    printf("Did we interpret?\n");
+
 
 
 
@@ -402,7 +402,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 				}
 			}
 			else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
-                printf("Is the message type PLDM?\n");
+    
 				status = mctp->cmd_pldm->process_response (mctp->cmd_pldm, &mctp->req_buffer);
 
 				if (status != 0) {
