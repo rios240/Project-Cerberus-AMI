@@ -112,8 +112,8 @@ static void pldm_fwup_transfers_test_one_mb_transfer(CuTest *test)
     CuAssertIntEquals(test, 0, status);
     testing.cmd_pldm.fwup_state->previous_state = PLDM_FD_STATE_IDLE;
     testing.cmd_pldm.fwup_state->previous_command = PLDM_REQUEST_UPDATE;
-    testing.cmd_pldm.fwup_state->max_transfer_size = 2048;
-
+    //testing.cmd_pldm.fwup_state->max_transfer_size = 2048;
+    testing.cmd_pldm.fwup_state->max_transfer_size = 32;
 
     initialize_cmd_channel_and_mctp_interface(test, &testing, 0x4E);
 
@@ -131,7 +131,7 @@ static void pldm_fwup_transfers_test_one_mb_transfer(CuTest *test)
 
 #else
     UNUSED(request_buf);
-    
+
     testing.fwup_flash.package_data_flash = &testing.base_flash.base;
     testing.fwup_flash.package_data_addr = 0;
     testing.fwup_flash.package_data_size = 1048576;
