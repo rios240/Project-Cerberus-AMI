@@ -235,7 +235,7 @@ int cmd_interface_pldm_init (struct cmd_interface_pldm *intf,
  *
  * @param intf The PLDM FWUP command interface instance to deinitialize
  */
-void cmd_interface_pldm_fwup_deinit (struct cmd_interface_pldm *intf)
+void cmd_interface_pldm_deinit (struct cmd_interface_pldm *intf)
 {
 	if (intf != NULL) {
 		memset (intf, 0, sizeof (struct cmd_interface_pldm));

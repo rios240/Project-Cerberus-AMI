@@ -9,6 +9,7 @@
 #include "cmd_interface/cmd_channel.h"
 #include "cmd_interface/device_manager.h"
 #include "flash/flash_virtual_disk.h"
+#include "common/unused.h"
 #include "testing.h"
 
 
@@ -66,7 +67,7 @@ static void initialize_cmd_channel_and_mctp_interface(CuTest *test, struct pldm_
     testing->cmd_spdm.generate_error_packet = generate_error_packet;
 
     status = mctp_interface_init(&testing->mctp, &testing->cmd_cerberus, &testing->cmd_mctp,
-        &testing->cmd_spdm, &testing->cmd_pldm, &testing->device_mgr);
+        &testing->cmd_spdm, &testing->cmd_pldm.base, &testing->device_mgr);
     CuAssertIntEquals(test, 0, status);
 }
 
@@ -117,7 +118,7 @@ static void pldm_fwup_transfers_test_one_mb_transfer(CuTest *test)
     initialize_cmd_channel_and_mctp_interface(test, &testing, 0x4E);
 
     do {
-        status = pldm_fwup_interface_generate_request(&testing.cmd_pldm, PLDM_GET_PACKAGE_DATA, request_buf, sizeof (request_buf));
+        status = pldm_fwup_interface_generate_request(&testing.cmd_pldm.base, PLDM_GET_PACKAGE_DATA, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(&testing.mctp, &testing.channel, 0x6E, 0x60, request_buf, 
             (size_t) status, request_buf, sizeof (request_buf), 0);
         CuAssertIntEquals(test, 0, status);
