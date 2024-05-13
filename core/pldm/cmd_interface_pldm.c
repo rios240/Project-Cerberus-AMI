@@ -1,12 +1,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "common/unused.h"
-#include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm.h"
 #include "pldm_fwup_protocol_commands.h"
-
-
+#include "common/unused.h"
 #include "libpldm/firmware_update.h"
 #include "libpldm/base.h"
 
@@ -277,37 +274,10 @@ int cmd_interface_pldm_generate_request(struct cmd_interface *intf, uint8_t pldm
     return status;
 }
 
-/**
- * Initialize only the multipart transfer for the cmd_interface. 
- * The rest of the cmd interface instance is assumed to have already been initialized.
- * 
- * This would generally be used with a statically initialized instance.
- * 
- * @param fwup_multipart_transfer The multipart transfer to initialized
- * 
- * @return 0 if the multipart transfer was successfully initialized or an error code.
-*/
-int cmd_interface_pldm_init_fwup_multipart_transfer(struct pldm_fwup_multipart_transfer *fwup_multipart_transfer)
-{
-    if ((fwup_multipart_transfer == NULL)) {
-        return PLDM_ERROR_INVALID_DATA;
-    }
-
-    memset (fwup_multipart_transfer, 0, sizeof (struct pldm_fwup_multipart_transfer));
-
-#ifdef PLDM_FWUP_FD_ENABLE
-    fwup_multipart_transfer->transfer_op_flag = PLDM_GET_FIRSTPART;
-#elif defined(PLDM_FWUP_UA_ENABLE)
-    fwup_multipart_transfer->transfer_flag = PLDM_START;
-#endif
-
-    return 0;
-}
-
 
 
 /**
- * Initialize only the variable FWUP state for the cmd interface.  The rest of the cmd
+ * Initialize only the variable fwup state for the command interface.  The rest of the command
  * interface instance is assumed to have already been initialized.
  *
  * This would generally be used with a statically initialized instance.
@@ -325,42 +295,41 @@ int cmd_interface_pldm_init_fwup_state(struct pldm_fwup_state *fwup_state)
 
     memset (fwup_state, 0, sizeof (struct pldm_fwup_state));
 
-#ifdef PLDM_FWUP_FD_ENABLE
     fwup_state->state = PLDM_FD_STATE_IDLE;
-#endif
+    fwup_state->previous_state = PLDM_FD_STATE_IDLE;
 
-    return cmd_interface_pldm_init_fwup_multipart_transfer(&fwup_state->fwup_multipart_transfer);
+    fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
+    fwup_state->multipart_transfer.transfer_flag = PLDM_START;
+
+    return 0;
 }
 
 
 
 /**
- * Initialize PLDM command interface instance
+ * Initialize a PLDM command interface instance
  *
- * @param intf The PLDM control command interface instance to initialize
- * @param fwup_flash_ptr The flash address mapping to use for FWUP
- * @param fwup_state_ptr Variable FWUP context for the cmd interface.
- * @param device_manager Device manager instance
+ * @param intf The PLDM control command interface instance to initialize.
+ * @param fwup_flash The flash address mapping to use for a FWUP.
+ * @param fwup_state Variable FWUP context for the command interface.
+ * @param device_mgr The device manager linked to command interface.
  *
  * @return Initialization status, 0 if success or an error code.
  */
 int cmd_interface_pldm_init (struct cmd_interface_pldm *intf, 
-    struct pldm_fwup_flash_map *fwup_flash_ptr, struct pldm_fwup_state *fwup_state_ptr,
-    struct device_manager *device_manager_ptr, uint8_t device_eid)
+    struct pldm_fwup_flash_map *fwup_flash, struct pldm_fwup_state *fwup_state,
+    struct device_manager *device_mgr)
 {
 
-    if ((intf == NULL) || fwup_flash_ptr == NULL) {
+    if ((intf == NULL) || fwup_flash == NULL || device_mgr == NULL) {
         return PLDM_ERROR_INVALID_DATA;
     }
 
     memset (intf, 0, sizeof (struct cmd_interface_pldm));
 
-    intf->fwup_flash = fwup_flash_ptr;
-    intf->device_manager = device_manager_ptr;
-
-#ifdef PLDM_FWUP_UA_ENABLE
-    intf->updating_device_eid = device_eid;
-#endif
+    intf->fwup_flash = fwup_flash;
+    intf->device_mgr = device_mgr;
+    intf->fwup_state = fwup_state;
 
     intf->base.process_request = cmd_interface_pldm_process_request;
 #ifdef CMD_ENABLE_ISSUE_REQUEST
