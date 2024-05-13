@@ -623,7 +623,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_stat
     }
 
     static uint8_t instance_id = 1;
-    uint8_t completion_code = 0;
+    uint8_t completion_code = PLDM_SUCCESS;
     uint8_t transfer_flag = 0;
     struct variable_field portion_of_pkg_data;
     uint32_t next_data_transfer_handle = 0;
