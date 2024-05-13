@@ -1,13 +1,17 @@
+#ifndef PLDM_FWUP_PROTOCOL_H_
+#define PLDM_FWUP_PROTOCOL_H_
+
 #include <stdint.h>
 #include "libpldm/firmware_update.h"
-#include "platform_config.h"
 #include "mctp/mctp_base_protocol.h"
+#include "platform_config.h"
 
-#ifndef PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE
-#define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                                MCTP_BASE_PROTOCOL_MAX_TRANSMISSION_UNIT
+
+#if !PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE && !PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+#define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                                MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN
 #endif
 
-#ifndef PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ
+#if !PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ && !PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
 #define PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ                     1                     
 #endif
 
@@ -47,3 +51,5 @@ struct pldm_fwup_protocol_full_firmware_parameters {
     struct pldm_fwup_protocol_full_component_parameter_entry *entries;      /**< Table of component entries for all of the updateable components that reside on the FD. */
 
 };
+
+#endif /* PLDM_FWUP_PROTOCOL_H_ */

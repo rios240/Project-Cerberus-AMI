@@ -115,10 +115,10 @@
 
 
 /********************
- * MCTP protocol
+ * PLDM protocol
  ********************/
 
-//  #define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                MCTP_BASE_PROTOCOL_MAX_TRANSMISSION_UNIT
+#define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                2048
 //  #define PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ     1
 
 

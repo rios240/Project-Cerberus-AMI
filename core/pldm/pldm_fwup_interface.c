@@ -1,14 +1,52 @@
 #include "pldm_fwup_interface.h"
 #include "mctp/mctp_interface.h"
-#include "cmd_interface_pldm.h"
+#include "cmd_interface/cmd_interface.h"
 #include "cmd_interface/cmd_channel.h"
-#include "fup/fup_interface.h"
-
+#include "cmd_interface_pldm.h"
+#include "pldm_fwup_protocol_commands.h"
 
 #include "libpldm/firmware_update.h"
 
 
+/**
+* Generate PLDM FWUP request for use in the MCTP interface
+* 
+* @param intf The PLDM FWUP control command interface instance
+* @param command The PLDM FWUP command
+* @param buffer The buffer to store the PLDM message
+* @param buf_len The length of the buffer
+* 
+* @return size of the request or pldm_completion_codes
+*/
+int pldm_fwup_interface_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len) 
+{
+    struct cmd_interface_pldm *interface = (struct cmd_interface_pldm *)intf;
+    int status; 
 
+    switch(command) {
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+        case PLDM_GET_PACKAGE_DATA:
+            status = pldm_fwup_generate_get_package_data_request(interface->fwup_state, buffer, buf_len);
+            break;
+#else
+        case PLDM_QUERY_DEVICE_IDENTIFIERS:
+            status = pldm_fwup_generate_query_device_identifiers_request(interface->fwup_state, buffer, buf_len);
+            break;
+        case PLDM_GET_FIRMWARE_PARAMETERS:
+            status = pldm_fwup_generate_get_firmware_parameters_request(interface->fwup_state, buffer, buf_len);
+            break;
+        case PLDM_REQUEST_UPDATE:
+            status = pldm_fwup_generate_request_update_request(interface->fwup_flash, interface->fwup_state, buffer, buf_len);
+            break;
+#endif
+        default:
+        status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;    
+    }
+
+    return status;
+}
+
+/*
 int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channel, uint8_t inventory_cmds, uint8_t device_eid, int ms_timeout)
 {
     struct cmd_interface_pldm *interface = (struct cmd_interface_pldm *)mctp->cmd_pldm;
@@ -144,7 +182,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
     status = cmd_channel_receive_and_process(channel, mctp, ms_timeout);
     return status;
     
-#elif defined(PLDM_FWUP_UA_ENABLE)
+//#elif defined(PLDM_FWUP_UA_ENABLE)
     if (inventory_cmds) {
         //QueryDeviceIdentifiers
         request_size = cmd_interface_pldm_generate_request(&interface->base, PLDM_QUERY_DEVICE_IDENTIFIERS, request_buf, sizeof (request_buf));
@@ -289,6 +327,7 @@ int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channe
     }
     status = cmd_channel_receive_and_process(channel, mctp, ms_timeout);
     return status;
-#endif
+//#endif
 
 }
+*/

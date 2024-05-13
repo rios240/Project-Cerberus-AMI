@@ -7,11 +7,11 @@
 #include "common/unused.h"
 
 
-static void add_all_pldm_fwup_tests (CuSuite *suite)
+static void add_all_pldm_tests (CuSuite *suite)
 {
     UNUSED (suite);
 
-    TESTING_RUN_SUITE (pldm_fwup_interface_test);
+    TESTING_RUN_SUITE (pldm_fwup_transfers);
 
 }
 
