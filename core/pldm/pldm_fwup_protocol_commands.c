@@ -276,7 +276,6 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_state *fwup_sta
 int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_state, 
     struct pldm_fwup_flash_map *fwup_flash, struct cmd_interface_msg *response)
 {
-    printf("Are we in the process response func?\n");
     struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
 
@@ -290,7 +289,6 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
     if (status != 0) {
         return status;
     }
-    printf("Completion code: %d.\n", completion_code);
     fwup_state->completion_code = completion_code;
     if (completion_code != PLDM_SUCCESS) {
         switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
@@ -302,11 +300,13 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
         (uint8_t *)portion_of_package_data.ptr, portion_of_package_data.length);
     if (ROT_IS_ERROR(status)) {
         return status;
+    } else {
+        status = 0;
     }
 
     if (transfer_flag == PLDM_END || transfer_flag == PLDM_START_AND_END) {
         reset_multipart_transfer(fwup_state);
-    } else if (transfer_flag == PLDM_MIDDLE) {
+    } else {
         fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_NEXTPART;
         fwup_state->multipart_transfer.data_transfer_handle = next_data_transfer_handle;
     }

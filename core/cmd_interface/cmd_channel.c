@@ -169,7 +169,6 @@ int cmd_channel_receive_and_process (struct cmd_channel *channel, struct mctp_in
 			CMD_LOGGING_RECEIVE_PACKET_FAIL, channel->id, status);
 		return status;
 	}
-    printf("Did we receive a packet?\n");
 
 	/* We don't support packets larger than the maximum defined size, so there is no need to
 	 * attempt to aggregate transactions that send too much data.  Just throw the data away. */
@@ -188,7 +187,6 @@ int cmd_channel_receive_and_process (struct cmd_channel *channel, struct mctp_in
 		channel->overflow = false;
 		return 0;
 	}
-    printf("Did we overflow?\n");
 
 	if (packet.state == CMD_RX_ERROR) {
 		/* If we detect a channel error, just log it and pass the packet on for processing.  Let
