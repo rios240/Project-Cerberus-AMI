@@ -68,43 +68,19 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
     }
 
     switch (pldm_command) {
-#ifdef PLDM_FWUP_FD_ENABLE
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_process_query_device_identifiers_request(interface, request);
+            status = pldm_fwup_process_query_device_identifiers_request(interface->fwup_state, interface->device_mgr, request);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_prcocess_get_firmware_parameters_request(interface, request);
+            status = pldm_fwup_prcocess_get_firmware_parameters_request(interface->fwup_state, interface->device_mgr, request);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_process_request_update_request(interface, request);
+            status = pldm_fwup_process_request_update_request(interface->fwup_state, interface->fwup_flash, request);
             break;
-        case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_process_get_device_meta_data_request(interface, request);
-            break;
-        case PLDM_PASS_COMPONENT_TABLE:
-            status = pldm_fwup_process_pass_component_table_request(interface, request);
-            break;
-        case PLDM_UPDATE_COMPONENT:
-            status = pldm_fwup_process_update_component_request(interface, request);
-            break;
-        case PLDM_ACTIVATE_FIRMWARE:
-            status = pldm_fwup_process_activate_firmware_request(interface, request);
-            break;
-#elif defined(PLDM_FWUP_UA_ENABLE)
+#else
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_request(interface, request);
-            break;
-        case PLDM_REQUEST_FIRMWARE_DATA:
-            status = pldm_fwup_process_request_firmware_data_request(interface, request);
-            break;
-        case PLDM_TRANSFER_COMPLETE:
-            status = pldm_fwup_process_request_firmware_data_request(interface, request);
-            break;
-        case PLDM_VERIFY_COMPLETE:
-            status = pldm_fwup_process_verify_complete_request(interface, request);
-            break;
-        case PLDM_APPLY_COMPLETE:
-            status = pldm_fwup_process_apply_complete_request(interface, request);
+            status = pldm_fwup_process_get_package_data_request(interface->fwup_state, interface->fwup_flash, request);
             break;
 #endif
         default:
@@ -139,43 +115,19 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
     }
 
     switch (command) {
-#ifdef PLDM_FWUP_FD_ENABLE
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_response(interface, response);
+            status = pldm_fwup_process_get_package_data_response(interface->fwup_state, interface->fwup_flash, response);
             break;
-        case PLDM_REQUEST_FIRMWARE_DATA:
-            status = pldm_fwup_process_request_firmware_data_response(interface, response);
-            break;
-        case PLDM_TRANSFER_COMPLETE:
-            status = pldm_fwup_process_transfer_complete_response(interface, response);
-            break;
-        case PLDM_VERIFY_COMPLETE:
-            status = pldm_fwup_process_verify_complete_response(interface, response);
-            break;
-        case PLDM_APPLY_COMPLETE:
-            status = pldm_fwup_process_apply_complete_response(interface, response);
-            break;
-#elif defined(PLDM_FWUP_UA_ENABLE)
+#else
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_process_query_device_identifiers_response(interface, response);
+            status = pldm_fwup_process_query_device_identifiers_response(interface->fwup_state, interface->device_mgr, response);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_process_get_firmware_parameters_response(interface, response);
+            status = pldm_fwup_process_get_firmware_parameters_response(interface->fwup_state, interface->device_mgr, response);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_process_request_update_response(interface, response);
-            break;
-        case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_process_get_device_meta_data_response(interface, response);
-            break;
-        case PLDM_PASS_COMPONENT_TABLE:
-            status = pldm_fwup_process_pass_component_table_response(interface, response);
-            break;
-        case PLDM_UPDATE_COMPONENT:
-            status = pldm_fwup_process_update_component_response(interface, response);
-            break;
-        case PLDM_ACTIVATE_FIRMWARE:
-            status = pldm_fwup_process_activate_firmware_response(interface, response);
+            status = pldm_fwup_process_request_update_response(interface->fwup_flash, interface->fwup_state, response);
             break;
 #endif
         default:
@@ -211,72 +163,6 @@ static int cmd_interface_pldm_generate_error_packet (struct cmd_interface *intf,
 }
 
 /**
-* Generate PLDM FWUP request for use in mctp_interface_issue_request
-* 
-* @param intf The PLDM FWUP control command interface instance
-* @param pldm_command The PLDM FWUP command
-* @param buffer The buffer to store the PLDM message
-* @param buf_len The length of the buffer
-* 
-* @return size of the request or pldm_completion_codes
-*/
-int cmd_interface_pldm_generate_request(struct cmd_interface *intf, uint8_t pldm_command, uint8_t *buffer, size_t buf_len) 
-{
-    struct cmd_interface_pldm *interface = (struct cmd_interface_pldm *)intf;
-    int status;
-
-    UNUSED (interface);   
-
-    switch(pldm_command) {
-#ifdef PLDM_FWUP_FD_ENABLE
-        case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_generate_get_package_data_request(interface, buffer, buf_len);
-            break;
-        case PLDM_REQUEST_FIRMWARE_DATA:
-            status = pldm_fwup_generate_request_firmware_data_request(interface, buffer, buf_len);
-            break;
-        case PLDM_TRANSFER_COMPLETE:
-            status = pldm_fwup_generate_transfer_complete_request(interface, buffer, buf_len);
-            break;
-        case PLDM_VERIFY_COMPLETE:
-            status = pldm_fwup_generate_verify_complete_request(interface, buffer, buf_len);
-            break;
-        case PLDM_APPLY_COMPLETE:
-            status = pldm_fwup_generate_apply_complete_request(interface, buffer, buf_len);
-            break;
-#elif defined(PLDM_FWUP_UA_ENABLE)
-        case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_generate_query_device_identifiers_request(interface, buffer, buf_len);
-            break;
-        case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_generate_get_firmware_parameters_request(interface, buffer, buf_len);
-            break;
-        case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_generate_request_update_request(interface, buffer, buf_len);
-            break;
-        case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_generate_get_device_meta_data_request(interface, buffer, buf_len);
-            break;
-        case PLDM_PASS_COMPONENT_TABLE:
-            status = pldm_fwup_generate_pass_component_table_request(interface, buffer, buf_len);
-            break;
-        case PLDM_UPDATE_COMPONENT:
-            status = pldm_fwup_generate_update_component_request(interface, buffer, buf_len);
-            break;
-        case PLDM_ACTIVATE_FIRMWARE:
-            status = pldm_fwup_generate_activate_firmware_request(interface, buffer, buf_len);
-            break;
-#endif
-        default:
-        status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;    
-    }
-
-    return status;
-}
-
-
-
-/**
  * Initialize only the variable fwup state for the command interface.  The rest of the command
  * interface instance is assumed to have already been initialized.
  *
@@ -294,12 +180,14 @@ int cmd_interface_pldm_init_fwup_state(struct pldm_fwup_state *fwup_state)
     }
 
     memset (fwup_state, 0, sizeof (struct pldm_fwup_state));
-
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
     fwup_state->state = PLDM_FD_STATE_IDLE;
-    fwup_state->previous_state = PLDM_FD_STATE_IDLE;
-
     fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
+    fwup_state->multipart_transfer.data_transfer_handle = 0;
+#else
     fwup_state->multipart_transfer.transfer_flag = PLDM_START;
+    fwup_state->multipart_transfer.next_data_transfer_handle = 0;
+#endif
 
     return 0;
 }

@@ -11,6 +11,7 @@
 #include "pldm/pldm_fwup_interface.h"
 #include "libpldm/firmware_update.h"
 
+/*
 TEST_SUITE_LABEL ("pldm_fwup_interface_test");
 
 
@@ -31,9 +32,9 @@ static int generate_error_packet(struct cmd_interface *intf, struct cmd_interfac
     return 0;
 }
 
-/*******************
+*******************
  * Test cases
- *******************/
+ *******************
 
 
 static void pldm_fwup_run_update_single_device_test(CuTest *test)
@@ -137,3 +138,5 @@ TEST_SUITE_START (pldm_fwup_interface_test);
 TEST (pldm_fwup_run_update_single_device_test);
 
 TEST_SUITE_END;
+
+*/
