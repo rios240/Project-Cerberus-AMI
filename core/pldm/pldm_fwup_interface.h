@@ -13,6 +13,7 @@
 #include "libpldm/base.h"
 #include "libpldm/firmware_update.h"
 
+#define PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
 
 /**
  * The flash addresses and devices to use for different pldm fwup regions.

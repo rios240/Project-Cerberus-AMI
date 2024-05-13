@@ -240,7 +240,7 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_state *fwup_state,
 */
 int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_state *fwup_state, uint8_t *buffer, size_t buf_len)
 {
-    switch_command(fwup_state, PLDM_GET_PACKAGE_DATA);
+    fwup_state->command = PLDM_GET_PACKAGE_DATA;
 
     static uint8_t instance_id = 1;
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
@@ -255,6 +255,8 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_state *fwup_sta
     if (status != 0) {
         return status;
     }
+
+    printf("REQUEST | instance: %d, data transfer handle: %d, transfer op flag: %d.\n", instance_id, data_transfer_handle, transfer_operation_flag);
 
     instance_id += 1;
     return PLDM_MCTP_BINDING_MSG_OVERHEAD + sizeof (struct pldm_multipart_transfer_req);
@@ -306,6 +308,9 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
         fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_NEXTPART;
         fwup_state->multipart_transfer.data_transfer_handle = next_data_transfer_handle;
     }
+
+    printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
+        next_data_transfer_handle, transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
 
     switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
     response->length = 0;
@@ -602,7 +607,7 @@ int pldm_fwup_process_request_update_response(struct pldm_fwup_flash_map *fwup_f
 int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_state, 
     struct pldm_fwup_flash_map *fwup_flash, struct cmd_interface_msg *request)
 {
-    switch_command(fwup_state, PLDM_GET_PACKAGE_DATA);
+    fwup_state->command = PLDM_GET_PACKAGE_DATA;
 
     struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -676,6 +681,10 @@ exit:;
 
     status = encode_get_package_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_pkg_data);
+
+    printf("REQUEST/RESPONSE | instance: %d, data transfer handle %d, transfer op flag %d, next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
+        instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, 
+        transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
     
     fwup_state->completion_code = completion_code;
     fwup_state->multipart_transfer.next_data_transfer_handle = next_data_transfer_handle;
