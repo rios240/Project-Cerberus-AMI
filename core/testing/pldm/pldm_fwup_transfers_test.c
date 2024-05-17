@@ -10,6 +10,7 @@
 #include "cmd_interface/device_manager.h"
 #include "flash/flash_virtual_disk.h"
 #include "common/unused.h"
+#include "status/rot_status.h"
 #include "testing.h"
 
 
@@ -91,7 +92,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
     uint8_t request_buf[MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN];
 
     const char *disk_region = "/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/common_flash_10_kb.bin";
-    size_t disk_size = 10240;
+    size_t disk_size = 5242880;
 
     TEST_START;
 
@@ -130,8 +131,14 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
 
         do {
             status = cmd_channel_receive_and_process(&testing.channel, &testing.mctp, 10000);
+            //if (ROT_IS_ERROR(status)) {
+                //printf("Module id: %d\n", ROT_GET_MODULE(status));
+                //printf("Error id: %d\n", ROT_GET_ERROR(status));
+            //}
             CuAssertIntEquals(test, 0, status);
+
         } while (testing.mctp.rsp_state != MCTP_INTERFACE_RESPONSE_SUCCESS);
+        mctp_interface_reset_message_processing(&testing.mctp);
     } while (testing.cmd_pldm.fwup_state->multipart_transfer.transfer_op_flag != PLDM_GET_FIRSTPART);
     CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, testing.cmd_pldm.fwup_state->state);
     CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.cmd_pldm.fwup_state->command);
@@ -162,6 +169,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
             status = cmd_channel_receive_and_process(&testing.channel, &testing.mctp, 10000);
             CuAssertIntEquals(test, 0, status);
         } while (testing.mctp.req_buffer.length != 0);
+        mctp_interface_reset_message_processing(&testing.mctp);
     } while (testing.cmd_pldm.fwup_state->multipart_transfer.transfer_flag != PLDM_END);
 #endif
 
