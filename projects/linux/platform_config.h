@@ -88,12 +88,12 @@
 /**
  * The maximum supported payload size for an MCTP packet.
  */
-// #define MCTP_BASE_PROTOCOL_MAX_TRANSMISSION_UNIT				247
+#define MCTP_BASE_PROTOCOL_MAX_TRANSMISSION_UNIT				247
 
 /**
  * The maximum supported body size for an MCTP message.
  */
-// #define MCTP_BASE_PROTOCOL_MAX_MESSAGE_BODY					4096
+#define MCTP_BASE_PROTOCOL_MAX_MESSAGE_BODY					    4096
 
 /**
  * The maximum time allowed after receiving a completed request before the response must start
@@ -113,13 +113,13 @@
 // #define CERBERUS_VID_SET_RESPONSE							0xFF
 
 
-
 /********************
  * PLDM protocol
  ********************/
 
-#define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                    32
-//  #define PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ     1
+#define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                    1029
+
+#define PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ         1
 
 
 #endif /* PLATFORM_CONFIG_H_ */

@@ -459,7 +459,8 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 
 		} 
 		else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
-			mctp->req_buffer.max_response = MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN;
+			mctp->req_buffer.max_response = device_manager_get_max_message_len_by_eid (
+				mctp->device_manager, src_eid);
 
 	
 			status = mctp->cmd_pldm->process_request (mctp->cmd_pldm, &mctp->req_buffer);
