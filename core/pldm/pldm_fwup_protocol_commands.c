@@ -692,6 +692,7 @@ exit:;
     fwup_state->multipart_transfer.next_data_transfer_handle = next_data_transfer_handle;
     fwup_state->multipart_transfer.transfer_flag = transfer_flag;
     request->length = rsp_payload_length;
+    instance_id += 1;
     return status;
 }
 
