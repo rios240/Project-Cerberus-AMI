@@ -19,6 +19,14 @@ void switch_command(struct pldm_fwup_state *fwup_state, enum pldm_firmware_updat
     fwup_state->command = new_command;
 }
 
+void print_buffer_data(const uint8_t *data, size_t len) {
+    printf("Bytes:");
+    for (size_t i = 0; i < len; ++i) {
+        printf(" %02x", data[i]);
+    }
+    printf("\n");
+}
+
 
 #ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
 /*******************
@@ -311,8 +319,9 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
         fwup_state->multipart_transfer.data_transfer_handle = next_data_transfer_handle;
     }
 
-    printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
-        next_data_transfer_handle, transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
+    printf("RESPONSE | next data transfer handle: %d, transfer flag: %d.\n", 
+        next_data_transfer_handle, transfer_flag);
+    print_buffer_data((uint8_t *)portion_of_package_data.ptr, portion_of_package_data.length)
 
     switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
     response->length = 0;
@@ -684,9 +693,10 @@ exit:;
     status = encode_get_package_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_pkg_data);
 
-    printf("REQUEST/RESPONSE | instance: %d, data transfer handle %d, transfer op flag %d, next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
+    printf("REQUEST/RESPONSE | instance: %d, data transfer handle %d, transfer op flag %d, next data transfer handle: %d, transfer flag: %d.\n", 
         instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, 
-        transfer_flag, crc32(portion_of_pkg_data.ptr, portion_of_pkg_data.length));
+        transfer_flag);
+    print_buffer_data((uint8_t *)portion_of_pkg_data.ptr, portion_of_pkg_data.length)
     
     fwup_state->completion_code = completion_code;
     fwup_state->multipart_transfer.next_data_transfer_handle = next_data_transfer_handle;
