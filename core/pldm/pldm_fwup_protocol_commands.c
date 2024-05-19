@@ -321,7 +321,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
 
     printf("RESPONSE | next data transfer handle: %d, transfer flag: %d.\n", 
         next_data_transfer_handle, transfer_flag);
-    print_buffer_data((uint8_t *)portion_of_package_data.ptr, portion_of_package_data.length)
+    print_buffer_data((uint8_t *)portion_of_package_data.ptr, portion_of_package_data.length);
 
     switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
     response->length = 0;
