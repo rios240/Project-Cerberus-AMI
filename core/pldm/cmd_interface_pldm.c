@@ -78,6 +78,9 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
         case PLDM_REQUEST_UPDATE:
             status = pldm_fwup_process_request_update_request(interface->fwup_state, interface->fwup_flash, request);
             break;
+        case PLDM_GET_DEVICE_METADATA:
+            status = pldm_fwup_process_get_device_meta_data_request(interface->fwup_state, interface->fwup_flash, request);
+            break;
 #else
         case PLDM_GET_PACKAGE_DATA:
             status = pldm_fwup_process_get_package_data_request(interface->fwup_state, interface->fwup_flash, request);
@@ -129,6 +132,8 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
         case PLDM_REQUEST_UPDATE:
             status = pldm_fwup_process_request_update_response(interface->fwup_flash, interface->fwup_state, response);
             break;
+        case PLDM_GET_DEVICE_METADATA:
+            status = pldm_fwup_process_get_device_meta_data_response(interface->fwup_state, interface->fwup_flash, response);
 #endif
         default:
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;

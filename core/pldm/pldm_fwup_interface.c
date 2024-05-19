@@ -38,6 +38,9 @@ int pldm_fwup_interface_generate_request(struct cmd_interface *intf, uint8_t com
         case PLDM_REQUEST_UPDATE:
             status = pldm_fwup_generate_request_update_request(interface->fwup_flash, interface->fwup_state, buffer, buf_len);
             break;
+        case PLDM_GET_DEVICE_METADATA:
+            status = pldm_fwup_generate_get_device_meta_data_request(interface->fwup_state, buffer, buf_len);
+            break;
 #endif
         default:
         status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;    
