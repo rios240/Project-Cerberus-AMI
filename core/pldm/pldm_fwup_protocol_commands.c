@@ -361,6 +361,7 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_state *fwup_
     uint32_t next_data_transfer_handle = 0;
     portion_of_device_meta_data.ptr = (const uint8_t *)&completion_code;
     portion_of_device_meta_data.length = sizeof (completion_code);
+    uint8_t device_meta_data_buf[(size_t)fwup_state->max_transfer_size];
 
     if (fwup_state->previous_command != PLDM_GET_PACKAGE_DATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
@@ -402,7 +403,6 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_state *fwup_
         }
     }
 
-    uint8_t device_meta_data_buf[fwup_state->max_transfer_size] = {0};
     status = fwup_flash->device_meta_data_flash->read(fwup_flash->device_meta_data_flash, fwup_flash->device_meta_data_addr + data_transfer_handle,
         device_meta_data_buf, fwup_state->max_transfer_size);
     if (ROT_IS_ERROR(status)) {
@@ -741,6 +741,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_stat
     uint32_t next_data_transfer_handle = 0;
     portion_of_pkg_data.ptr = (const uint8_t *)&completion_code;
     portion_of_pkg_data.length = sizeof (completion_code);
+    uint8_t pkg_data_buf[PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE];
 
     if (fwup_state->previous_command != PLDM_REQUEST_UPDATE) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
@@ -782,7 +783,6 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_stat
         }
     }
 
-    uint8_t pkg_data_buf[PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE] = {0};
     status = fwup_flash->package_data_flash->read(fwup_flash->package_data_flash, fwup_flash->package_data_addr + data_transfer_handle,
         pkg_data_buf, PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE);
     if (ROT_IS_ERROR(status)) {
