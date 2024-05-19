@@ -417,10 +417,6 @@ exit:;
 
     status = encode_get_device_meta_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_device_meta_data);
-
-    printf("REQUEST/RESPONSE | instance: %d, data transfer handle %d, transfer op flag %d, next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
-        instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, 
-        transfer_flag, crc32(portion_of_device_meta_data.ptr, portion_of_device_meta_data.length));
     
     fwup_state->completion_code = completion_code;
     fwup_state->multipart_transfer.next_data_transfer_handle = next_data_transfer_handle;
@@ -807,6 +803,89 @@ exit:;
     fwup_state->multipart_transfer.transfer_flag = transfer_flag;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
     instance_id += 1;
+    return status;
+}
+
+/**
+* Generate a GetDeviceMetaData request.
+*
+* @param fwup_state - Variable state context for a PLDM FWUP.
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return 0 if the request was successfully generated or an error code.
+*/
+int pldm_fwup_generate_get_device_meta_data_request(struct pldm_fwup_state *fwup_state, uint8_t *buffer, size_t buf_len)
+{
+    fwup_state->command = PLDM_GET_PACKAGE_DATA;
+
+    static uint8_t instance_id = 1;
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    uint32_t data_transfer_handle = fwup_state->multipart_transfer.data_transfer_handle;
+    uint8_t transfer_operation_flag = fwup_state->multipart_transfer.transfer_op_flag;
+
+    struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = sizeof (struct pldm_multipart_transfer_req);
+
+    int status = encode_get_device_meta_data_req(instance_id, rq_payload_length, rq, data_transfer_handle, transfer_operation_flag);
+    if (status != 0) {
+        return status;
+    }
+
+    instance_id += 1;
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD + sizeof (struct pldm_multipart_transfer_req);
+    
+}
+
+
+/**
+* Process a GetDeviceMetaData response.
+*
+* @param fwup_state - Variable state context for a PLDM FWUP.
+* @param fwup_flash - The flash map for a PLDM FWUP.
+* @param response The response data to process.
+*
+* @return 0 if the response was successfully processed or an error code.
+*/
+int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_state *fwup_state, 
+    struct pldm_fwup_flash_map *fwup_flash, struct cmd_interface_msg *response)
+{
+    struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    uint8_t completion_code;
+    uint32_t next_data_transfer_handle;
+    uint8_t transfer_flag;
+	struct variable_field portion_of_device_meta_data;
+
+    int status = decode_get_device_meta_data_resp(rsp, &completion_code, &next_data_transfer_handle, 
+        &transfer_flag, &portion_of_device_meta_data, rsp_payload_length);
+    if (status != 0) {
+        return status;
+    }
+    fwup_state->completion_code = completion_code;
+    if (completion_code != PLDM_SUCCESS) {
+        return 0;
+    }
+
+    status = fwup_flash->device_meta_data_flash->write(fwup_flash->device_meta_data_flash, 
+        fwup_flash->device_meta_data_addr + fwup_state->multipart_transfer.data_transfer_handle, 
+        (uint8_t *)portion_of_device_meta_data.ptr, portion_of_device_meta_data.length);
+    if (ROT_IS_ERROR(status)) {
+        return status;
+    } else {
+        status = 0;
+    }
+
+    if (transfer_flag == PLDM_END || transfer_flag == PLDM_START_AND_END) {
+        reset_multipart_transfer(fwup_state);
+    } else {
+        fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_NEXTPART;
+        fwup_state->multipart_transfer.data_transfer_handle = next_data_transfer_handle;
+    }
+
+    response->length = 0;
     return status;
 }
 
