@@ -5,6 +5,7 @@
 #include "cmd_interface_pldm.h"
 #include "status/rot_status.h"
 #include "common/unused.h"
+#include "common/buffer_util.h"
 #include "platform.h"
 
 #include "libpldm/firmware_update.h"
@@ -194,15 +195,17 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_state *fwup_state,
     size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
     
     struct variable_field comp_img_set_ver_str;
-    comp_img_set_ver_str.ptr = (const uint8_t *)fwup_state->updating_device.comp_img_set_set_str;
+    comp_img_set_ver_str.ptr = (const uint8_t *)fwup_state->device_ctx.comp_img_set_set_str;
 
     int status = decode_request_update_req(rq, rq_payload_length, &fwup_state->max_transfer_size,
-    &fwup_state->updating_device.num_of_components, &fwup_state->max_num_outstanding_transfer_req,
-    (uint16_t *)&fwup_flash->package_data_size, &fwup_state->updating_device.comp_img_set_ver_str_type,
-    &fwup_state->updating_device.comp_img_set_ver_str_len, &comp_img_set_ver_str);
+    &fwup_state->device_ctx.num_of_components, &fwup_state->max_num_outstanding_transfer_req,
+    (uint16_t *)&fwup_flash->package_data_size, &fwup_state->device_ctx.comp_img_set_ver_str_type,
+    &fwup_state->device_ctx.comp_img_set_ver_str_len, &comp_img_set_ver_str);
     if (status != 0) {
         return status;
     }
+
+    fwup_state->device_ctx.entries = platform_calloc(fwup_state->device_ctx.num_of_components, sizeof (struct pldm_fwup_protocol_component_entry));
 
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = sizeof (struct pldm_request_update_resp);
@@ -250,7 +253,7 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_state *fwup_state,
 */
 int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_state *fwup_state, uint8_t *buffer, size_t buf_len)
 {
-    fwup_state->command = PLDM_GET_PACKAGE_DATA;
+    switch_command(fwup_state, PLDM_GET_PACKAGE_DATA);
 
     static uint8_t instance_id = 1;
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
@@ -324,7 +327,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
     printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
         next_data_transfer_handle, transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
 
-    fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
     response->length = 0;
     return status;
 }
@@ -341,7 +344,6 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
 int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_state *fwup_state, 
     struct pldm_fwup_flash_map *fwup_flash, struct cmd_interface_msg *request)
 {
-    fwup_state->command = PLDM_GET_DEVICE_METADATA;
 
     struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -363,7 +365,7 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_state *fwup_
     portion_of_device_meta_data.length = sizeof (completion_code);
     uint8_t device_meta_data_buf[(size_t)fwup_state->max_transfer_size];
 
-    if (fwup_state->previous_command != PLDM_GET_PACKAGE_DATA) {
+    if (fwup_state->previous_command != PLDM_GET_PACKAGE_DATA || fwup_state->previous_command != PLDM_GET_DEVICE_METADATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
         goto exit;
     }
@@ -379,6 +381,8 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_state *fwup_
         completion_code = PLDM_FWUP_INVALID_TRANSFER_HANDLE;
         goto exit;
     }
+
+    switch_command(fwup_state, PLDM_GET_DEVICE_METADATA);
 
     if (transfer_operation_flag == PLDM_GET_FIRSTPART) {
         if (fwup_flash->package_data_size < fwup_state->max_transfer_size) {
@@ -421,7 +425,136 @@ exit:;
     fwup_state->completion_code = completion_code;
     fwup_state->multipart_transfer.next_data_transfer_handle = next_data_transfer_handle;
     fwup_state->multipart_transfer.transfer_flag = transfer_flag;
-    fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
+    request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
+    instance_id += 1;
+    return status;
+}
+
+
+/**
+* Process a PassComponentTable request and generate a response.
+*
+* @param device_mgr - The device manager linked to command interface.
+* @param fwup_state - Variable state context for a PLDM FWUP.
+* @param request The request data to process.  This will be updated to contain a response.
+*
+* @return 0 if the request was successfully processed and a request was generated or an error code.
+*/
+int pldm_fwup_process_pass_component_table_request(struct device_manager *device_mgr, 
+    struct pldm_fwup_state *fwup_state, struct cmd_interface_msg *request)
+{
+    switch_command(fwup_state, PLDM_PASS_COMPONENT_TABLE);
+
+    struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    uint8_t transfer_flag = 0;
+    uint16_t comp_classification = 0;
+    uint16_t comp_identifier = 0;
+    uint8_t comp_classification_index = 0;
+    uint32_t comp_comparison_stamp = 0;
+	uint8_t comp_ver_str_type = 0; 
+    uint8_t comp_ver_str_len = 0;
+	struct variable_field comp_ver_str;
+
+    int status = decode_pass_component_table_req(rq, rq_payload_length, &transfer_flag, &comp_classification,
+        &comp_identifier, &comp_classification_index, &comp_comparison_stamp, &comp_ver_str_type, &comp_ver_str_len, &comp_ver_str);
+    if (status != 0) {
+        return status;
+    }
+
+    uint8_t completion_code = PLDM_SUCCESS;
+	uint8_t comp_resp = 0;
+	uint8_t comp_resp_code = 0;
+    static uint8_t instance_id = 1;
+
+    if (!fwup_state->update_mode) {
+        completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
+        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
+        comp_resp_code = PLDM_CRC_COMP_PREREQUISITES_NOT_MET;
+        goto exit;
+    } else if (fwup_state->state != PLDM_FD_STATE_LEARN_COMPONENTS) {
+        completion_code = PLDM_FWUP_INVALID_STATE_FOR_COMMAND;
+        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
+        comp_resp_code = PLDM_CRC_COMP_PREREQUISITES_NOT_MET;
+        goto exit;
+    }
+
+    static uint8_t comp_table_num = 0;
+    if (transfer_flag == PLDM_START || transfer_flag == PLDM_START_AND_END) {
+        comp_table_num = 0;
+        fwup_state->device_ctx.entries[comp_table_num].comp_classification = comp_classification;
+        fwup_state->device_ctx.entries[comp_table_num].comp_comparison_stamp = comp_comparison_stamp;
+        fwup_state->device_ctx.entries[comp_table_num].comp_identifier = comp_identifier;
+        fwup_state->device_ctx.entries[comp_table_num].comp_ver_str_type = comp_ver_str_type;
+        fwup_state->device_ctx.entries[comp_table_num].comp_ver_str_len = comp_ver_str_len;
+        memcpy(fwup_state->device_ctx.entries[comp_table_num].comp_ver_str, comp_ver_str.ptr, comp_ver_str.length);
+    } 
+    else if (transfer_flag == PLDM_MIDDLE) {
+        comp_table_num += 1;
+        fwup_state->device_ctx.entries[comp_table_num].comp_classification = comp_classification;
+        fwup_state->device_ctx.entries[comp_table_num].comp_comparison_stamp = comp_comparison_stamp;
+        fwup_state->device_ctx.entries[comp_table_num].comp_identifier = comp_identifier;
+        fwup_state->device_ctx.entries[comp_table_num].comp_ver_str_type = comp_ver_str_type;
+        fwup_state->device_ctx.entries[comp_table_num].comp_ver_str_len = comp_ver_str_len;
+        memcpy(fwup_state->device_ctx.entries[comp_table_num].comp_ver_str, comp_ver_str.ptr, comp_ver_str.length);
+    } else if (transfer_flag == PLDM_END) {
+        comp_table_num += 1;
+        fwup_state->device_ctx.entries[comp_table_num].comp_classification = comp_classification;
+        fwup_state->device_ctx.entries[comp_table_num].comp_comparison_stamp = comp_comparison_stamp;
+        fwup_state->device_ctx.entries[comp_table_num].comp_identifier = comp_identifier;
+        fwup_state->device_ctx.entries[comp_table_num].comp_ver_str_type = comp_ver_str_type;
+        fwup_state->device_ctx.entries[comp_table_num].comp_ver_str_len = comp_ver_str_len;
+        memcpy(fwup_state->device_ctx.entries[comp_table_num].comp_ver_str, comp_ver_str.ptr, comp_ver_str.length);
+        comp_table_num = 0;
+    }
+
+    int num_components = device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].fw_parameters.request.comp_count;
+    int device_mgr_comp_num;
+    bool comp_supported = 0;
+    for (device_mgr_comp_num = 0; device_mgr_comp_num < num_components; device_mgr_comp_num++) {
+        if (comp_classification_index == device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].fw_parameters.entries[device_mgr_comp_num].request.comp_classification_index) {
+            comp_supported = 1;
+            break;
+        }
+    }
+
+    if (!comp_supported) {
+        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
+        comp_resp_code = PLDM_CRC_COMP_NOT_SUPPORTED;
+    }
+    else if (comp_comparison_stamp == device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].fw_parameters.entries[device_mgr_comp_num].request.pending_comp_comparison_stamp) {
+        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
+        comp_resp_code = PLDM_CRC_COMP_COMPARISON_STAMP_IDENTICAL;
+    } 
+    else if (comp_comparison_stamp < device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].fw_parameters.entries[device_mgr_comp_num].request.pending_comp_comparison_stamp) {
+        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
+        comp_resp_code = PLDM_CRC_COMP_COMPARISON_STAMP_LOWER;
+    } 
+    else if (buffer_compare(comp_ver_str.ptr, (const uint8_t *)device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].fw_parameters.entries[device_mgr_comp_num].pending_comp_ver_str, 
+        (size_t)comp_ver_str_len)) {
+        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
+        comp_resp_code = PLDM_CRC_COMP_VER_STR_IDENTICAL;
+
+    } else {
+        comp_resp = PLDM_CR_COMP_CAN_BE_UPDATED;
+        comp_resp = PLDM_CRC_COMP_CAN_BE_UPDATED;
+    }
+
+exit:;
+    struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = sizeof (struct pldm_pass_component_table_resp);
+
+    status = encode_pass_component_table_resp(instance_id, rsp, rsp_payload_length, completion_code, comp_resp, comp_resp_code);
+    fwup_state->completion_code = completion_code;
+    if (transfer_flag == PLDM_START || transfer_flag == PLDM_MIDDLE) {
+        switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
+    } 
+    else if (transfer_flag == PLDM_END || transfer_flag == PLDM_START_AND_END) {
+        switch_state(fwup_state, PLDM_FD_STATE_READY_XFER);
+    }
+    fwup_state->comp_transfer_flag = transfer_flag;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
     instance_id += 1;
     return status;
@@ -642,15 +775,15 @@ int pldm_fwup_generate_request_update_request(struct pldm_fwup_flash_map *fwup_f
 
     uint32_t max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 	uint8_t max_outstanding_transfer_req = PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ;
-    uint16_t num_of_comp = fwup_state->updating_device.num_of_components;
+    uint16_t num_of_comp = fwup_state->device_ctx.num_of_components;
 
 	struct variable_field comp_img_set_ver_str;
-    comp_img_set_ver_str.length = fwup_state->updating_device.comp_img_set_ver_str_len;
-    comp_img_set_ver_str.ptr = (const uint8_t *)fwup_state->updating_device.comp_img_set_set_str;
+    comp_img_set_ver_str.length = fwup_state->device_ctx.comp_img_set_ver_str_len;
+    comp_img_set_ver_str.ptr = (const uint8_t *)fwup_state->device_ctx.comp_img_set_set_str;
 
    	uint16_t pkg_data_len = fwup_flash->package_data_size;
-    uint8_t comp_image_set_ver_str_type = fwup_state->updating_device.comp_img_set_ver_str_type;
-    uint8_t comp_image_set_ver_str_len = fwup_state->updating_device.comp_img_set_ver_str_len;
+    uint8_t comp_image_set_ver_str_type = fwup_state->device_ctx.comp_img_set_ver_str_type;
+    uint8_t comp_image_set_ver_str_len = fwup_state->device_ctx.comp_img_set_ver_str_len;
 
     size_t rq_payload_length = sizeof (struct pldm_request_update_req) + comp_img_set_ver_str.length;
 
@@ -717,7 +850,6 @@ int pldm_fwup_process_request_update_response(struct pldm_fwup_flash_map *fwup_f
 int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_state, 
     struct pldm_fwup_flash_map *fwup_flash, struct cmd_interface_msg *request)
 {
-    fwup_state->command = PLDM_GET_PACKAGE_DATA;
 
     struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -739,7 +871,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_stat
     portion_of_pkg_data.length = sizeof (completion_code);
     uint8_t pkg_data_buf[PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE];
 
-    if (fwup_state->previous_command != PLDM_REQUEST_UPDATE) {
+    if (fwup_state->previous_command != PLDM_REQUEST_UPDATE || fwup_state->previous_command != PLDM_GET_PACKAGE_DATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
         goto exit;
     }
@@ -755,6 +887,8 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_stat
         completion_code = PLDM_FWUP_INVALID_TRANSFER_HANDLE;
         goto exit;
     }
+
+    switch_command(fwup_state, PLDM_GET_PACKAGE_DATA);
 
     if (transfer_operation_flag == PLDM_GET_FIRSTPART) {
         if (fwup_flash->package_data_size < PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE) {
@@ -817,7 +951,7 @@ exit:;
 */
 int pldm_fwup_generate_get_device_meta_data_request(struct pldm_fwup_state *fwup_state, uint8_t *buffer, size_t buf_len)
 {
-    fwup_state->command = PLDM_GET_PACKAGE_DATA;
+    switch_command(fwup_state, PLDM_GET_DEVICE_METADATA);
 
     static uint8_t instance_id = 1;
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
@@ -887,6 +1021,52 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_state *fwup
 
     response->length = 0;
     return status;
+}
+
+
+/**
+* Generate a PassComponentTable request.
+*
+* @param device_mgr -The device manager linked to command interface.
+* @param fwup_state - Variable state context for a PLDM FWUP.
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return 0 if the request was successfully generated or an error code.
+*/
+int pldm_fwup_generate_pass_component_table_request(struct device_manager *device_mgr, 
+struct pldm_fwup_state *fwup_state, uint8_t *buffer, size_t buf_len)
+{
+    switch_command(fwup_state, PLDM_PASS_COMPONENT_TABLE);
+
+    static uint8_t instance_id = 1;
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = sizeof (struct pldm_pass_component_table_req);
+
+    uint8_t transfer_flag = 0;
+    if (fwup_state->device_ctx.current_component == 0 && fwup_state->device_ctx.num_of_components == 1) {
+        transfer_flag == PLDM_START_AND_END;
+    } else {
+        transfer_flag == PLDM_START;
+    }
+    
+    if (fwup_state->device_ctx.current_component > 0 && fwup_state->device_ctx.current_component != fwup_state->device_ctx.num_of_components - 1) {
+        transfer_flag == PLDM_MIDDLE;
+    } else {
+        transfer_flag = PLDM_END;
+    }
+
+    uint16_t comp_classification = fwup_state->device_ctx.entries[fwup_state->device_ctx.current_component].comp_classification;
+	uint16_t comp_identifier = fwup_state->device_ctx.entries[fwup_state->device_ctx.current_component].comp_identifier;
+	uint8_t comp_classification_index = 0;
+	uint32_t comp_comparison_stamp = 0;
+	uint8_t comp_ver_str_type = 0;
+	uint8_t comp_ver_str_len = 0;
+	const struct variable_field comp_ver_str;
+
+
 }
 
 #endif

@@ -13,6 +13,7 @@
 #include "libpldm/base.h"
 #include "libpldm/firmware_update.h"
 
+//define PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
 
 /**
  * The flash addresses and devices to use for different pldm fwup regions.
@@ -45,16 +46,6 @@ struct pldm_fwup_multipart_transfer {
 };
 
 /**
- * Variable context for the firmware device being updated
- */
-struct pldm_fwup_updating_device_context {
-    uint16_t num_of_components;                                                 /**< The number of components for this firmware. */
-    uint8_t comp_img_set_ver_str_type;                                          /**< The string format used for the component image set version information. */
-    uint8_t comp_img_set_ver_str_len;                                           /**< The length of the component image set version information. */
-    uint8_t comp_img_set_set_str[255];                                          /**< The component image set version. */
-};
-
-/**
  * Variable context for a PLDM FWUP protocol command interface.
  */
 struct pldm_fwup_state {
@@ -64,13 +55,15 @@ struct pldm_fwup_state {
     bool update_mode;                                                           /**< Indication if the FD is in update mode. */
     uint32_t max_transfer_size;                                                 /**< Maximum size of the multipart payloads allowed. */
     uint8_t max_num_outstanding_transfer_req;                                   /**< Number of outstanding RequestFirmwareData commands. */
+    uint8_t comp_transfer_flag;                                                 /**< Flag that indicates what part of the Component Table this request represents. */
 #else
     bool get_pkg_data_cmd;                                                      /**< Indication if the FD will send GetPackageData. */
+    uint8_t device_mgr_device_num;                                              /**< The device that is currently being updated. */
 #endif
     uint8_t command;                                                            /**< The PLDM command currently being processed. */
     uint8_t previous_command;                                                   /**< The previous command that was processed. */
     uint8_t completion_code;                                                    /**< The completion code generated as of the lastest command being processed. */
-    struct pldm_fwup_updating_device_context updating_device;                   /**< The firmware in the process of being updated. */
+    struct pldm_fwup_protocol_device_information device_ctx;                    /**< Information about a single device and its components obtained from the FUP. */
     struct pldm_fwup_multipart_transfer multipart_transfer;                     /**< Context for multipart transfer of GET commands. */
 };
 

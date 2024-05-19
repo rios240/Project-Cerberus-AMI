@@ -42,7 +42,7 @@ struct pldm_fwup_protocol_firmware_parameters {
 
 
 /**
- * Full set of parameters for a single device's firmware
+ * Full set of parameters for a device's firmware stored in each entry in the device manager
  */
 struct pldm_fwup_protocol_full_firmware_parameters {
     struct pldm_fwup_protocol_firmware_parameters request;                  /**< Requested FW parameters fixed information. */
@@ -50,6 +50,34 @@ struct pldm_fwup_protocol_full_firmware_parameters {
     uint8_t pending_comp_img_set_ver_str[255];                              /**< Component image set version which is pending activation. */
     struct pldm_fwup_protocol_full_component_parameter_entry *entries;      /**< Table of component entries for all of the updateable components that reside on the FD. */
 
+};
+
+/**
+ * A single entry in the table of components obtained from the Firmware Update Package
+*/
+struct pldm_fwup_protocol_component_entry {
+    uint16_t comp_classification;                                               /**< Vendor specific component classification information. */
+	uint16_t comp_identifier;                                                   /**< FD vendor selected unique value to distinguish between component image. */
+	uint32_t comp_comparison_stamp;                                             /**< FD vendor selected value to use as a comparison value */
+    uint32_t comp_image_size;                                                   /**< Size of component image. */         
+	bitfield32_t update_option_flags;                                           /**< Update options that can be requested by the UA to be enabled for the transfer of this component image*/
+	uint8_t comp_ver_str_type;                                                  /**< The type of string format used for the component version information. */
+	uint8_t comp_ver_str_len;                                                   /**< The length of the pending component version information. */
+    uint8_t comp_ver_str[255];                                                  /**< The component version information. */                                                 
+};
+
+/**
+ * Information about about a device and its components obtained from the Firmware Update Package
+ * The User Agent obtaines this information from the Firmware Update Package and passes it along to the Firmware Device 
+ * via RequestUpdate and PassComponentTable
+*/
+struct pldm_fwup_protocol_device_information {
+    uint16_t num_of_components;                                                 /**< The number of components for this firmware. */
+    uint8_t current_component;                                                  /**< The component that is currently being passed to the FD. */
+    uint8_t comp_img_set_ver_str_type;                                          /**< The string format used for the component image set version information. */
+    uint8_t comp_img_set_ver_str_len;                                           /**< The length of the component image set version information. */
+    uint8_t comp_img_set_set_str[255];                                          /**< The component image set version. */
+    struct pldm_fwup_protocol_component_entry *entries;                         /**< Firmware Update Package component table. */
 };
 
 #endif /* PLDM_FWUP_PROTOCOL_H_ */
