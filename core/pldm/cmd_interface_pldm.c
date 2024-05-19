@@ -180,7 +180,9 @@ int cmd_interface_pldm_init_fwup_state(struct pldm_fwup_state *fwup_state)
     }
 
     memset (fwup_state, 0, sizeof (struct pldm_fwup_state));
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
     fwup_state->state = PLDM_FD_STATE_IDLE;
+#endif
     fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
     fwup_state->multipart_transfer.data_transfer_handle = 0;
     fwup_state->multipart_transfer.transfer_flag = PLDM_START;
