@@ -13,6 +13,7 @@
 #include "libpldm/base.h"
 #include "libpldm/firmware_update.h"
 
+
 /**
  * The flash addresses and devices to use for different pldm fwup regions.
  */
@@ -37,13 +38,10 @@ struct pldm_fwup_flash_map {
  * Multipart transfer context for PLDM GET commands
  */
 struct pldm_fwup_multipart_transfer {
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
     uint32_t data_transfer_handle;                                              /**< Handle that is used to identify a package data transfer. */
     uint8_t transfer_op_flag;                                                   /**< Operation flag that indiates whether this is the start of the transfer. */
-#else
     uint8_t transfer_flag;                                                      /**< Transfer flag that indiates what part of the transfer this response represents. */
     uint32_t next_data_transfer_handle;                                         /**< Handle that is used to identify the next portion of the transfer. */
-#endif
 };
 
 /**

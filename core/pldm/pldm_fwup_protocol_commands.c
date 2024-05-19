@@ -27,7 +27,6 @@ void print_buffer_data(const uint8_t *data, size_t len) {
     printf("\n");
 }
 
-
 #ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
 /*******************
  * FD Helper functions
@@ -325,8 +324,110 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_state *fwup_sta
     printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
         next_data_transfer_handle, transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
 
-    switch_state(fwup_state, PLDM_FD_STATE_LEARN_COMPONENTS);
+    fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
     response->length = 0;
+    return status;
+}
+
+/**
+* Process a GetDeviceMetaData request and generate a response.
+*
+* @param fwup_state - Variable state context for a PLDM FWUP.
+* @param fwup_flash - The flash map for a PLDM FWUP.
+* @param request The request data to process.  This will be updated to contain a response.
+*
+* @return 0 if the request was successfully processed and a request was generated or an error code.
+*/
+int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_state *fwup_state, 
+    struct pldm_fwup_flash_map *fwup_flash, struct cmd_interface_msg *request)
+{
+    fwup_state->command = PLDM_GET_DEVICE_METADATA;
+
+    struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    uint32_t data_transfer_handle;
+    uint8_t transfer_operation_flag;
+
+    int status = decode_get_device_meta_data_req(rq, rq_payload_length, &data_transfer_handle, &transfer_operation_flag);
+    if (status != 0) {
+        return status;
+    }
+
+    static uint8_t instance_id = 1;
+    uint8_t completion_code = PLDM_SUCCESS;
+    uint8_t transfer_flag = 0;
+    struct variable_field portion_of_device_meta_data;
+    uint32_t next_data_transfer_handle = 0;
+    portion_of_device_meta_data.ptr = (const uint8_t *)&completion_code;
+    portion_of_device_meta_data.length = sizeof (completion_code);
+
+    if (fwup_state->previous_command != PLDM_GET_PACKAGE_DATA) {
+        completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
+        goto exit;
+    }
+    else if (fwup_flash->package_data_size <= 0) {
+        completion_code = PLDM_FWUP_NO_PACKAGE_DATA;
+        goto exit;
+    }
+    else if (fwup_state->multipart_transfer.transfer_flag == PLDM_MIDDLE && transfer_operation_flag == PLDM_GET_FIRSTPART) {
+        completion_code = PLDM_FWUP_INVALID_TRANSFER_OPERATION_FLAG;
+        goto exit;
+    } 
+    else if (data_transfer_handle != fwup_state->multipart_transfer.next_data_transfer_handle) {
+        completion_code = PLDM_FWUP_INVALID_TRANSFER_HANDLE;
+        goto exit;
+    }
+
+    if (transfer_operation_flag == PLDM_GET_FIRSTPART) {
+        if (fwup_flash->package_data_size < fwup_state->max_transfer_size) {
+            transfer_flag = PLDM_START_AND_END;
+            next_data_transfer_handle = 0;
+            fwup_state->previous_command = PLDM_GET_DEVICE_METADATA;
+        }
+        else {
+            transfer_flag = PLDM_START;
+            next_data_transfer_handle = data_transfer_handle + fwup_state->max_transfer_size;
+        }
+    }
+    else {
+        if (data_transfer_handle + fwup_state->max_transfer_size >= fwup_flash->package_data_size) {
+            transfer_flag = PLDM_END;
+            next_data_transfer_handle = 0;
+            fwup_state->previous_command = PLDM_GET_DEVICE_METADATA;
+        }
+        else {
+            transfer_flag = PLDM_MIDDLE;
+            next_data_transfer_handle = data_transfer_handle + fwup_state->max_transfer_size;
+        }
+    }
+
+    uint8_t device_meta_data_buf[fwup_state->max_transfer_size] = {0};
+    status = fwup_flash->device_meta_data_flash->read(fwup_flash->device_meta_data_flash, fwup_flash->device_meta_data_addr + data_transfer_handle,
+        device_meta_data_buf, fwup_state->max_transfer_size);
+    if (ROT_IS_ERROR(status)) {
+        return status;
+    }
+    portion_of_device_meta_data.ptr = (const uint8_t *)device_meta_data_buf;
+    portion_of_device_meta_data.length = fwup_state->max_transfer_size;
+
+exit:;
+    struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = sizeof (struct pldm_multipart_transfer_resp) + portion_of_device_meta_data.length;
+
+    status = encode_get_device_meta_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
+        next_data_transfer_handle, transfer_flag, &portion_of_device_meta_data);
+
+    printf("REQUEST/RESPONSE | instance: %d, data transfer handle %d, transfer op flag %d, next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
+        instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, 
+        transfer_flag, crc32(portion_of_device_meta_data.ptr, portion_of_device_meta_data.length));
+    
+    fwup_state->completion_code = completion_code;
+    fwup_state->multipart_transfer.next_data_transfer_handle = next_data_transfer_handle;
+    fwup_state->multipart_transfer.transfer_flag = transfer_flag;
+    fwup_state->state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
+    instance_id += 1;
     return status;
 }
 
@@ -662,6 +763,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_stat
         if (fwup_flash->package_data_size < PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE) {
             transfer_flag = PLDM_START_AND_END;
             next_data_transfer_handle = 0;
+            fwup_state->previous_command = PLDM_GET_PACKAGE_DATA;
         }
         else {
             transfer_flag = PLDM_START;
@@ -672,6 +774,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_state *fwup_stat
         if (data_transfer_handle + PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE >= fwup_flash->package_data_size) {
             transfer_flag = PLDM_END;
             next_data_transfer_handle = 0;
+            fwup_state->previous_command = PLDM_GET_PACKAGE_DATA;
         }
         else {
             transfer_flag = PLDM_MIDDLE;
