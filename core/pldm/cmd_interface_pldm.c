@@ -134,6 +134,7 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
             break;
         case PLDM_GET_DEVICE_METADATA:
             status = pldm_fwup_process_get_device_meta_data_response(interface->fwup_state, interface->fwup_flash, response);
+            break;
 #endif
         default:
             status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
