@@ -19,6 +19,13 @@ void switch_command(struct pldm_fwup_state *fwup_state, enum pldm_firmware_updat
     fwup_state->command = new_command;
 }
 
+void reset_multipart_transfer(struct pldm_fwup_state *fwup_state) 
+{
+    fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
+    fwup_state->multipart_transfer.data_transfer_handle = 0x00;
+}
+
+
 void print_buffer_data(const uint8_t *data, size_t len) {
     printf("Bytes:");
     for (size_t i = 0; i < len; ++i) {
@@ -36,13 +43,6 @@ void switch_state(struct pldm_fwup_state *fwup_state, enum pldm_firmware_device_
     fwup_state->previous_state = fwup_state->state;
     fwup_state->state = new_state;
 }
-
-void reset_multipart_transfer(struct pldm_fwup_state *fwup_state) 
-{
-    fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
-    fwup_state->multipart_transfer.data_transfer_handle = 0x00;
-}
-
 
 /*******************
  * FD Inventory commands
