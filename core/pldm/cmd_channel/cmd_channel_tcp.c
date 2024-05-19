@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <netinet/tcp.h>
 #include <sys/time.h>
 #include "platform_api.h"
 #include "cmd_channel_tcp.h"
@@ -39,7 +40,7 @@ int set_socket_non_blocking(int sockfd) {
 * negative value will wait forever, and a value of 0 will return immediately.
 *
 * @return 0 if a packet was successfully received or an error code.
-*/
+*
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
     int server_fd, new_socket;
     struct sockaddr_in address;
@@ -104,7 +105,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 
     return 0;
 }
-
+*/
 
 
 /**
@@ -118,7 +119,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 * @param packet The packet to send.
 *
 * @return 0 if the the packet was successfully sent or an error code.
-*/
+*
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     struct sockaddr_in serv_addr;
     int sock = 0;
@@ -162,6 +163,175 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     //platform_mutex_unlock(&channel->lock);
 
+    close(sock);
+
+    return 0;
+}
+*/
+
+
+int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
+    static int server_fd = -1;
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+
+    if (server_fd == -1) {
+        // Creating socket file descriptor
+        if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+            perror("socket failed");
+            exit(EXIT_FAILURE);
+        }
+
+        if (set_socket_non_blocking(server_fd) < 0) {
+            perror("set non-blocking failed");
+            close(server_fd);
+            exit(EXIT_FAILURE);
+        }
+
+        // Forcefully attaching socket to the port 5000
+        if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+            perror("setsockopt");
+            close(server_fd);
+            exit(EXIT_FAILURE);
+        }
+
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(PORT);
+
+        // Bind the socket to the address
+        if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+            perror("bind failed");
+            close(server_fd);
+            exit(EXIT_FAILURE);
+        }
+
+        // Listen for incoming connections
+        if (listen(server_fd, 3) < 0) {
+            perror("listen");
+            close(server_fd);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    struct timeval start, now, timeout;
+    gettimeofday(&start, NULL);
+    long elapsed_ms = 0;
+
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(server_fd, &readfds);
+
+    timeout.tv_sec = ms_timeout / 1000;
+    timeout.tv_usec = (ms_timeout % 1000) * 1000;
+
+    int new_socket = -1;
+    while (elapsed_ms < ms_timeout) {
+        fd_set tmp_fds = readfds;
+        int activity = select(server_fd + 1, &tmp_fds, NULL, NULL, &timeout);
+
+        if (activity < 0 && errno != EINTR) {
+            perror("select error");
+            return -1;
+        } else if (activity > 0 && FD_ISSET(server_fd, &tmp_fds)) {
+            new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+            if (new_socket >= 0) {
+                break;
+            }
+        }
+
+        gettimeofday(&now, NULL);
+        elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec - start.tv_usec) / 1000;
+    }
+
+    if (new_socket < 0) {
+        if (errno == EWOULDBLOCK) {
+            printf("Timeout occurred\n");
+        } else {
+            perror("accept");
+        }
+        return -1;
+    }
+
+    ssize_t valread = read(new_socket, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN);
+    if (valread < 0) {
+        perror("read error");
+        close(new_socket);
+        return -1;
+    }
+
+    packet->pkt_size = (size_t)valread;
+    packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
+
+    // Properly shutdown the socket to ensure all data is sent/received
+    if (shutdown(new_socket, SHUT_RDWR) < 0) {
+        perror("shutdown failed");
+    }
+    close(new_socket);
+
+    return 0;
+}
+
+int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
+    struct sockaddr_in serv_addr;
+    int sock = 0;
+    int ms_timeout = 10000;
+
+    memset(&serv_addr, '0', sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        printf("\nInvalid address/ Address not supported \n");
+        return -1;
+    }
+
+    struct timeval start, now;
+    gettimeofday(&start, NULL);
+    long elapsed_ms = 0;
+    int connected = 0;
+
+    while (elapsed_ms < ms_timeout && !connected) {
+        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+            printf("\n Socket creation error \n");
+            return -1;
+        }
+
+        // Set TCP_NODELAY to disable Nagle's algorithm
+        int flag = 1;
+        if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int)) < 0) {
+            perror("setsockopt TCP_NODELAY failed");
+            close(sock);
+            return -1;
+        }
+
+        if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) >= 0) {
+            connected = 1;
+        } else {
+            close(sock);
+        }
+
+        gettimeofday(&now, NULL);
+        elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec - start.tv_usec) / 1000;
+    }
+
+    if (!connected) {
+        printf("Connection timeout\n");
+        return -1;
+    }
+
+    ssize_t sent = send(sock, packet->data, packet->pkt_size, 0);
+    if (sent < 0) {
+        perror("send error");
+        close(sock);
+        return -1;
+    }
+
+    // Properly shutdown the socket to ensure all data is sent/received
+    if (shutdown(sock, SHUT_RDWR) < 0) {
+        perror("shutdown failed");
+    }
     close(sock);
 
     return 0;
