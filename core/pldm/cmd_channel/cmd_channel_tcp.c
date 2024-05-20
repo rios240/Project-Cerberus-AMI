@@ -21,13 +21,13 @@ void print_packet_data(const uint8_t *data, size_t len) {
     printf("\n");
 }
 
-int set_socket_non_blocking(int socket_fd) {
-    int flags = fcntl(socket_fd, F_GETFL, 0);
-    if (flags == -1) return -1;
-    return fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
+int set_socket_non_blocking(int sockfd) {
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1) {
+        return CMD_CHANNEL_TCP_ERROR;
+    }
+    return fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 }
-
-
 
 /**
 * Receive a command packet from a communication channel.  This call will block until a packet
@@ -48,20 +48,17 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
+        return CMD_CHANNEL_TCP_ERROR;
     }
 
     if (set_socket_non_blocking(server_fd) < 0) {
-        perror("set non-blocking failed");
         close(server_fd);
-        exit(EXIT_FAILURE);
+        return CMD_CHANNEL_TCP_ERROR;
     }
     
     // Forcefully attaching socket to the port 5000
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
+        return CMD_CHANNEL_TCP_ERROR;
     }
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -70,14 +67,12 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 
     // Bind the socket to the address
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
+        return CMD_CHANNEL_TCP_ERROR;
     }
 
     // Listen for incoming connections
     if (listen(server_fd, 3) < 0) {
-        perror("listen");
-        exit(EXIT_FAILURE);
+        return CMD_CHANNEL_TCP_ERROR;
     }
 
     struct timeval start, now;
@@ -91,13 +86,8 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     } while (new_socket < 0 && errno == EWOULDBLOCK && elapsed_ms < ms_timeout);
 
     if (new_socket < 0) {
-        if (errno == EWOULDBLOCK) {
-            printf("Timeout occurred\n");
-        } else {
-            perror("accept");
-        }
         close(server_fd);
-        return -1;
+        return CMD_CHANNEL_TCP_ERROR;
     }
     
     //platform_mutex_lock(&channel->lock);
@@ -109,14 +99,12 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
-    //printf("Received a packet.\n");
-    //print_packet_data(packet->data, packet->pkt_size);
-
     close(new_socket);
     close(server_fd);
 
     return 0;
 }
+
 
 
 /**
@@ -141,8 +129,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     serv_addr.sin_port = htons(PORT);
 
     if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        printf("\nInvalid address/ Address not supported \n");
-        return -1;
+        return CMD_CHANNEL_TCP_ERROR;
     }
 
     struct timeval start, now;
@@ -152,8 +139,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     while (elapsed_ms < ms_timeout && !connected) {
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-            printf("\n Socket creation error \n");
-            return -1;
+            return CMD_CHANNEL_TCP_ERROR;
         }
 
         if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) >= 0) {
@@ -167,8 +153,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     }
 
     if (!connected) {
-        printf("Connection timeout\n");
-        return -1;
+        return CMD_CHANNEL_TCP_ERROR;
     }
 
     //platform_mutex_lock(&channel->lock);
@@ -177,8 +162,6 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     //platform_mutex_unlock(&channel->lock);
 
-    //printf("Sent a packet.\n");
-    //print_packet_data(packet->data, packet->pkt_size);
     close(sock);
 
     return 0;

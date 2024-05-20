@@ -124,6 +124,8 @@ enum {
 	ROT_MODULE_DICE_UEID_EXTENSION = 0x0070,			/**< Extension handler for TCG DICE Ueid extensions. */
 	ROT_MODULE_DME_EXTENSION = 0x0071,					/**< Extension handler for DME extensions. */
 	ROT_MODULE_DME_STRUCTURE = 0x0072,					/**< Parsing and management of the DME structure. */
+    ROT_MODULE_PLDM_FWUP_MANAGER = 0x0072,              /**< Manager for a PLDM-based Firmware Update. */
+    ROT_MODULE_CMD_HANDLER_PLDM = 0x0073                /**< Handler for received PLDM protocol messages. */
 };
 
 

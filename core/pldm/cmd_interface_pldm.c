@@ -1,8 +1,9 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "cmd_interface_pldm.h"
 #include "pldm_fwup_protocol_commands.h"
+#include "pldm_fwup_manager.h"
+#include "pldm_fwup_protocol.h"
 #include "common/unused.h"
 #include "libpldm/firmware_update.h"
 #include "libpldm/base.h"
@@ -27,7 +28,7 @@ static int cmd_interface_pldm_process_pldm_protocol_message (
     message->crypto_timeout = false;
 
     if (message->length < sizeof (struct pldm_msg)) {
-        return PLDM_ERROR_INVALID_LENGTH;
+        return CMD_HANDLER_PLDM_PAYLOAD_TOO_SHORT;
     }
 
     
@@ -59,7 +60,7 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
     int status;
 
     if (request == NULL) {
-        return PLDM_ERROR_INVALID_DATA;
+        return CMD_HANDLER_PLDM_INVALID_ARGUMENT;
     }
 
     status = cmd_interface_pldm_process_pldm_protocol_message(interface, request, &pldm_command);
@@ -68,23 +69,36 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
     }
 
     switch (pldm_command) {
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+//Firmware Device
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_process_query_device_identifiers_request(interface->fwup_state, interface->device_mgr, request);
+            status = pldm_fwup_process_query_device_identifiers_request(&interface->fwup_mgr->fd_mgr.state, interface->device_mgr, request);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_prcocess_get_firmware_parameters_request(interface->fwup_state, interface->device_mgr, request);
+            status = pldm_fwup_prcocess_get_firmware_parameters_request(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.fw_parameters, request);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_process_request_update_request(interface->fwup_state, interface->fwup_flash, request);
+            status = pldm_fwup_process_request_update_request(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
+                &interface->fwup_mgr->fd_mgr.update_info, request);
             break;
-#else
+        case PLDM_GET_DEVICE_METADATA:
+            status = pldm_fwup_process_get_device_meta_data_request(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
+                &interface->fwup_mgr->fd_mgr.get_cmd_state, &interface->fwup_mgr->fd_mgr.update_info, request);
+            break;
+        case PLDM_PASS_COMPONENT_TABLE:
+            status = pldm_fwup_process_pass_component_table_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info,
+                interface->fwup_mgr->fd_mgr.fw_parameters, request);
+            break;
+        case PLDM_UPDATE_COMPONENT:
+            status = pldm_fwup_process_update_component_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info,
+                interface->fwup_mgr->fd_mgr.update_info.comp_entries, request);
+            break;
+//Update Agent
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_request(interface->fwup_state, interface->fwup_flash, request);
+            status = pldm_fwup_process_get_package_data_request(&interface->fwup_mgr->ua_mgr.state, interface->fwup_mgr->ua_mgr.flash_mgr,
+                &interface->fwup_mgr->ua_mgr.get_cmd_state, request);
             break;
-#endif
         default:
-            status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
+            status = CMD_HANDLER_PLDM_UNKNOWN_REQUEST;
     }
 
     return status;
@@ -106,7 +120,7 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
     int status;
 
     if (response == NULL) {
-        return PLDM_ERROR_INVALID_DATA;
+        return CMD_HANDLER_PLDM_INVALID_ARGUMENT;
     }
 
     status = cmd_interface_pldm_process_pldm_protocol_message(interface, response, &command);
@@ -115,23 +129,33 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
     }
 
     switch (command) {
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+// Firmware Device
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_response(interface->fwup_state, interface->fwup_flash, response);
+            status = pldm_fwup_process_get_package_data_response(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
+                &interface->fwup_mgr->fd_mgr.get_cmd_state, response);
             break;
-#else
+// Update Agent
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_process_query_device_identifiers_response(interface->fwup_state, interface->device_mgr, response);
+            status = pldm_fwup_process_query_device_identifiers_response(&interface->fwup_mgr->ua_mgr.state, interface->device_mgr, response);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_process_get_firmware_parameters_response(interface->fwup_state, interface->device_mgr, response);
+            status = pldm_fwup_process_get_firmware_parameters_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.rec_fw_parameters, response);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_process_request_update_response(interface->fwup_flash, interface->fwup_state, response);
+            status = pldm_fwup_process_request_update_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
             break;
-#endif
+        case PLDM_GET_DEVICE_METADATA:
+            status = pldm_fwup_process_get_device_meta_data_response(&interface->fwup_mgr->ua_mgr.state, interface->fwup_mgr->ua_mgr.flash_mgr,
+                &interface->fwup_mgr->ua_mgr.get_cmd_state, response);
+            break;
+        case PLDM_PASS_COMPONENT_TABLE:
+            status = pldm_fwup_process_pass_component_table_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
+            break;
+        case PLDM_UPDATE_COMPONENT:
+            status = pldm_fwup_process_update_component_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
+            break;
         default:
-            status = PLDM_ERROR_UNSUPPORTED_PLDM_CMD;
+            status = CMD_HANDLER_PLDM_UNKNOWN_RESPONSE;
     }
 
     return status;
@@ -159,65 +183,31 @@ static int cmd_interface_pldm_generate_error_packet (struct cmd_interface *intf,
 	UNUSED (error_data);
 	UNUSED (cmd_set);
 
-    return PLDM_ERROR_INVALID_DATA;
+    return CMD_HANDLER_PLDM_UNSUPPORTED_OPERATION;
 }
-
-/**
- * Initialize only the variable fwup state for the command interface.  The rest of the command
- * interface instance is assumed to have already been initialized.
- *
- * This would generally be used with a statically initialized instance.
- *
- * @param fwup_state The the FWUP state to initialize.
- *
- * @return 0 if the state was successfully initialized or an error code.
- */
-int cmd_interface_pldm_init_fwup_state(struct pldm_fwup_state *fwup_state)
-{
-
-    if ((fwup_state == NULL)) {
-        return PLDM_ERROR_INVALID_DATA;
-    }
-
-    memset (fwup_state, 0, sizeof (struct pldm_fwup_state));
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
-    fwup_state->state = PLDM_FD_STATE_IDLE;
-    fwup_state->multipart_transfer.transfer_op_flag = PLDM_GET_FIRSTPART;
-    fwup_state->multipart_transfer.data_transfer_handle = 0;
-#else
-    fwup_state->multipart_transfer.transfer_flag = PLDM_START;
-    fwup_state->multipart_transfer.next_data_transfer_handle = 0;
-#endif
-
-    return 0;
-}
-
 
 
 /**
  * Initialize a PLDM command interface instance
  *
  * @param intf The PLDM control command interface instance to initialize.
- * @param fwup_flash The flash address mapping to use for a FWUP.
- * @param fwup_state Variable FWUP context for the command interface.
- * @param device_mgr The device manager linked to command interface.
+ * @param fwup_mgr The firmware update manager linked to the command interface.
+ * @param device_mgr The device manager linked to the command interface.
  *
  * @return Initialization status, 0 if success or an error code.
  */
 int cmd_interface_pldm_init (struct cmd_interface_pldm *intf, 
-    struct pldm_fwup_flash_map *fwup_flash, struct pldm_fwup_state *fwup_state,
-    struct device_manager *device_mgr)
+    struct pldm_fwup_manager *fwup_mgr, struct device_manager *device_mgr)
 {
 
-    if ((intf == NULL) || fwup_flash == NULL || device_mgr == NULL) {
-        return PLDM_ERROR_INVALID_DATA;
+    if ((intf == NULL) || fwup_mgr == NULL || device_mgr == NULL) {
+        return CMD_HANDLER_PLDM_INVALID_ARGUMENT;
     }
 
     memset (intf, 0, sizeof (struct cmd_interface_pldm));
 
-    intf->fwup_flash = fwup_flash;
+    intf->fwup_mgr = fwup_mgr;
     intf->device_mgr = device_mgr;
-    intf->fwup_state = fwup_state;
 
     intf->base.process_request = cmd_interface_pldm_process_request;
 #ifdef CMD_ENABLE_ISSUE_REQUEST
@@ -225,8 +215,7 @@ int cmd_interface_pldm_init (struct cmd_interface_pldm *intf,
 #endif
     intf->base.generate_error_packet = cmd_interface_pldm_generate_error_packet;
 
-    return cmd_interface_pldm_init_fwup_state(intf->fwup_state);
-
+    return 0;
 }
 
 

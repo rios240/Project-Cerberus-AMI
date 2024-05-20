@@ -1,9 +1,8 @@
-#include "pldm_fwup_interface.h"
-#include "mctp/mctp_interface.h"
+#include "pldm_fwup.h"
 #include "cmd_interface/cmd_interface.h"
-#include "cmd_interface/cmd_channel.h"
 #include "cmd_interface_pldm.h"
 #include "pldm_fwup_protocol_commands.h"
+#include "pldm_fwup_protocol.h"
 
 #include "libpldm/firmware_update.h"
 
@@ -18,29 +17,39 @@
 * 
 * @return size of the request or pldm_completion_codes
 */
-int pldm_fwup_interface_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len) 
+int pldm_fwup_generate_request(struct cmd_interface_pldm *intf, uint8_t command, uint8_t *buffer, size_t buf_len) 
 {
-    struct cmd_interface_pldm *interface = (struct cmd_interface_pldm *)intf;
     int status; 
 
     switch(command) {
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+// Firmware Device
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_generate_get_package_data_request(interface->fwup_state, buffer, buf_len);
+            status = pldm_fwup_generate_get_package_data_request(&intf->fwup_mgr->fd_mgr.state, &intf->fwup_mgr->fd_mgr.get_cmd_state,
+                buffer, buf_len);
             break;
-#else
+// Update Agent
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_generate_query_device_identifiers_request(interface->fwup_state, buffer, buf_len);
+            status = pldm_fwup_generate_query_device_identifiers_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_generate_get_firmware_parameters_request(interface->fwup_state, buffer, buf_len);
+            status = pldm_fwup_generate_get_firmware_parameters_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_generate_request_update_request(interface->fwup_flash, interface->fwup_state, buffer, buf_len);
+            status = pldm_fwup_generate_request_update_request(&intf->fwup_mgr->ua_mgr, buffer, buf_len);
             break;
-#endif
+        case PLDM_GET_DEVICE_METADATA:
+            status = pldm_fwup_generate_get_device_meta_data_request(&intf->fwup_mgr->ua_mgr.state, &intf->fwup_mgr->ua_mgr.get_cmd_state, 
+                buffer, buf_len);
+            break;
+        case PLDM_PASS_COMPONENT_TABLE:
+            status = pldm_fwup_generate_pass_component_table_request(&intf->fwup_mgr->ua_mgr, buffer, buf_len);
+            break;
+        case PLDM_UPDATE_COMPONENT:
+            status = pldm_fwup_generate_update_component_request(&intf->fwup_mgr->ua_mgr.state, intf->fwup_mgr->ua_mgr.current_comp_num, 
+                intf->fwup_mgr->ua_mgr.comp_img_entries, &intf->fwup_mgr->ua_mgr.rec_fw_parameters, buffer, buf_len);
+            break;
         default:
-        status =  PLDM_ERROR_UNSUPPORTED_PLDM_CMD;    
+        status =  CMD_HANDLER_PLDM_UNKNOWN_REQUEST;    
     }
 
     return status;
