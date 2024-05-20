@@ -1,4 +1,4 @@
-#include "pldm_fwup_interface.h"
+#include "pldm_fwup.h"
 #include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm.h"
 #include "pldm_fwup_protocol_commands.h"
@@ -17,29 +17,28 @@
 * 
 * @return size of the request or pldm_completion_codes
 */
-int pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len) 
+int pldm_fwup_generate_request(struct cmd_interface_pldm *intf, uint8_t command, uint8_t *buffer, size_t buf_len) 
 {
-    struct cmd_interface_pldm *interface = (struct cmd_interface_pldm *)intf;
     int status; 
 
     switch(command) {
 // Firmware Device
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_generate_get_package_data_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.get_cmd_state,
+            status = pldm_fwup_generate_get_package_data_request(&intf->fwup_mgr->fd_mgr.state, &intf->fwup_mgr->fd_mgr.get_cmd_state,
                 buffer, buf_len);
             break;
 // Update Agent
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_generate_query_device_identifiers_request(&interface->fwup_mgr->ua_mgr.state, buffer, buf_len);
+            status = pldm_fwup_generate_query_device_identifiers_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_generate_get_firmware_parameters_request(&interface->fwup_mgr->ua_mgr.state, buffer, buf_len);
+            status = pldm_fwup_generate_get_firmware_parameters_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_generate_request_update_request(&interface->fwup_mgr->ua_mgr, buffer, buf_len);
+            status = pldm_fwup_generate_request_update_request(&intf->fwup_mgr->ua_mgr, buffer, buf_len);
             break;
         case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_generate_get_device_meta_data_request(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.get_cmd_state, 
+            status = pldm_fwup_generate_get_device_meta_data_request(&intf->fwup_mgr->ua_mgr.state, &intf->fwup_mgr->ua_mgr.get_cmd_state, 
                 buffer, buf_len);
             break;
         default:

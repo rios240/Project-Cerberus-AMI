@@ -342,6 +342,10 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_fd_state *state
     if (transfer_flag == PLDM_START || transfer_flag == PLDM_MIDDLE) {
         get_cmd_state->transfer_op_flag = PLDM_GET_NEXTPART;
         get_cmd_state->data_transfer_handle = next_data_transfer_handle;
+    } 
+    else if (transfer_flag == PLDM_END || transfer_flag == PLDM_START_AND_END) {
+        get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
+        get_cmd_state->data_transfer_handle = 0;
     }
 
     printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
@@ -802,12 +806,12 @@ int pldm_fwup_generate_request_update_request(struct pldm_fwup_ua_manager *ua_mg
     uint16_t num_of_comp = ua_mgr->num_components;
 
 	struct variable_field comp_img_set_ver;
-    comp_img_set_ver.length = ua_mgr->comp_img_set_ver.version_str_length;
-    comp_img_set_ver.ptr = (const uint8_t *)ua_mgr->comp_img_set_ver.version_str;
+    comp_img_set_ver.length = ua_mgr->fup_comp_img_set_ver->version_str_length;
+    comp_img_set_ver.ptr = (const uint8_t *)ua_mgr->fup_comp_img_set_ver->version_str;
 
    	uint16_t pkg_data_len = ua_mgr->flash_mgr->package_data_size;
-    uint8_t comp_img_set_ver_str_type = ua_mgr->comp_img_set_ver.version_str_type;
-    uint8_t comp_img_set_ver_str_len = ua_mgr->comp_img_set_ver.version_str_length;
+    uint8_t comp_img_set_ver_str_type = ua_mgr->fup_comp_img_set_ver->version_str_type;
+    uint8_t comp_img_set_ver_str_len = ua_mgr->fup_comp_img_set_ver->version_str_length;
 
     size_t rq_payload_length = sizeof (struct pldm_request_update_req) + comp_img_set_ver.length;
 
@@ -894,13 +898,13 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_ua_state *state,
     static uint8_t instance_id = 1;
     uint8_t completion_code = PLDM_SUCCESS;
     uint8_t transfer_flag = 0;
-    struct variable_field portion_of_pkg_data;
+    struct variable_field portion_of_package_data;
     uint32_t next_data_transfer_handle = 0;
-    portion_of_pkg_data.ptr = (const uint8_t *)&completion_code;
-    portion_of_pkg_data.length = sizeof (completion_code);
-    uint8_t device_meta_data_buf[PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE];
+    portion_of_package_data.ptr = (const uint8_t *)&completion_code;
+    portion_of_package_data.length = sizeof (completion_code);
+    uint8_t package_data_buf[PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE];
 
-    if (state->previous_cmd != PLDM_GET_PACKAGE_DATA || state->previous_cmd != PLDM_GET_DEVICE_METADATA) {
+    if (state->previous_cmd != PLDM_REQUEST_UPDATE || state->previous_cmd != PLDM_GET_PACKAGE_DATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
         goto exit;
     }
@@ -939,22 +943,22 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_ua_state *state,
     }
 
     status = flash_mgr->flash->read(flash_mgr->flash, flash_mgr->package_data_region.start_addr + data_transfer_handle,
-        device_meta_data_buf, PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE);
+        package_data_buf, PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE);
     if (ROT_IS_ERROR(status)) {
         return status;
     }
-    portion_of_pkg_data.ptr = (const uint8_t *)device_meta_data_buf;
-    portion_of_pkg_data.length = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
+    portion_of_package_data.ptr = (const uint8_t *)package_data_buf;
+    portion_of_package_data.length = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 
     printf("REQUEST/RESPONSE | instance id: %d, data transfer handle: %d, transfer op flag: %d, next data transfer handle: %d, transfer flag: %d\n",
-        instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, transfer_flag, crc32(portion_of_pkg_data.ptr, portion_of_pkg_data.length));
+        instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
 
 exit:;
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
-    size_t rsp_payload_length = sizeof (struct pldm_multipart_transfer_resp) + portion_of_pkg_data.length;
+    size_t rsp_payload_length = sizeof (struct pldm_multipart_transfer_resp) + portion_of_package_data.length;
 
     status = encode_get_package_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
-        next_data_transfer_handle, transfer_flag, &portion_of_pkg_data);
+        next_data_transfer_handle, transfer_flag, &portion_of_package_data);
     
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_GET_PACKAGE_DATA;

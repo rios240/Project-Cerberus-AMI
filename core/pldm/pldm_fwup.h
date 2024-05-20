@@ -14,7 +14,7 @@
 #include "libpldm/firmware_update.h"
 
 
-int pldm_fwup_generate_request(struct cmd_interface *intf, uint8_t command, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_generate_request(struct cmd_interface_pldm *intf, uint8_t command, uint8_t *buffer, size_t buf_len);
 
 
 

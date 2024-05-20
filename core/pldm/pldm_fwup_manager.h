@@ -49,7 +49,7 @@ struct pldm_fwup_ua_manager {
     struct pldm_fwup_flash_manager *flash_mgr;                              /**< Flash manager for a firmware update. */
     struct pldm_fwup_protocol_multipart_transfer get_cmd_state;             /**< Variable context for the three Get commands. */
     struct pldm_fwup_ua_update_info update_info;                            /**< Information retained during the firmware update. */
-    struct pldm_fwup_protocol_version_string comp_img_set_ver;              /**< The component image set version being updated. */
+    struct pldm_fwup_protocol_version_string *fup_comp_img_set_ver;         /**< The component image set version from the FUP. */
     uint16_t num_components;                                                /**< The number of firmware components the UA has to transfer. */
     uint16_t current_comp_num;                                              /**< The component that is currently being updated. */
     struct pldm_fwup_fup_component_image_entry *comp_img_entries;           /**< The component image information list sent to the FD. */
@@ -112,8 +112,9 @@ struct pldm_fwup_manager {
 
 
 int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr, 
-    struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters,  struct pldm_fwup_fup_component_image_entry *entries,
-    struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr);
+    struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters,  struct pldm_fwup_fup_component_image_entry *fup_comp_img_list,
+    struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr, 
+    struct pldm_fwup_protocol_version_string *fup_comp_img_set_ver, uint16_t num_components);
 int deint_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr);
 
 

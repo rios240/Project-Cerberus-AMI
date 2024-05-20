@@ -9,12 +9,15 @@
  * @param fup_comp_img_list The FUP component image information list
  * @param fd_flash_mgr The FWUP flash manager for the FD
  * @param ua_flash_mgr The FWUP flash manager for the UA
+ * @param fup_comp_img_set_ver The component image set obtained from the FUP.
+ * @param num_components The number of components in the FUP.
  * 
  * @return 0 on success otherwise an error code.
 */
 int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr, 
     struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters,  struct pldm_fwup_fup_component_image_entry *fup_comp_img_list,
-    struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr)
+    struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr, 
+    struct pldm_fwup_protocol_version_string *fup_comp_img_set_ver, uint16_t num_components)
 {
     if (fwup_mgr == NULL || fd_fw_parameters == NULL || fup_comp_img_list == NULL ||
         fd_flash_mgr == NULL || ua_flash_mgr == NULL) {
@@ -33,6 +36,8 @@ int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr,
     fwup_mgr->ua_mgr.flash_mgr = ua_flash_mgr;
     fwup_mgr->ua_mgr.get_cmd_state.transfer_op_flag = PLDM_GET_FIRSTPART;
     fwup_mgr->ua_mgr.get_cmd_state.transfer_flag = PLDM_START;
+    fwup_mgr->ua_mgr.fup_comp_img_set_ver = fup_comp_img_set_ver;
+    fwup_mgr->ua_mgr.num_components = num_components;
 
     return 0;
 }
