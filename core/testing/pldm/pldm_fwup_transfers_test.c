@@ -102,7 +102,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
         0, 0, 0, 0, 0, 0, 0);
     CuAssertIntEquals(test, 0, status);
 
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE_TESTS
     testing.fwup_flash.package_data_flash = &testing.base_flash.base;
     testing.fwup_flash.package_data_addr = 10240;
     testing.fwup_flash.package_data_size = 10240;

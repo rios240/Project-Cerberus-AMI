@@ -69,24 +69,26 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
     }
 
     switch (pldm_command) {
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+//Firmware Device
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_process_query_device_identifiers_request(interface->fwup_state, interface->device_mgr, request);
+            status = pldm_fwup_process_query_device_identifiers_request(&interface->fwup_mgr->fd_mgr.state, interface->device_mgr, request);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_prcocess_get_firmware_parameters_request(interface->fwup_state, interface->device_mgr, request);
+            status = pldm_fwup_prcocess_get_firmware_parameters_request(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.fw_parameters, request);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_process_request_update_request(interface->fwup_state, interface->fwup_flash, request);
+            status = pldm_fwup_process_request_update_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.flash_mgr,
+                &interface->fwup_mgr->fd_mgr.update_info, request);
             break;
         case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_process_get_device_meta_data_request(interface->fwup_state, interface->fwup_flash, request);
+            status = pldm_fwup_process_get_device_meta_data_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.flash_mgr,
+                &interface->fwup_mgr->fd_mgr.get_cmd_state, &interface->fwup_mgr->fd_mgr.update_info, request);
             break;
-#else
+//Update Agent
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_request(interface->fwup_state, interface->fwup_flash, request);
+            status = pldm_fwup_process_get_package_data_request(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.flash_mgr,
+                &interface->fwup_mgr->ua_mgr.get_cmd_state, request);
             break;
-#endif
         default:
             status = CMD_HANDLER_PLDM_UNKNOWN_REQUEST;
     }
@@ -119,24 +121,25 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
     }
 
     switch (command) {
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+// Firmware Device
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_response(interface->fwup_state, interface->fwup_flash, response);
+            status = pldm_fwup_process_get_package_data_response(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.flash_mgr,
+                &interface->fwup_mgr->fd_mgr.get_cmd_state, response);
             break;
-#else
+// Update Agent
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
-            status = pldm_fwup_process_query_device_identifiers_response(interface->fwup_state, interface->device_mgr, response);
+            status = pldm_fwup_process_query_device_identifiers_response(&interface->fwup_mgr->ua_mgr.state, interface->device_mgr, response);
             break;
         case PLDM_GET_FIRMWARE_PARAMETERS:
-            status = pldm_fwup_process_get_firmware_parameters_response(interface->fwup_state, interface->device_mgr, response);
+            status = pldm_fwup_process_get_firmware_parameters_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.rec_fw_parameters, response);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_process_request_update_response(interface->fwup_flash, interface->fwup_state, response);
+            status = pldm_fwup_process_request_update_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
             break;
         case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_process_get_device_meta_data_response(interface->fwup_state, interface->fwup_flash, response);
+            status = pldm_fwup_process_get_device_meta_data_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.flash_mgr,
+                &interface->fwup_mgr->ua_mgr.get_cmd_state, response);
             break;
-#endif
         default:
             status = CMD_HANDLER_PLDM_UNKNOWN_RESPONSE;
     }

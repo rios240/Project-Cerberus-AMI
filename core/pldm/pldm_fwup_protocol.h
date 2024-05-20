@@ -18,7 +18,7 @@
 #define PLDM_MCTP_BINDING_MSG_OVERHEAD                                      (sizeof (struct pldm_msg_hdr) + MCTP_BASE_PROTOCOL_MSG_TYPE_SIZE)
 #define PLDM_MCTP_BINDING_MSG_OFFSET                                        MCTP_BASE_PROTOCOL_MSG_TYPE_SIZE
 
-
+#pragma pack(push, 1)
 /**
  * Information for a versioning string
  */
@@ -27,7 +27,7 @@ struct pldm_fwup_protocol_version_string {
     uint8_t version_str_length;                                             /**< The length of the version string. */
     uint8_t version_str[255];                                               /**< The version string. */
 };
-
+#pragma pack(pop)
 
 /**
  * Variable context for performing a multipart transfer for GetPackageData, GetDeviceMetaData, GetMetaData. 
@@ -76,22 +76,24 @@ struct pldm_fwup_protocol_component_entry {
 	struct pldm_fwup_protocol_version_string comp_ver;                      /**< String describing the component image version. */
 };
 
+#pragma pack(push, 1)
 /**
  * Single entry in the component parameter table.
  */
-struct pldm_fwup_component_parameter_entry {
+struct pldm_fwup_protocol_component_parameter_entry {
     uint16_t comp_classification;                                           /**< Identifier for the function type of component image. */
 	uint16_t comp_identifier;                                               /**< Identifier for distinguishing component images. */
 	uint8_t comp_classification_index;                                      /**< Value to indicate which firmware component this information is applicable to. */
 	uint32_t active_comp_comparison_stamp;                                  /**< Optional value that can be used to compare levels of active firmware. */
-    struct pldm_fwup_protocol_version_string active_comp_ver;               /**< Active component version. */
 	uint8_t active_comp_release_date[8];                                    /**< Release date of the active component. */
     uint32_t pending_comp_comparison_stamp;                                 /**< Optional value that can be used to compare levels of pending firmware. */
-    struct pldm_fwup_protocol_version_string pending_comp_ver;              /**< Pending component version. */
 	uint8_t pending_comp_release_date[8];                                   /**< Release date of the pending component. */
 	bitfield16_t comp_activation_methods;                                   /**< Activation methods of the component. */
 	bitfield32_t capabilities_during_update;                                /**< Capabilities of the component during an update. */
+    struct pldm_fwup_protocol_version_string active_comp_ver;               /**< Active component version. */
+    struct pldm_fwup_protocol_version_string pending_comp_ver;              /**< Pending component version. */
 };
+#pragma pack(pop)
 
 /**
  * The firmware components details for a single FD.
@@ -105,7 +107,7 @@ struct pldm_fwup_protocol_firmware_parameters {
 	uint16_t count;                                                         /**< The number firmware components. */
 	struct pldm_fwup_protocol_version_string active_comp_img_set_ver;       /**< The active component image set version. */
     struct pldm_fwup_protocol_version_string pending_comp_img_set_ver;      /**< The pending component image set version. */
-    struct pldm_fwup_component_parameter_entry *entries;                    /**< The component parameter table. */
+    struct pldm_fwup_protocol_component_parameter_entry *entries;           /**< The component parameter table. */
 };
 
 #endif /* PLDM_FWUP_PROTOCOL_H_ */
@@ -125,5 +127,6 @@ enum {
     CMD_HANDLER_PLDM_PAYLOAD_TOO_SHORT = CMD_HANDLER_PLDM_ERROR (0x01),     /**< The message does not contain the minimum amount of data. */
     CMD_HANDLER_PLDM_UNKNOWN_REQUEST = CMD_HANDLER_PLDM_ERROR (0x02),	    /**< A command does not represent a known request. */
     CMD_HANDLER_PLDM_UNKNOWN_RESPONSE = CMD_HANDLER_PLDM_ERROR (0x02),	    /**< A command does not represent a known response. */
-    CMD_HANDLER_PLDM_UNSUPPORTED_OPERATION = CMD_HANDLER_PLDM_ERROR (0x08)	/**< The requested operation is not supported. */
+    CMD_HANDLER_PLDM_UNSUPPORTED_OPERATION = CMD_HANDLER_PLDM_ERROR (0x08),	/**< The requested operation is not supported. */
+    CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED = CMD_HANDLER_PLDM_ERROR (0x09) /**< The requested operation was not expected. */
 };
