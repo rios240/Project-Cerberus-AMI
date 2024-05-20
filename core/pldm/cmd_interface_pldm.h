@@ -2,6 +2,7 @@
 #define CMD_INTERFACE_PLDM_H_
 
 #include "pldm_fwup_manager.h"
+#include "cmd_interface/cmd_interface.h"
 
 
 /**

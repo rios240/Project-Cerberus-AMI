@@ -30,7 +30,7 @@ struct pldm_fwup_transfers_testing {
     struct pldm_fwup_fup_component_image_entry *fup_comp_img_list;
     struct pldm_fwup_flash_manager fd_flash_mgr;
     struct pldm_fwup_flash_manager ua_flash_mgr;
-    struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters;
+    struct pldm_fwup_protocol_firmware_parameters fd_fw_parameters;
     struct pldm_fwup_protocol_version_string fup_comp_img_set_ver;
     uint16_t num_components;
 
@@ -83,7 +83,7 @@ static void deinitialize_testing(struct pldm_fwup_transfers_testing *testing) {
     cmd_interface_pldm_deinit(&testing->cmd_pldm);
     flash_virtual_disk_release(&testing->flash);
     device_manager_release(&testing->device_mgr);
-    deint_pldm_fwup_manager(&testing->fwup_mgr);
+    deinit_pldm_fwup_manager(&testing->fwup_mgr);
     memset (testing, 0, sizeof (struct pldm_fwup_transfers_testing));
 }
 
@@ -120,7 +120,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
     testing.fd_flash_mgr.package_data_region.start_addr = 10240;
     testing.fd_flash_mgr.package_data_region.length = 10240;
 
-    status = init_pldm_fwup_manager(&testing.fwup_mgr, &testing.fd_fw_parameters, &testing.fup_comp_img_list,
+    status = init_pldm_fwup_manager(&testing.fwup_mgr, &testing.fd_fw_parameters, testing.fup_comp_img_list,
         &testing.fd_flash_mgr, &testing.ua_flash_mgr, &testing.fup_comp_img_set_ver, testing.num_components);
     CuAssertIntEquals(test, 0, status);
 

@@ -1,4 +1,6 @@
+#include <string.h>
 #include "pldm_fwup_manager.h"
+
 
 
 /**
@@ -47,7 +49,7 @@ int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr,
  * 
  * @param fwup_mgr The PLDM FWUP manager instance to deinitialize.
 */
-void deint_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr)
+void deinit_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr)
 {
     if (fwup_mgr != NULL) {
         memset(fwup_mgr, 0, sizeof (struct pldm_fwup_manager));

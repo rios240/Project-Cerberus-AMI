@@ -8,7 +8,6 @@
 #include "flash/flash_virtual_disk.h"
 #include "cmd_interface/cmd_channel.h"
 #include "cmd_interface/device_manager.h"
-#include "pldm/pldm_fwup_interface.h"
 #include "libpldm/firmware_update.h"
 
 /*

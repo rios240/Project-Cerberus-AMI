@@ -115,7 +115,7 @@ int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr,
     struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters,  struct pldm_fwup_fup_component_image_entry *fup_comp_img_list,
     struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr, 
     struct pldm_fwup_protocol_version_string *fup_comp_img_set_ver, uint16_t num_components);
-int deint_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr);
+void deinit_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr);
 
 
 

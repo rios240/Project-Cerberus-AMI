@@ -1,5 +1,5 @@
-#ifndef PLDM_FWUP_INTERFACE_H_
-#define PLDM_FWUP_INTERFACE_H_
+#ifndef PLDM_FWUP_H_
+#define PLDM_FWUP_H_
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -24,4 +24,4 @@ int pldm_fwup_generate_request(struct cmd_interface_pldm *intf, uint8_t command,
 
 
 
-#endif /* PLDM_FWUP_INTERFACE_H_ */
+#endif /* PLDM_FWUP_H_ */

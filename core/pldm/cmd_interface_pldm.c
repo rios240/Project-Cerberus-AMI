@@ -77,16 +77,16 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
             status = pldm_fwup_prcocess_get_firmware_parameters_request(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.fw_parameters, request);
             break;
         case PLDM_REQUEST_UPDATE:
-            status = pldm_fwup_process_request_update_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.flash_mgr,
+            status = pldm_fwup_process_request_update_request(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
                 &interface->fwup_mgr->fd_mgr.update_info, request);
             break;
         case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_process_get_device_meta_data_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.flash_mgr,
+            status = pldm_fwup_process_get_device_meta_data_request(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
                 &interface->fwup_mgr->fd_mgr.get_cmd_state, &interface->fwup_mgr->fd_mgr.update_info, request);
             break;
 //Update Agent
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_request(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.flash_mgr,
+            status = pldm_fwup_process_get_package_data_request(&interface->fwup_mgr->ua_mgr.state, interface->fwup_mgr->ua_mgr.flash_mgr,
                 &interface->fwup_mgr->ua_mgr.get_cmd_state, request);
             break;
         default:
@@ -123,7 +123,7 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
     switch (command) {
 // Firmware Device
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_process_get_package_data_response(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.flash_mgr,
+            status = pldm_fwup_process_get_package_data_response(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
                 &interface->fwup_mgr->fd_mgr.get_cmd_state, response);
             break;
 // Update Agent
@@ -137,7 +137,7 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
             status = pldm_fwup_process_request_update_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
             break;
         case PLDM_GET_DEVICE_METADATA:
-            status = pldm_fwup_process_get_device_meta_data_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.flash_mgr,
+            status = pldm_fwup_process_get_device_meta_data_response(&interface->fwup_mgr->ua_mgr.state, interface->fwup_mgr->ua_mgr.flash_mgr,
                 &interface->fwup_mgr->ua_mgr.get_cmd_state, response);
             break;
         default:

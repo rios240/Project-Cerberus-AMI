@@ -110,7 +110,6 @@ struct pldm_fwup_protocol_firmware_parameters {
     struct pldm_fwup_protocol_component_parameter_entry *entries;           /**< The component parameter table. */
 };
 
-#endif /* PLDM_FWUP_PROTOCOL_H_ */
 
 
 void reset_multipart_transfer(struct pldm_fwup_protocol_multipart_transfer *multipart_transfer);
@@ -126,7 +125,9 @@ enum {
     CMD_HANDLER_PLDM_INVALID_ARGUMENT = CMD_HANDLER_PLDM_ERROR (0x00),      /**< Input parameter is null or not valid. */
     CMD_HANDLER_PLDM_PAYLOAD_TOO_SHORT = CMD_HANDLER_PLDM_ERROR (0x01),     /**< The message does not contain the minimum amount of data. */
     CMD_HANDLER_PLDM_UNKNOWN_REQUEST = CMD_HANDLER_PLDM_ERROR (0x02),	    /**< A command does not represent a known request. */
-    CMD_HANDLER_PLDM_UNKNOWN_RESPONSE = CMD_HANDLER_PLDM_ERROR (0x02),	    /**< A command does not represent a known response. */
-    CMD_HANDLER_PLDM_UNSUPPORTED_OPERATION = CMD_HANDLER_PLDM_ERROR (0x08),	/**< The requested operation is not supported. */
-    CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED = CMD_HANDLER_PLDM_ERROR (0x09) /**< The requested operation was not expected. */
+    CMD_HANDLER_PLDM_UNKNOWN_RESPONSE = CMD_HANDLER_PLDM_ERROR (0x03),	    /**< A command does not represent a known response. */
+    CMD_HANDLER_PLDM_UNSUPPORTED_OPERATION = CMD_HANDLER_PLDM_ERROR (0x04),	/**< The requested operation is not supported. */
+    CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED = CMD_HANDLER_PLDM_ERROR (0x05) /**< The requested operation was not expected. */
 };
+
+#endif /* PLDM_FWUP_PROTOCOL_H_ */
