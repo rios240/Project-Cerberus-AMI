@@ -189,7 +189,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
         mctp_interface_reset_message_processing(&testing.mctp);
         CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.fwup_mgr.ua_mgr.state.previous_cmd);
         CuAssertIntEquals(test, PLDM_SUCCESS, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
-    } while (testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_END || testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
+    } while (testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_END && testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
 #endif
 
     deinitialize_testing(&testing);

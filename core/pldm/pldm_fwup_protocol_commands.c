@@ -390,7 +390,7 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
     portion_of_device_meta_data.length = sizeof (completion_code);
     uint8_t device_meta_data_buf[(size_t)update_info->max_transfer_size];
 
-    if (state->previous_cmd != PLDM_GET_PACKAGE_DATA || state->previous_cmd != PLDM_GET_DEVICE_METADATA) {
+    if (state->previous_cmd != PLDM_GET_PACKAGE_DATA && state->previous_cmd != PLDM_GET_DEVICE_METADATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
         goto exit;
     }
@@ -904,7 +904,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_ua_state *state,
     portion_of_package_data.length = sizeof (completion_code);
     uint8_t package_data_buf[PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE];
 
-    if (state->previous_cmd != PLDM_REQUEST_UPDATE || state->previous_cmd != PLDM_GET_PACKAGE_DATA) {
+    if (state->previous_cmd != PLDM_REQUEST_UPDATE && state->previous_cmd != PLDM_GET_PACKAGE_DATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
         goto exit;
     }
