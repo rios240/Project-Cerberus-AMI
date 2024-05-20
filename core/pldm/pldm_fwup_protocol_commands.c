@@ -1066,7 +1066,7 @@ struct pldm_fwup_state *fwup_state, uint8_t *buffer, size_t buf_len)
 	uint8_t comp_ver_str_len = 0;
 	const struct variable_field comp_ver_str;
 
-
+    return 0;
 }
 
 #endif

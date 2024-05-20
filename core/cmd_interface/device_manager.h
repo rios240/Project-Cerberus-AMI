@@ -13,7 +13,6 @@
 #include "crypto/rsa.h"
 #include "status/rot_status.h"
 #include "cmd_interface/device_manager_observer.h"
-#include "pldm/pldm_fwup_protocol.h"
 
 
 // Reserved device manager table entry numbers
@@ -172,8 +171,7 @@ struct device_manager_key {
  * Entry type in a device manager table
  */
 struct device_manager_entry {
-	struct device_manager_full_capabilities capabilities;               /**< Device capabilities */
-    struct pldm_fwup_protocol_full_firmware_parameters fw_parameters;   /**< Device firmware parameters */           
+	struct device_manager_full_capabilities capabilities;               /**< Device capabilities */    
 	platform_clock attestation_timeout;							        /**< Clock tracking when device should be attested */
 	uint32_t component_id;										        /**< Component ID in PCD and CFM */
 	enum device_manager_device_state state;						        /**< Device state */
