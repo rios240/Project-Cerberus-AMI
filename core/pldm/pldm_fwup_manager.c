@@ -1,6 +1,17 @@
 #include "pldm_fwup_manager.h"
 
 
+/**
+ * Initialize a PLDM FWUP manager instance. 
+ * 
+ * @param fwup_mgr The PLDM FWUP manager instance to initialize.
+ * @param fd_fw_parameters The FD firmware parameters
+ * @param fup_comp_img_list The FUP component image information list
+ * @param fd_flash_mgr The FWUP flash manager for the FD
+ * @param ua_flash_mgr The FWUP flash manager for the UA
+ * 
+ * @return 0 on success otherwise an error code.
+*/
 int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr, 
     struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters,  struct pldm_fwup_fup_component_image_entry **fup_comp_img_list,
     struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr)
@@ -26,12 +37,14 @@ int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr,
     return 0;
 }
 
-int deint_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr)
+/**
+ * Deinitialize a PLDM FWUP manager instance. 
+ * 
+ * @param fwup_mgr The PLDM FWUP manager instance to deinitialize.
+*/
+void deint_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr)
 {
-    if (fwup_mgr == NULL) {
-        return PLDM_FWUP_MANAGER_INVALID_ARGUMENT;
+    if (fwup_mgr != NULL) {
+        memset(fwup_mgr, 0, sizeof (struct pldm_fwup_manager));
     }
-
-    memset(fwup_mgr, 0, sizeof (struct pldm_fwup_manager));
-    return 0;
 }
