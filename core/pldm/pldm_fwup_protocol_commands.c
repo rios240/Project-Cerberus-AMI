@@ -950,7 +950,7 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_ua_state *state,
     portion_of_package_data.ptr = (const uint8_t *)package_data_buf;
     portion_of_package_data.length = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 
-    printf("REQUEST/RESPONSE | instance id: %d, data transfer handle: %d, transfer op flag: %d, next data transfer handle: %d, transfer flag: %d\n",
+    printf("REQUEST/RESPONSE | instance id: %d, data transfer handle: %d, transfer op flag: %d, next data transfer handle: %d, transfer flag: %d, CRC: %d\n",
         instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
 
 exit:;
