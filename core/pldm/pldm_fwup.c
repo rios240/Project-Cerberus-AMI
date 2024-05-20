@@ -41,6 +41,13 @@ int pldm_fwup_generate_request(struct cmd_interface_pldm *intf, uint8_t command,
             status = pldm_fwup_generate_get_device_meta_data_request(&intf->fwup_mgr->ua_mgr.state, &intf->fwup_mgr->ua_mgr.get_cmd_state, 
                 buffer, buf_len);
             break;
+        case PLDM_PASS_COMPONENT_TABLE:
+            status = pldm_fwup_generate_pass_component_table_request(&intf->fwup_mgr->ua_mgr, buffer, buf_len);
+            break;
+        case PLDM_UPDATE_COMPONENT:
+            status = pldm_fwup_generate_update_component_request(&intf->fwup_mgr->ua_mgr.state, intf->fwup_mgr->ua_mgr.current_comp_num, 
+                intf->fwup_mgr->ua_mgr.comp_img_entries, &intf->fwup_mgr->ua_mgr.rec_fw_parameters, buffer, buf_len);
+            break;
         default:
         status =  CMD_HANDLER_PLDM_UNKNOWN_REQUEST;    
     }
