@@ -16,7 +16,7 @@
 
 TEST_SUITE_LABEL ("pldm_fwup_transfers");
 
-struct pldm_fwup_transfers_testing {
+struct pldm_fwup_testing {
     struct mctp_interface mctp;
     struct cmd_interface_pldm cmd_pldm;
     struct cmd_interface cmd_mctp;
@@ -61,7 +61,7 @@ static void initialize_base_flash(CuTest *test, struct flash_virtual_disk *base_
     CuAssertIntEquals(test, 0, status);
 }
 
-static void initialize_cmd_channel_and_mctp_interface(CuTest *test, struct pldm_fwup_transfers_testing *testing, uint8_t channel_id) {
+static void initialize_cmd_channel_and_mctp_interface(CuTest *test, struct pldm_fwup_testing *testing, uint8_t channel_id) {
     int status = cmd_channel_init(&testing->channel, channel_id);
     CuAssertIntEquals(test, 0, status);
 
@@ -77,14 +77,14 @@ static void initialize_cmd_channel_and_mctp_interface(CuTest *test, struct pldm_
     CuAssertIntEquals(test, 0, status);
 }
 
-static void deinitialize_testing(struct pldm_fwup_transfers_testing *testing) {
+static void deinitialize_testing(struct pldm_fwup_testing *testing) {
     mctp_interface_deinit(&testing->mctp);
     cmd_channel_release(&testing->channel);
     cmd_interface_pldm_deinit(&testing->cmd_pldm);
     flash_virtual_disk_release(&testing->flash);
     device_manager_release(&testing->device_mgr);
     deinit_pldm_fwup_manager(&testing->fwup_mgr);
-    memset (testing, 0, sizeof (struct pldm_fwup_transfers_testing));
+    memset (testing, 0, sizeof (struct pldm_fwup_testing));
 }
 
 
@@ -96,8 +96,8 @@ static void deinitialize_testing(struct pldm_fwup_transfers_testing *testing) {
 
 static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
 {
-    struct pldm_fwup_transfers_testing testing;
-    memset(&testing, 0, sizeof (struct pldm_fwup_transfers_testing));
+    struct pldm_fwup_testing testing;
+    memset(&testing, 0, sizeof (struct pldm_fwup_testing));
     uint8_t request_buf[MCTP_BASE_PROTOCOL_MAX_MESSAGE_LEN];
 
     const char *disk_region = "/s/bach/j/under/tylerios/Research/Project-Cerberus-AMI/common_flash_10_kb.bin";
@@ -119,6 +119,9 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
     testing.fd_flash_mgr.flash = &testing.flash.base;
     testing.fd_flash_mgr.package_data_region.start_addr = 10240;
     testing.fd_flash_mgr.package_data_region.length = 10240;
+
+    struct pldm_fwup_fup_component_image_entry dummy = {0};
+    testing.fup_comp_img_list = &dummy;
 
     status = init_pldm_fwup_manager(&testing.fwup_mgr, &testing.fd_fw_parameters, testing.fup_comp_img_list,
         &testing.fd_flash_mgr, &testing.ua_flash_mgr, &testing.fup_comp_img_set_ver, testing.num_components);
