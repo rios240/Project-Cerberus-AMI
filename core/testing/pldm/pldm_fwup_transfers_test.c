@@ -176,9 +176,10 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
 
     status = cmd_interface_pldm_init(&testing.cmd_pldm, &testing.fwup_mgr, &testing.device_mgr);
     CuAssertIntEquals(test, 0, status);
-    testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
     
     initialize_cmd_channel_and_mctp_interface(test, &testing, 0x6E);
+
+    testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
 
     do {
         do {
