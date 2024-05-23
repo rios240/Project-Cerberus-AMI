@@ -34,6 +34,7 @@ struct pldm_fwup_ua_update_info {
 	enum pldm_component_response_codes comp_resp_code;                              /**< Component response code. */
     enum pldm_component_compatibility_responses comp_compatibility_resp;            /**< Indicates the compatability with component provided during UpdateComponent. */
     enum pldm_component_compatibility_response_codes comp_compatibility_resp_code;  /**< Component compatability response code. */
+    enum pldm_firmware_update_transfer_result_values transfer_result;               /**< The result of the firmware transfer indicated by the FD. */
     bitfield32_t update_option_flags_enabled;                                       /**< Indicates the update options that were enabled by the FD. */
     uint16_t time_before_req_fw_data;                                               /**< Time FD needs to prepare before sending RequestFirmwareData. */
 };
@@ -87,6 +88,7 @@ struct pldm_fwup_fd_update_info {
     struct pldm_fwup_protocol_version_string comp_img_set_ver;                      /**< The component image set version being updated. */
     uint16_t current_comp_num;                                                      /**< The component in the component table that is currently being updated. */
     uint32_t current_comp_img_size;                                                 /**< The size of the component image being updated. */
+    uint32_t current_comp_img_offset;                                               /**< The current offset of the requested component image. */
 	bitfield32_t current_comp_update_option_flags;                                  /**< The update options requested by the UA for the component being updated. */
     struct pldm_fwup_protocol_component_entry *comp_entries;                        /**< The component table received from the UA. */
 };

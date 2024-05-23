@@ -289,7 +289,7 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_fd_state *state
     switch_state(state, PLDM_FD_STATE_LEARN_COMPONENTS);
     state->previous_cmd = PLDM_GET_PACKAGE_DATA;
     instance_id += 1;
-    return PLDM_MCTP_BINDING_MSG_OVERHEAD + sizeof (struct pldm_multipart_transfer_req);
+    return PLDM_MCTP_BINDING_MSG_OVERHEAD + rq_payload_length;
     
 }
 
@@ -585,8 +585,8 @@ exit:;
 *
 * @return 0 if the request was successfully processed and a request was generated or an error code.
 *
-* @note Not every component response code is handled since some depend on other components of Cerberus. Also the update options flags for the FD is simply set to
-* what the UA requested without any additional configuration and the time before RequestFirmwareData is set to a dummy value of no significance. 
+* @note For AMI, not every component response code is handled since some depend on the external state/status of Cerberus. Also the FD enabled update options flags is simply set to
+*       what the UA requested without any additional checks, configuration, etc. and the time before RequestFirmwareData field is set to a dummy value of no significance. 
 */
 int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
     struct pldm_fwup_fd_update_info *update_info, struct pldm_fwup_protocol_component_entry *comp_entries, 
@@ -679,6 +679,163 @@ exit:;
     return status;
 }
 
+
+/**
+* Generate a RequestFirmwareData request.
+*
+* @param state - Variable context for a PLDM FWUP.
+* @param update_info - Update information retained by FD.
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return 0 if the request was successfully generated or an error code.
+*/
+int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *state,
+    struct pldm_fwup_fd_update_info *update_info, uint8_t *buffer, size_t buf_len)
+{
+    static uint8_t instance_id = 1;
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    uint32_t offset = update_info->current_comp_img_offset;
+    uint32_t length = update_info->max_transfer_size;
+
+    struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = sizeof (struct pldm_request_firmware_data_req);
+
+    int status = encode_request_firmware_data_req(instance_id, rq, rq_payload_length,
+        offset, length);
+    if (status != 0) {
+        return status;
+    }
+
+    switch_state(state, PLDM_FD_STATE_DOWNLOAD);
+    state->previous_cmd = PLDM_REQUEST_FIRMWARE_DATA;
+    instance_id += 1;
+    return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+
+/**
+* Process a RequestFirmwareData response.
+*
+* @param state - Variable context for a PLDM FWUP.
+* @param update_info - Update information retained by FD.
+* @param flash_mgr - The flash manager for a PLDM FWUP.
+* @param response The response data to process.
+*
+* @return 0 if the response was successfully processed or an error code.
+*/
+int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *state,
+    struct pldm_fwup_fd_update_info *update_info, struct pldm_fwup_flash_manager *flash_mgr, 
+    struct cmd_interface_msg *response)
+{
+    if (state->previous_cmd != PLDM_REQUEST_FIRMWARE_DATA) {
+        return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
+    }
+    struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    uint8_t completion_code = 0;
+    
+    int status = decode_request_firmware_data_resp(rsp, rsp_payload_length, &completion_code);
+    if (status != 0) {
+        return status;
+    }
+
+    state->previous_completion_code = completion_code;
+    switch_state(state, PLDM_FD_STATE_DOWNLOAD);
+    if (completion_code != PLDM_SUCCESS) {
+        return 0;
+    }
+
+    status = flash_mgr->flash->write(flash_mgr->flash, 
+        flash_mgr->comp_regions[update_info->current_comp_num].start_addr + update_info->current_comp_img_offset,
+        rsp->payload + 1, rsp_payload_length - sizeof (completion_code));
+    if (ROT_IS_ERROR(status)) {
+        return status;
+    } else {
+        status = 0;
+    }
+
+    if (update_info->current_comp_img_offset + update_info->max_transfer_size >= update_info->current_comp_img_size) {
+        update_info->current_comp_img_offset = 0;
+    } else {
+        update_info->current_comp_img_offset += update_info->max_transfer_size;
+    }
+
+    response->length = 0;
+    return status;
+}
+
+/**
+* Generate a TransferComplete request.
+*
+* @param state - Variable context for a PLDM FWUP.
+* @param buffer The buffer to contain the request data.
+* @param buf_len The buffer length.
+*
+* @return 0 if the request was successfully generated or an error code.
+*
+* @note For AMI, the transfer result is based on what the last completion code received during RequestFirmwareData was set to. 
+*       Checks for all transfer results should be implemented based on specific needs. 
+*/
+int pldm_fwup_generate_transfer_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len)
+{
+    static uint8_t instance_id = 1;
+    buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
+
+    uint8_t transfer_result = 0;
+    if (state->previous_completion_code != 0) {
+        transfer_result = PLDM_FWUP_FD_GENERIC_TRANSFER_ERROR;
+        switch_state(state, PLDM_FD_STATE_DOWNLOAD);
+    } else {
+        transfer_result = PLDM_FWUP_TRANSFER_SUCCESS;
+        switch_state(state, PLDM_FD_STATE_VERIFY);
+    }
+
+    struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = sizeof (transfer_result);
+
+    int status = encode_transfer_complete_req(instance_id, rq, rq_payload_length, transfer_result);
+    if (status != 0) {
+        return status;
+    }
+
+    state->previous_cmd = PLDM_TRANSFER_COMPLETE;
+    instance_id += 1;
+    return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
+}
+
+/**
+* Process a TransferComplete response.
+*
+* @param state - Variable context for a PLDM FWUP.
+* @param response The response data to process.
+*
+* @return 0 if the response was successfully processed or an error code.
+*/
+int pldm_fwup_process_transfer_complete_response(struct pldm_fwup_fd_state *state, struct cmd_interface_msg *response)
+{
+    if (state->previous_cmd != PLDM_TRANSFER_COMPLETE) {
+        return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
+    }
+    struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    uint8_t completion_code = 0;
+    
+    int status = decode_transfer_complete_resp(rsp, rsp_payload_length, &completion_code);
+    if (status != 0) {
+        return status;
+    }
+
+    state->previous_completion_code = completion_code;
+    if (completion_code != PLDM_SUCCESS) {
+        return 0;
+    }
+    
+    response->length = 0;
+    return 0;
+}
 
 /*******************
  * UA Inventory commands
@@ -1361,4 +1518,115 @@ int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state
 
     response->length = 0;
     return status;
+}
+
+/**
+* Process a RequestFirmwareData request and generate a response.
+*
+* @param state - Variable context for a PLDM FWUP.
+* @param current_comp_num - Current component to be updated. 
+* @param comp_img_entries - Component image information entries from the FUP.
+* @param flash_mgr - The flash manager for a PLDM FWUP.
+* @param request The request data to process.  This will be updated to contain a response.
+*
+* @return 0 if the request was successfully processed and a request was generated or an error code.
+*
+* @note For AMI, RETRY_REQUEST_FW_DATA is returned if the flash region has a length set to zero. This should be changed to a more
+*       robust check in the future. 
+*/
+int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *state,
+    uint16_t current_comp_num, struct pldm_fwup_fup_component_image_entry *comp_img_entries,
+    struct pldm_fwup_flash_manager *flash_mgr, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    uint32_t offset = 0;
+    uint32_t length = 0;
+
+    int status = decode_request_firmware_data_req(rq, rq_payload_length, &offset, &length);
+    if (status != 0) {
+        return status;
+    }
+
+    static uint8_t instance_id = 1;
+    uint8_t completion_code = PLDM_SUCCESS;
+
+    struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = sizeof (completion_code);
+
+    if (length > PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE) {
+        completion_code = PLDM_FWUP_INVALID_TRANSFER_LENGTH;
+    }
+    else if (state->previous_cmd != PLDM_UPDATE_COMPONENT) {
+        completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
+    }
+    else if (offset > comp_img_entries[current_comp_num].comp_size) {
+        completion_code = PLDM_FWUP_DATA_OUT_OF_RANGE;
+    }
+    else if (flash_mgr->comp_regions[current_comp_num].length <= 0) {
+        completion_code = PLDM_FWUP_RETRY_REQUEST_FW_DATA;
+    }
+    else if (state->previous_cmd == PLDM_CANCEL_UPDATE_COMPONENT || 
+        state->previous_cmd == PLDM_CANCEL_UPDATE) {
+        completion_code = PLDM_FWUP_CANCEL_PENDING;
+    } else {
+        status = flash_mgr->flash->read(flash_mgr->flash, 
+            flash_mgr->comp_regions[current_comp_num].start_addr + offset, rsp->payload + 1, length);
+        if (ROT_IS_ERROR(status)) {
+            return status;
+        } else {
+            rsp_payload_length += length;
+        }
+    }
+
+    status = encode_request_firmware_data_resp(instance_id, completion_code, rsp, rsp_payload_length);
+    state->previous_cmd = PLDM_REQUEST_FIRMWARE_DATA;
+    state->previous_completion_code = completion_code;
+    request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
+    instance_id += 1;
+    return status;
+}
+
+
+/**
+* Process a RequestFirmwareData request and generate a response.
+*
+* @param state - Variable context for a PLDM FWUP.
+* @param update_info - Update information retained by UA.
+* @param request The request data to process.  This will be updated to contain a response.
+*
+* @return 0 if the request was successfully processed and a request was generated or an error code.
+*/
+int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state, 
+    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *request)
+{
+    struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
+
+    uint8_t transfer_result = 0;
+    
+    int status = decode_transfer_complete_req(rq, rq_payload_length, &transfer_result);
+    if (status != 0) {
+        return status;
+    }
+
+    update_info->transfer_result = transfer_result;
+
+    static uint8_t instance_id = 1;
+    uint8_t completion_code = PLDM_SUCCESS;
+    if (state->previous_cmd != PLDM_REQUEST_FIRMWARE_DATA) {
+        completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
+    }
+
+    struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
+    size_t rsp_payload_length = sizeof (completion_code);
+
+    status = encode_transfer_complete_resp(instance_id, completion_code, rsp, rsp_payload_length);
+    state->previous_cmd = PLDM_TRANSFER_COMPLETE;
+    state->previous_completion_code = completion_code;
+    request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
+    instance_id += 1;
+    return status;
+
 }
