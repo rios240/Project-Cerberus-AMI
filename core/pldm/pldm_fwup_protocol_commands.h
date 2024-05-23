@@ -46,6 +46,15 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
     struct pldm_fwup_fd_update_info *update_info, struct pldm_fwup_protocol_component_entry *comp_entries, 
     struct cmd_interface_msg *request);
 
+int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *state,
+    struct pldm_fwup_fd_update_info *update_info, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *state,
+    struct pldm_fwup_fd_update_info *update_info, struct pldm_fwup_flash_manager *flash_mgr, 
+    struct cmd_interface_msg *response);
+
+int pldm_fwup_generate_transfer_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_transfer_complete_response(struct pldm_fwup_fd_state *state, struct cmd_interface_msg *response);
+
 /*******************
  * UA Inventory commands
  *******************/
@@ -90,6 +99,13 @@ int pldm_fwup_generate_update_component_request(struct pldm_fwup_ua_state *state
 
 int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state,
     struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *response);
+
+int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *state,
+    uint16_t current_comp_num, struct pldm_fwup_fup_component_image_entry *comp_img_entries,
+    struct pldm_fwup_flash_manager *flash_mgr, struct cmd_interface_msg *request);
+
+int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state, 
+    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *request);
 
 
 #endif /* PLDM_FWUP_PROTOCOL_COMMANDS_H_ */
