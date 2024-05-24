@@ -55,6 +55,31 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
 int pldm_fwup_generate_transfer_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len);
 int pldm_fwup_process_transfer_complete_response(struct pldm_fwup_fd_state *state, struct cmd_interface_msg *response);
 
+int pldm_fwup_generate_verify_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_verify_complete_response(struct pldm_fwup_fd_state *state, struct cmd_interface_msg *response);
+
+int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_apply_complete_response(struct pldm_fwup_fd_state *state, struct cmd_interface_msg *response);
+
+int pldm_fwup_generate_get_meta_data_request(struct pldm_fwup_fd_state *state, 
+    struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
+    uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_get_meta_data_response(struct pldm_fwup_fd_state *state, 
+    struct pldm_fwup_flash_manager *flash_mgr, struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
+    struct cmd_interface_msg *response);
+
+int pldm_fwup_process_activate_firmware_request(struct pldm_fwup_fd_state *state, 
+    struct pldm_fwup_fd_update_info *update_info, struct cmd_interface_msg *request);
+
+int pldm_fwup_process_get_status_request(struct pldm_fwup_fd_state *state, 
+    struct pldm_fwup_fd_update_info *update_info, struct cmd_interface_msg *request);
+
+int pldm_fwup_process_cancel_update_component_request(struct pldm_fwup_fd_state *state, 
+    struct pldm_fwup_fd_update_info *update_info, struct cmd_interface_msg *request);
+
+int pldm_fwup_process_cancel_update_request(struct pldm_fwup_fd_state *state, 
+    struct pldm_fwup_fd_update_info *update_info, struct pldm_fwup_flash_manager *flash_mgr, struct cmd_interface_msg *request);
+
 /*******************
  * UA Inventory commands
  *******************/
@@ -107,5 +132,27 @@ int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *s
 int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state, 
     struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *request);
 
+int pldm_fwup_process_verify_complete_request(struct pldm_fwup_ua_state *state,
+    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *request);
+
+int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
+    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *request);
+
+int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state, 
+    struct pldm_fwup_flash_manager *flash_mgr, struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
+    struct cmd_interface_msg *request);
+
+int pldm_fwup_generate_activate_firmware_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_activate_firmware_response(struct pldm_fwup_ua_state *state, 
+    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *response);
+
+int pldm_fwup_generate_get_status_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_get_status_response(struct pldm_fwup_ua_state *state, struct cmd_interface_msg *response);
+
+int pldm_fwup_generate_cancel_update_component_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_cancel_update_component_response(struct pldm_fwup_ua_state *state, struct cmd_interface_msg *response);
+
+int pldm_fwup_generate_cancel_update_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, struct cmd_interface_msg *response);
 
 #endif /* PLDM_FWUP_PROTOCOL_COMMANDS_H_ */

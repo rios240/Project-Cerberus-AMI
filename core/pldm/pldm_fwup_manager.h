@@ -35,6 +35,9 @@ struct pldm_fwup_ua_update_info {
     enum pldm_component_compatibility_responses comp_compatibility_resp;            /**< Indicates the compatability with component provided during UpdateComponent. */
     enum pldm_component_compatibility_response_codes comp_compatibility_resp_code;  /**< Component compatability response code. */
     enum pldm_firmware_update_transfer_result_values transfer_result;               /**< The result of the firmware transfer indicated by the FD. */
+    enum pldm_firmware_update_verify_result_values verify_result;                   /**< The result of the verification the FD performs on the firmware image. */
+    enum pldm_firmware_update_apply_result_values apply_result;                     /**< The result the FD returns during the apply state. */
+    uint16_t estimated_time_activation;                                             /**< The time the FD needs to activate all firmware. */
     bitfield32_t update_option_flags_enabled;                                       /**< Indicates the update options that were enabled by the FD. */
     uint16_t time_before_req_fw_data;                                               /**< Time FD needs to prepare before sending RequestFirmwareData. */
 };
@@ -90,6 +93,7 @@ struct pldm_fwup_fd_update_info {
     uint32_t current_comp_img_size;                                                 /**< The size of the component image being updated. */
     uint32_t current_comp_img_offset;                                               /**< The current offset of the requested component image. */
 	bitfield32_t current_comp_update_option_flags;                                  /**< The update options requested by the UA for the component being updated. */
+    bool8_t self_contained_activation_req;                                          /**< The activation method requested by the UA. */
     struct pldm_fwup_protocol_component_entry *comp_entries;                        /**< The component table received from the UA. */
 };
 
@@ -100,7 +104,6 @@ struct pldm_fwup_fd_manager {
     struct pldm_fwup_protocol_firmware_parameters *fw_parameters;                   /**< The firmware parameters requested by the UA. */
     struct pldm_fwup_fd_state state;                                                /**< Variable context for the FD manager. */
     struct pldm_fwup_protocol_multipart_transfer get_cmd_state;                     /**< Variable context for the three Get commands. */
-    struct pldm_fwup_protocol_request_firmware request_fw_state;                    /**< Variable context for requesting firmware data. */
     struct pldm_fwup_flash_manager *flash_mgr;                                      /**< Flash manager for a firmware update. */
     struct pldm_fwup_fd_update_info update_info;                                    /**< Information retained during the firmware update. */
 };
