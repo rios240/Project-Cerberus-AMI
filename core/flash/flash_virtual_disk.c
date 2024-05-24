@@ -228,6 +228,7 @@ int flash_virtual_disk_init (struct flash_virtual_disk *virtual_flash, const cha
 	virtual_flash->base.get_page_size = flash_virtual_disk_get_block_size;
 	virtual_flash->base.minimum_write_per_page = flash_virtual_disk_get_block_size;
 	virtual_flash->base.write = flash_virtual_disk_write;
+    virtual_flash->base.sector_erase = flash_virtual_disk_block_erase;
 	virtual_flash->base.get_sector_size = flash_virtual_disk_get_block_size;
 	virtual_flash->base.get_block_size = flash_virtual_disk_get_block_size;
 	virtual_flash->base.chip_erase = flash_virtual_disk_region_erase;
