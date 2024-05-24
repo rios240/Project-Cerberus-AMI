@@ -1142,7 +1142,7 @@ int pldm_fwup_process_get_status_request(struct pldm_fwup_fd_state *state,
         state->current_state == PLDM_FD_STATE_READY_XFER) {
         aux_state = PLDM_FD_IDLE_LEARN_COMPONENTS_READ_XFER;
     } else {
-        aux_state = state->previous_completion_code == PLDM_SUCCESS ? PLDM_FD_OPERATION_SUCCESSFUL : PLDM_FD_OPERATION_FAILED;
+        aux_state = state->previous_completion_code == 0 ? PLDM_FD_OPERATION_SUCCESSFUL : PLDM_FD_OPERATION_FAILED;
     }
 	uint8_t aux_state_status = aux_state == PLDM_FD_OPERATION_SUCCESSFUL || aux_state == PLDM_FD_OPERATION_IN_PROGRESS
         ? PLDM_FD_AUX_STATE_IN_PROGRESS_OR_SUCCESS : PLDM_FD_GENERIC_ERROR;
@@ -1197,7 +1197,7 @@ int pldm_fwup_process_cancel_update_component_request(struct pldm_fwup_fd_state 
     size_t rsp_payload_length = sizeof (completion_code);
 
     if (!state->update_mode) {
-        completion_code == PLDM_FWUP_NOT_IN_UPDATE_MODE;
+        completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
     }
 
     int status = encode_cancel_update_component_resp(instance_id, rsp, rsp_payload_length, completion_code);
@@ -1240,7 +1240,7 @@ int pldm_fwup_process_cancel_update_request(struct pldm_fwup_fd_state *state,
     non_functioning_component_bitmap.value = 0;
 
     if (!state->update_mode) {
-        completion_code == PLDM_FWUP_NOT_IN_UPDATE_MODE;
+        completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
     }
 
     int status = encode_cancel_update_resp(instance_id, rsp, rsp_payload_length, completion_code, non_functioning_component_indication,
@@ -2382,7 +2382,7 @@ int pldm_fwup_generate_cancel_update_component_request(struct pldm_fwup_ua_state
 
     size_t rq_payload_length = 0;
 
-    int status = encode_cancel_update_component_req(instance_id, rq_payload_length, rq);
+    int status = encode_cancel_update_component_req(instance_id, rq, rq_payload_length);
     if (status != 0) {
         return status;
     }
