@@ -2006,7 +2006,7 @@ int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *s
 
 
 /**
-* Process a RequestFirmwareData request and generate a response.
+* Process a TransferComplete request and generate a response.
 *
 * @param state - Variable context for a PLDM FWUP.
 * @param update_info - Update information retained by UA.
@@ -2048,7 +2048,7 @@ int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state
 }
 
 /**
-* Process a RequestFirmwareData request and generate a response.
+* Process a VerifyComplete request and generate a response.
 *
 * @param state - Variable context for a PLDM FWUP.
 * @param update_info - Update information retained by UA.
@@ -2089,7 +2089,7 @@ int pldm_fwup_process_verify_complete_request(struct pldm_fwup_ua_state *state,
 }
 
 /**
-* Process a RequestFirmwareData request and generate a response.
+* Process a ApplyComplete request and generate a response.
 *
 * @param state - Variable context for a PLDM FWUP.
 * @param update_info - Update information retained by UA.
