@@ -1,4 +1,4 @@
-#include "pldm_fwup.h"
+#include "pldm_fwup_handler.h"
 #include "cmd_interface/cmd_interface.h"
 #include "cmd_interface_pldm.h"
 #include "pldm_fwup_protocol_commands.h"
@@ -24,8 +24,22 @@ int pldm_fwup_generate_request(struct cmd_interface_pldm *intf, uint8_t command,
     switch(command) {
 // Firmware Device
         case PLDM_GET_PACKAGE_DATA:
-            status = pldm_fwup_generate_get_package_data_request(&intf->fwup_mgr->fd_mgr.state, &intf->fwup_mgr->fd_mgr.get_cmd_state,
-                buffer, buf_len);
+            status = pldm_fwup_generate_get_package_data_request(&intf->fwup_mgr->fd_mgr.state, &intf->fwup_mgr->fd_mgr.get_cmd_state, buffer, buf_len);
+            break;
+        case PLDM_REQUEST_FIRMWARE_DATA:
+            status = pldm_fwup_generate_request_firmware_data_request(&intf->fwup_mgr->fd_mgr.state, &intf->fwup_mgr->fd_mgr.update_info, buffer, buf_len);
+            break;
+        case PLDM_TRANSFER_COMPLETE:
+            status = pldm_fwup_generate_transfer_complete_request(&intf->fwup_mgr->fd_mgr.state, buffer, buf_len);
+            break;
+        case PLDM_VERIFY_COMPLETE:
+            status = pldm_fwup_generate_verify_complete_request(&intf->fwup_mgr->fd_mgr.state, buffer, buf_len);
+            break;
+        case PLDM_APPLY_COMPLETE:
+            status = pldm_fwup_generate_apply_complete_request(&intf->fwup_mgr->fd_mgr.state, buffer, buf_len);
+            break;
+        case PLDM_GET_META_DATA:
+            status = pldm_fwup_generate_get_meta_data_request(&intf->fwup_mgr->fd_mgr.state, &intf->fwup_mgr->fd_mgr.get_cmd_state, buffer, buf_len);
             break;
 // Update Agent
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
@@ -48,12 +62,26 @@ int pldm_fwup_generate_request(struct cmd_interface_pldm *intf, uint8_t command,
             status = pldm_fwup_generate_update_component_request(&intf->fwup_mgr->ua_mgr.state, intf->fwup_mgr->ua_mgr.current_comp_num, 
                 intf->fwup_mgr->ua_mgr.comp_img_entries, &intf->fwup_mgr->ua_mgr.rec_fw_parameters, buffer, buf_len);
             break;
+        case PLDM_ACTIVATE_FIRMWARE:
+            status = pldm_fwup_generate_activate_firmware_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
+            break;
+        case PLDM_GET_STATUS:
+            status = pldm_fwup_generate_get_status_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
+            break;
+        case PLDM_CANCEL_UPDATE_COMPONENT:
+            status = pldm_fwup_generate_cancel_update_component_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
+            break;
+        case PLDM_CANCEL_UPDATE:
+            status = pldm_fwup_generate_cancel_update_request(&intf->fwup_mgr->ua_mgr.state, buffer, buf_len);
+            break;
         default:
-        status =  CMD_HANDLER_PLDM_UNKNOWN_REQUEST;    
+            status =  CMD_HANDLER_PLDM_UNKNOWN_REQUEST;    
     }
 
     return status;
 }
+
+
 
 /*
 int pldm_fwup_run_update(struct mctp_interface *mctp, struct cmd_channel *channel, uint8_t inventory_cmds, uint8_t device_eid, int ms_timeout)

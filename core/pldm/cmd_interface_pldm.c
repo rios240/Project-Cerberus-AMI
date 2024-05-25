@@ -92,9 +92,39 @@ static int cmd_interface_pldm_process_request (struct cmd_interface *intf,
             status = pldm_fwup_process_update_component_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info,
                 interface->fwup_mgr->fd_mgr.update_info.comp_entries, request);
             break;
+        case PLDM_ACTIVATE_FIRMWARE:
+            status = pldm_fwup_process_activate_firmware_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info, request);
+            break;
+        case PLDM_GET_STATUS:
+            status = pldm_fwup_process_get_status_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info, request);
+            break;
+        case PLDM_CANCEL_UPDATE_COMPONENT:
+            status = pldm_fwup_process_cancel_update_component_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info, request);
+            break;
+        case PLDM_CANCEL_UPDATE:
+            status = pldm_fwup_process_cancel_update_request(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info,
+                interface->fwup_mgr->fd_mgr.flash_mgr, request);
+            break;
 //Update Agent
         case PLDM_GET_PACKAGE_DATA:
             status = pldm_fwup_process_get_package_data_request(&interface->fwup_mgr->ua_mgr.state, interface->fwup_mgr->ua_mgr.flash_mgr,
+                &interface->fwup_mgr->ua_mgr.get_cmd_state, request);
+            break;
+        case PLDM_REQUEST_FIRMWARE_DATA:
+            status = pldm_fwup_process_request_firmware_data_request(&interface->fwup_mgr->ua_mgr.state, interface->fwup_mgr->ua_mgr.current_comp_num,
+                interface->fwup_mgr->ua_mgr.comp_img_entries, interface->fwup_mgr->ua_mgr.flash_mgr, request);
+            break;
+        case PLDM_TRANSFER_COMPLETE:
+            status = pldm_fwup_process_transfer_complete_request(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, request);
+            break;
+        case PLDM_VERIFY_COMPLETE:
+            status = pldm_fwup_process_verify_complete_request(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, request);
+            break;
+        case PLDM_APPLY_COMPLETE:
+            status = pldm_fwup_process_apply_complete_request(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, request);
+            break;
+        case PLDM_GET_META_DATA:
+            status = pldm_fwup_process_get_meta_data_request(&interface->fwup_mgr->ua_mgr.state, interface->fwup_mgr->ua_mgr.flash_mgr,
                 &interface->fwup_mgr->ua_mgr.get_cmd_state, request);
             break;
         default:
@@ -134,6 +164,23 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
             status = pldm_fwup_process_get_package_data_response(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
                 &interface->fwup_mgr->fd_mgr.get_cmd_state, response);
             break;
+        case PLDM_REQUEST_FIRMWARE_DATA:
+            status = pldm_fwup_process_request_firmware_data_response(&interface->fwup_mgr->fd_mgr.state, &interface->fwup_mgr->fd_mgr.update_info,
+                interface->fwup_mgr->fd_mgr.flash_mgr, response);
+            break;
+        case PLDM_TRANSFER_COMPLETE:
+            status = pldm_fwup_process_transfer_complete_response(&interface->fwup_mgr->fd_mgr.state, response);
+            break;
+        case PLDM_VERIFY_COMPLETE:
+            status = pldm_fwup_process_verify_complete_response(&interface->fwup_mgr->fd_mgr.state, response);
+            break;
+        case PLDM_APPLY_COMPLETE:
+            status = pldm_fwup_process_apply_complete_response(&interface->fwup_mgr->fd_mgr.state, response);
+            break;
+        case PLDM_GET_META_DATA:
+            status = pldm_fwup_process_get_meta_data_response(&interface->fwup_mgr->fd_mgr.state, interface->fwup_mgr->fd_mgr.flash_mgr,
+                &interface->fwup_mgr->fd_mgr.get_cmd_state, response);
+            break;
 // Update Agent
         case PLDM_QUERY_DEVICE_IDENTIFIERS:
             status = pldm_fwup_process_query_device_identifiers_response(&interface->fwup_mgr->ua_mgr.state, interface->device_mgr, response);
@@ -153,6 +200,18 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
             break;
         case PLDM_UPDATE_COMPONENT:
             status = pldm_fwup_process_update_component_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
+            break;
+        case PLDM_ACTIVATE_FIRMWARE:    
+            status = pldm_fwup_process_activate_firmware_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
+            break;
+        case PLDM_GET_STATUS:
+            status = pldm_fwup_process_get_status_response(&interface->fwup_mgr->ua_mgr.state, response);
+            break;
+        case PLDM_CANCEL_UPDATE_COMPONENT:
+            status = pldm_fwup_process_cancel_update_component_response(&interface->fwup_mgr->ua_mgr.state, response);
+            break;
+        case PLDM_CANCEL_UPDATE:
+            status = pldm_fwup_process_cancel_update_response(&interface->fwup_mgr->ua_mgr.state, response);
             break;
         default:
             status = CMD_HANDLER_PLDM_UNKNOWN_RESPONSE;

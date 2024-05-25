@@ -4,7 +4,7 @@
 #include <string.h>
 #include "pldm/cmd_interface_pldm.h"
 #include "pldm/cmd_channel/cmd_channel_tcp.h"
-#include "pldm/pldm_fwup.h"
+#include "pldm/pldm_fwup_handler.h"
 #include "mctp/mctp_interface.h"
 #include "cmd_interface/cmd_channel.h"
 #include "cmd_interface/device_manager.h"
