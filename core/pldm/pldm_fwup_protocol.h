@@ -111,11 +111,6 @@ struct pldm_fwup_protocol_firmware_parameters {
 };
 
 
-
-void reset_multipart_transfer(struct pldm_fwup_protocol_multipart_transfer *multipart_transfer);
-void reset_firmware_request(struct pldm_fwup_protocol_request_firmware *request_fw);
-
-
 #define	CMD_HANDLER_PLDM_ERROR(code)										ROT_ERROR (ROT_MODULE_CMD_HANDLER_PLDM, code)
 
 /**
