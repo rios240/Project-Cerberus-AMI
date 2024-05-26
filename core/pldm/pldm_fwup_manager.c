@@ -16,7 +16,7 @@
  * 
  * @return 0 on success otherwise an error code.
 */
-int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr, 
+int pldm_fwup_manager_init(struct pldm_fwup_manager *fwup_mgr, 
     struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters,  struct pldm_fwup_fup_component_image_entry *fup_comp_img_list,
     struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr, 
     struct pldm_fwup_protocol_version_string *fup_comp_img_set_ver, uint16_t num_components)
@@ -49,9 +49,23 @@ int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr,
  * 
  * @param fwup_mgr The PLDM FWUP manager instance to deinitialize.
 */
-void deinit_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr)
+void pldm_fwup_manager_deinit(struct pldm_fwup_manager *fwup_mgr)
 {
     if (fwup_mgr != NULL) {
         memset(fwup_mgr, 0, sizeof (struct pldm_fwup_manager));
     }
+}
+
+
+/**
+ * Reset a Get command multipart transfer state.
+ * 
+ * @param get_cmd_state The state of the multipart transfer.
+*/
+void reset_get_cmd_state(struct pldm_fwup_protocol_multipart_transfer *get_cmd_state)
+{
+    get_cmd_state->data_transfer_handle = 0;
+    get_cmd_state->next_data_transfer_handle = 0;
+    get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
+    get_cmd_state->transfer_flag = PLDM_START;
 }

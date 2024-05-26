@@ -116,14 +116,16 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
 int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager *ua_mgr,
     uint8_t *buffer, size_t buf_len);
 int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *state, 
-    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *response);
+    struct pldm_fwup_fup_component_image_entry *comp_img_entries, uint16_t current_comp_num, 
+    struct cmd_interface_msg *response);
 
 int pldm_fwup_generate_update_component_request(struct pldm_fwup_ua_state *state,
     uint16_t current_comp_num, struct pldm_fwup_fup_component_image_entry *comp_img_entries,
     struct pldm_fwup_protocol_firmware_parameters *rec_fw_parameters, uint8_t *buffer, size_t buf_len);
 
 int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state,
-    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *response);
+    struct pldm_fwup_fup_component_image_entry *comp_img_entries, uint16_t current_comp_num, 
+    struct cmd_interface_msg *response);
 
 int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *state,
     uint16_t current_comp_num, struct pldm_fwup_fup_component_image_entry *comp_img_entries,

@@ -30,16 +30,10 @@ struct pldm_fwup_flash_manager {
 struct pldm_fwup_ua_update_info {
     uint16_t fd_meta_data_len;                                                      /**< Length of the FD meta data the UA needs to retain. */
     bool8_t fd_will_send_pkg_data_cmd;                                              /**< Indicates that the FD will send a GetPackageData command. */
-    enum pldm_component_responses comp_resp;                                        /**< Indicates compatability with component provided during PassComponentTable. */
-	enum pldm_component_response_codes comp_resp_code;                              /**< Component response code. */
-    enum pldm_component_compatibility_responses comp_compatibility_resp;            /**< Indicates the compatability with component provided during UpdateComponent. */
-    enum pldm_component_compatibility_response_codes comp_compatibility_resp_code;  /**< Component compatability response code. */
     enum pldm_firmware_update_transfer_result_values transfer_result;               /**< The result of the firmware transfer indicated by the FD. */
     enum pldm_firmware_update_verify_result_values verify_result;                   /**< The result of the verification the FD performs on the firmware image. */
     enum pldm_firmware_update_apply_result_values apply_result;                     /**< The result the FD returns during the apply state. */
     uint16_t estimated_time_activation;                                             /**< The time the FD needs to activate all firmware. */
-    bitfield32_t update_option_flags_enabled;                                       /**< Indicates the update options that were enabled by the FD. */
-    uint16_t time_before_req_fw_data;                                               /**< Time FD needs to prepare before sending RequestFirmwareData. */
 };
 
 /**
@@ -122,11 +116,13 @@ struct pldm_fwup_manager {
 };
 
 
-int init_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr, 
+int pldm_fwup_manager_init(struct pldm_fwup_manager *fwup_mgr, 
     struct pldm_fwup_protocol_firmware_parameters *fd_fw_parameters,  struct pldm_fwup_fup_component_image_entry *fup_comp_img_list,
     struct pldm_fwup_flash_manager *fd_flash_mgr, struct pldm_fwup_flash_manager *ua_flash_mgr, 
     struct pldm_fwup_protocol_version_string *fup_comp_img_set_ver, uint16_t num_components);
-void deinit_pldm_fwup_manager(struct pldm_fwup_manager *fwup_mgr);
+void pldm_fwup_manager_deinit(struct pldm_fwup_manager *fwup_mgr);
+
+void reset_get_cmd_state(struct pldm_fwup_protocol_multipart_transfer *get_cmd_state);
 
 
 

@@ -76,6 +76,9 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_fd_state
     size_t rsp_payload_length = sizeof (struct pldm_query_device_identifiers_resp) + device_identifiers_len;
     int status = encode_query_device_identifiers_resp(instance_id, rsp_payload_length, rsp,
         completion_code, device_identifiers_len, descriptor_count, &descriptors);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
 
     free((uint8_t *) descriptors.ptr);
 
@@ -156,6 +159,9 @@ int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_fd_state
 
     int status = encode_get_firmware_parameters_resp(instance_id, rsp, rsp_payload_length,
         &rsp_data, &active_comp_img_set_ver, &pending_comp_img_set_ver, &comp_parameter_table);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
 
     state->previous_cmd = PLDM_GET_FIRMWARE_PARAMETERS;
     switch_state(state, PLDM_FD_STATE_IDLE);
@@ -202,8 +208,8 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_fd_state *state,
     int status = decode_request_update_req(rq, rq_payload_length, &max_transfer_size,
     &num_of_comp, &max_outstanding_transfer_req, &package_data_len, &comp_img_set_ver_str_type,
     &comp_img_set_ver_str_len, &comp_img_set_ver);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     update_info->num_components = num_of_comp;
@@ -244,8 +250,10 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_fd_state *state,
 
     status = encode_request_update_resp(instance_id, rsp_payload_length, rsp, completion_code, 
         fd_meta_data_len, fd_will_send_pkg_data);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
    
-        
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_REQUEST_UPDATE;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -278,8 +286,8 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_fd_state *state
     size_t rq_payload_length = sizeof (struct pldm_multipart_transfer_req);
 
     int status = encode_get_package_data_req(instance_id, rq_payload_length, rq, data_transfer_handle, transfer_operation_flag);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     printf("REQUEST | instance: %d, data transfer handle: %d, transfer op flag: %d.\n", instance_id, data_transfer_handle, transfer_operation_flag);
@@ -319,9 +327,10 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_fd_state *state
 
     int status = decode_get_package_data_resp(rsp, &completion_code, &next_data_transfer_handle, 
         &transfer_flag, &portion_of_package_data, rsp_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
     state->previous_completion_code = completion_code;
     switch_state(state, PLDM_FD_STATE_LEARN_COMPONENTS);
     if (completion_code != PLDM_SUCCESS) {
@@ -341,9 +350,8 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_fd_state *state
         get_cmd_state->transfer_op_flag = PLDM_GET_NEXTPART;
         get_cmd_state->data_transfer_handle = next_data_transfer_handle;
     } 
-    else if (transfer_flag == PLDM_END || transfer_flag == PLDM_START_AND_END) {
+    else {
         get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
-        get_cmd_state->data_transfer_handle = 0;
     }
 
     printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
@@ -375,8 +383,8 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
     uint8_t transfer_operation_flag;
 
     int status = decode_get_device_meta_data_req(rq, rq_payload_length, &data_transfer_handle, &transfer_operation_flag);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     static uint8_t instance_id = 1;
@@ -440,6 +448,9 @@ exit:;
 
     status = encode_get_device_meta_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_device_meta_data);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
     
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_GET_DEVICE_METADATA;
@@ -483,8 +494,8 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
 
     int status = decode_pass_component_table_req(rq, rq_payload_length, &transfer_flag, &comp_classification,
         &comp_identifier, &comp_classification_index, &comp_comparison_stamp, &comp_ver_str_type, &comp_ver_str_len, &comp_ver_str);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     uint8_t completion_code = PLDM_SUCCESS;
@@ -558,6 +569,9 @@ exit:;
     size_t rsp_payload_length = sizeof (struct pldm_pass_component_table_resp);
 
     status = encode_pass_component_table_resp(instance_id, rsp, rsp_payload_length, completion_code, comp_resp, comp_resp_code);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
 
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_PASS_COMPONENT_TABLE;
@@ -605,8 +619,8 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
 
     int status = decode_update_component_req(rq, rq_payload_length, &comp_classification, &comp_identifier, &comp_classification_index,
         &comp_comparison_stamp, &comp_image_size, &update_option_flags, &comp_ver_str_type, &comp_ver_str_len, &comp_ver);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     uint8_t completion_code = PLDM_SUCCESS;
@@ -665,6 +679,10 @@ exit:;
 
     status = encode_update_component_resp(instance_id, rsp, rsp_payload_length, completion_code, comp_compatibility_resp,
         comp_compatibility_resp_code, update_option_flags_enabled, time_before_req_fw_data);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
+
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_UPDATE_COMPONENT;
     if (completion_code == PLDM_SUCCESS) {
@@ -702,8 +720,8 @@ int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *
 
     int status = encode_request_firmware_data_req(instance_id, rq, rq_payload_length,
         offset, length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     switch_state(state, PLDM_FD_STATE_DOWNLOAD);
@@ -735,8 +753,8 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
     uint8_t completion_code = 0;
     
     int status = decode_request_firmware_data_resp(rsp, rsp_payload_length, &completion_code);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -794,8 +812,8 @@ int pldm_fwup_generate_transfer_complete_request(struct pldm_fwup_fd_state *stat
     size_t rq_payload_length = sizeof (transfer_result);
 
     int status = encode_transfer_complete_req(instance_id, rq, rq_payload_length, transfer_result);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_TRANSFER_COMPLETE;
@@ -822,8 +840,8 @@ int pldm_fwup_process_transfer_complete_response(struct pldm_fwup_fd_state *stat
     uint8_t completion_code = 0;
     
     int status = decode_transfer_complete_resp(rsp, rsp_payload_length, &completion_code);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -859,8 +877,8 @@ int pldm_fwup_generate_verify_complete_request(struct pldm_fwup_fd_state *state,
     size_t rq_payload_length = sizeof (verify_result);
 
     int status = encode_verify_complete_req(instance_id, rq, rq_payload_length, verify_result);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_VERIFY_COMPLETE;
@@ -887,8 +905,8 @@ int pldm_fwup_process_verify_complete_response(struct pldm_fwup_fd_state *state,
     uint8_t completion_code = 0;
     
     int status = decode_verify_complete_resp(rsp, rsp_payload_length, &completion_code);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -927,8 +945,8 @@ int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, 
     size_t rq_payload_length = sizeof (struct pldm_apply_complete_req);
 
     int status = encode_apply_complete_req(instance_id, rq, rq_payload_length, apply_result, comp_activation_methods_modification);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_APPLY_COMPLETE;
@@ -955,8 +973,8 @@ int pldm_fwup_process_apply_complete_response(struct pldm_fwup_fd_state *state, 
     uint8_t completion_code = 0;
     
     int status = decode_apply_complete_resp(rsp, rsp_payload_length, &completion_code);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -992,8 +1010,8 @@ int pldm_fwup_generate_get_meta_data_request(struct pldm_fwup_fd_state *state,
     size_t rq_payload_length = sizeof (struct pldm_multipart_transfer_req);
 
     int status = encode_get_meta_data_req(instance_id, rq_payload_length, rq, data_transfer_handle, transfer_operation_flag);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     switch_state(state, state->current_state);
@@ -1029,9 +1047,10 @@ int pldm_fwup_process_get_meta_data_response(struct pldm_fwup_fd_state *state,
 
     int status = decode_get_meta_data_resp(rsp, &completion_code, &next_data_transfer_handle, 
         &transfer_flag, &portion_of_meta_data, rsp_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
     state->previous_completion_code = completion_code;
     switch_state(state, state->current_state);
     if (completion_code != PLDM_SUCCESS) {
@@ -1081,8 +1100,8 @@ int pldm_fwup_process_activate_firmware_request(struct pldm_fwup_fd_state *state
     bool8_t self_contained_activation_req = 0;
 
     int status = decode_activate_firmware_req(rq, rq_payload_length, &self_contained_activation_req);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     update_info->self_contained_activation_req = self_contained_activation_req;
@@ -1105,6 +1124,9 @@ int pldm_fwup_process_activate_firmware_request(struct pldm_fwup_fd_state *state
     size_t rsp_payload_length = sizeof (struct pldm_activate_firmware_resp );
 
     status = encode_activate_firmware_resp(instance_id, rsp, rsp_payload_length, completion_code, estimated_time_activation);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
 
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_ACTIVATE_FIRMWARE;
@@ -1161,6 +1183,9 @@ int pldm_fwup_process_get_status_request(struct pldm_fwup_fd_state *state,
 
     int status = encode_get_status_resp(instance_id, rsp, rsp_payload_length, completion_code, current_state, previous_state, aux_state,
         aux_state_status, progress_percent, reason_code, update_option_flags_enabled);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
 
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_GET_STATUS;
@@ -1201,6 +1226,10 @@ int pldm_fwup_process_cancel_update_component_request(struct pldm_fwup_fd_state 
     }
 
     int status = encode_cancel_update_component_resp(instance_id, rsp, rsp_payload_length, completion_code);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
+
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_CANCEL_UPDATE_COMPONENT;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -1245,6 +1274,9 @@ int pldm_fwup_process_cancel_update_request(struct pldm_fwup_fd_state *state,
 
     int status = encode_cancel_update_resp(instance_id, rsp, rsp_payload_length, completion_code, non_functioning_component_indication,
         non_functioning_component_bitmap);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
 
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_CANCEL_UPDATE;
@@ -1277,8 +1309,8 @@ int pldm_fwup_generate_query_device_identifiers_request(struct pldm_fwup_ua_stat
     size_t rq_payload_length = 0;
 
     int status = encode_query_device_identifiers_req(instance_id, rq_payload_length, rq);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_QUERY_DEVICE_IDENTIFIERS;
@@ -1314,8 +1346,8 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_ua_stat
 
     int status = decode_query_device_identifiers_resp(rsp, rsp_payload_length, 
         &completion_code, &device_identifiers_len, &descriptor_count, &descriptor_data);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -1365,8 +1397,8 @@ int pldm_fwup_generate_get_firmware_parameters_request(struct pldm_fwup_ua_state
     size_t rq_payload_length = 0;
 
     int status = encode_get_firmware_parameters_req(instance_id, rq_payload_length, rq);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_GET_FIRMWARE_PARAMETERS;
@@ -1401,8 +1433,8 @@ int pldm_fwup_process_get_firmware_parameters_response(struct pldm_fwup_ua_state
 
     int status = decode_get_firmware_parameters_resp(rsp, rsp_payload_length, &rsp_data, &active_comp_img_set_ver,
         &pending_comp_img_set_ver, &comp_parameter_table);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = rsp_data.completion_code;
@@ -1487,8 +1519,8 @@ int pldm_fwup_generate_request_update_request(struct pldm_fwup_ua_manager *ua_mg
 
     int status = encode_request_update_req(instance_id, max_transfer_size, num_of_comp, max_outstanding_transfer_req,
         pkg_data_len, comp_img_set_ver_str_type, comp_img_set_ver_str_len, &comp_img_set_ver, rq, rq_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     ua_mgr->state.previous_cmd = PLDM_REQUEST_UPDATE;
@@ -1524,9 +1556,10 @@ int pldm_fwup_process_request_update_response(struct pldm_fwup_ua_state *state,
 
     int status = decode_request_update_resp(rsp, rsp_payload_length, &completion_code,
     &fd_meta_data_len, &fd_will_send_pkg_data_cmd);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
     state->previous_completion_code = completion_code;
     if (completion_code!= PLDM_SUCCESS) {
         return 0;
@@ -1561,8 +1594,8 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_ua_state *state,
     uint8_t transfer_operation_flag;
 
     int status = decode_get_package_data_req(rq, rq_payload_length, &data_transfer_handle, &transfer_operation_flag);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     static uint8_t instance_id = 1;
@@ -1629,6 +1662,9 @@ exit:;
 
     status = encode_get_package_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_package_data);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
     
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_GET_PACKAGE_DATA;
@@ -1663,8 +1699,8 @@ int pldm_fwup_generate_get_device_meta_data_request(struct pldm_fwup_ua_state *s
     size_t rq_payload_length = sizeof (struct pldm_multipart_transfer_req);
 
     int status = encode_get_device_meta_data_req(instance_id, rq_payload_length, rq, data_transfer_handle, transfer_operation_flag);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_GET_PACKAGE_DATA;
@@ -1701,8 +1737,8 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
 
     int status = decode_get_device_meta_data_resp(rsp, &completion_code, &next_data_transfer_handle, 
         &transfer_flag, &portion_of_device_meta_data, rsp_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -1722,6 +1758,8 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
     if (transfer_flag == PLDM_START || transfer_flag == PLDM_MIDDLE) {
         get_cmd_state->transfer_op_flag = PLDM_GET_NEXTPART;
         get_cmd_state->data_transfer_handle = next_data_transfer_handle;
+    } else {
+        get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
     }
 
 
@@ -1745,7 +1783,7 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
     static uint8_t instance_id = 1;
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
-    static uint8_t comp_num = 0;
+    uint8_t comp_num = ua_mgr->current_comp_num;
     uint8_t transfer_flag;
     if (comp_num == 0) {
         if (comp_num == ua_mgr->num_components) {
@@ -1783,8 +1821,8 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
 
     int status = encode_pass_component_table_req(instance_id, transfer_flag, comp_classification, comp_identifier, 
         comp_classification_index, comp_comparison_stamp, comp_ver_str_type, comp_ver_str_len, &comp_ver, rq, rq_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     ua_mgr->state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
@@ -1800,13 +1838,14 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
 * Process a PassComponentTable response.
 *
 * @param state - Variable context for a PLDM FWUP.
-* @param update_info - Update information retained by UA.
+* @param comp_img_entries - Component image information entries from the FUP.
+* @param current_comp_num - Current component to be updated. 
 * @param response The response data to process.
 *
 * @return 0 if the response was successfully processed or an error code.
 */
 int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *state, 
-    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *response)
+    struct pldm_fwup_fup_component_image_entry *comp_img_entries, uint16_t current_comp_num, struct cmd_interface_msg *response)
 {
     if (state->previous_cmd != PLDM_PASS_COMPONENT_TABLE) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
@@ -1818,8 +1857,8 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
 	uint8_t comp_resp = 0;
 	uint8_t comp_resp_code = 0;
     int status = decode_pass_component_table_resp(rsp, rsp_payload_length, &completion_code, &comp_resp, &comp_resp_code);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -1827,8 +1866,8 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
         return 0;
     }
 
-    update_info->comp_resp = comp_resp;
-    update_info->comp_resp_code = comp_resp_code;
+    comp_img_entries[current_comp_num].comp_resp = comp_resp;
+    comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
 
     response->length = 0;
     return status;
@@ -1846,6 +1885,8 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
 * @param buf_len The buffer length.
 *
 * @return 0 if the request was successfully generated or an error code.
+*
+* @note For AMI, any additional reserved update options should be handled by the AMI team. 
 */
 int pldm_fwup_generate_update_component_request(struct pldm_fwup_ua_state *state,
     uint16_t current_comp_num, struct pldm_fwup_fup_component_image_entry *comp_img_entries,
@@ -1881,8 +1922,8 @@ int pldm_fwup_generate_update_component_request(struct pldm_fwup_ua_state *state
 
     int status = encode_update_component_req(instance_id, comp_classification, comp_identifier, comp_classification_index,
         comp_comparison_stamp, comp_img_size, update_option_flags, comp_ver_str_type, comp_ver_str_len, &comp_ver, rq, rq_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
     
     state->previous_cmd = PLDM_UPDATE_COMPONENT;
@@ -1890,17 +1931,20 @@ int pldm_fwup_generate_update_component_request(struct pldm_fwup_ua_state *state
     return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
 }
 
+
 /**
 * Process a UpdateComponent response.
 *
 * @param state - Variable context for a PLDM FWUP.
-* @param update_info - Update information retained by UA.
+* @param comp_img_entries - Component image information entries from the FUP.
+* @param current_comp_num - Current component to be updated. 
 * @param response The response data to process.
 *
 * @return 0 if the response was successfully processed or an error code.
 */
 int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state,
-    struct pldm_fwup_ua_update_info *update_info, struct cmd_interface_msg *response)
+    struct pldm_fwup_fup_component_image_entry *comp_img_entries, uint16_t current_comp_num, 
+    struct cmd_interface_msg *response)
 {
     if (state->previous_cmd != PLDM_UPDATE_COMPONENT) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
@@ -1918,8 +1962,8 @@ int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state
 
     int status = decode_update_component_resp(rsp, rsp_payload_length, &completion_code, &comp_compatibility_resp, 
         &comp_compatibility_resp_code, &update_option_flags_enabled, &time_before_req_fw_data);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -1927,10 +1971,10 @@ int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state
         return 0;
     }
 
-    update_info->comp_compatibility_resp = comp_compatibility_resp;
-    update_info->comp_compatibility_resp_code = comp_compatibility_resp_code;
-    update_info->update_option_flags_enabled = update_option_flags_enabled;
-    update_info->time_before_req_fw_data = time_before_req_fw_data;
+    comp_img_entries[current_comp_num].comp_compatibility_resp = comp_compatibility_resp;
+    comp_img_entries[current_comp_num].comp_compatibility_resp_code = comp_compatibility_resp_code;
+    comp_img_entries[current_comp_num].update_option_flags_enabled = update_option_flags_enabled;
+    comp_img_entries[current_comp_num].time_before_req_fw_data = time_before_req_fw_data;
 
     response->length = 0;
     return status;
@@ -1961,8 +2005,8 @@ int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *s
     uint32_t length = 0;
 
     int status = decode_request_firmware_data_req(rq, rq_payload_length, &offset, &length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     static uint8_t instance_id = 1;
@@ -1997,6 +2041,10 @@ int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *s
     }
 
     status = encode_request_firmware_data_resp(instance_id, completion_code, rsp, rsp_payload_length);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
+
     state->previous_cmd = PLDM_REQUEST_FIRMWARE_DATA;
     state->previous_completion_code = completion_code;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -2023,8 +2071,8 @@ int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state
     uint8_t transfer_result = 0;
     
     int status = decode_transfer_complete_req(rq, rq_payload_length, &transfer_result);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     update_info->transfer_result = transfer_result;
@@ -2039,6 +2087,10 @@ int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state
     size_t rsp_payload_length = sizeof (completion_code);
 
     status = encode_transfer_complete_resp(instance_id, completion_code, rsp, rsp_payload_length);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
+
     state->previous_cmd = PLDM_TRANSFER_COMPLETE;
     state->previous_completion_code = completion_code;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -2065,8 +2117,8 @@ int pldm_fwup_process_verify_complete_request(struct pldm_fwup_ua_state *state,
     uint8_t verify_result = 0;
     
     int status = decode_verify_complete_req(rq, rq_payload_length, &verify_result);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     update_info->verify_result = verify_result;
@@ -2081,6 +2133,10 @@ int pldm_fwup_process_verify_complete_request(struct pldm_fwup_ua_state *state,
     size_t rsp_payload_length = sizeof (completion_code);
 
     status = encode_verify_complete_resp(instance_id, completion_code, rsp, rsp_payload_length);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
+
     state->previous_cmd = PLDM_VERIFY_COMPLETE;
     state->previous_completion_code = completion_code;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -2107,8 +2163,8 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
     bitfield16_t comp_activation_methods_modification;
     
     int status = decode_apply_complete_req(rq, rq_payload_length, &apply_result, &comp_activation_methods_modification);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     update_info->apply_result = apply_result;
@@ -2123,6 +2179,10 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
     size_t rsp_payload_length = sizeof (completion_code);
 
     status = encode_verify_complete_resp(instance_id, completion_code, rsp, rsp_payload_length);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
+
     state->previous_cmd = PLDM_APPLY_COMPLETE;
     state->previous_completion_code = completion_code;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -2151,8 +2211,8 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
     uint8_t transfer_operation_flag;
 
     int status = decode_get_meta_data_req(rq, rq_payload_length, &data_transfer_handle, &transfer_operation_flag);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     static uint8_t instance_id = 1;
@@ -2212,6 +2272,9 @@ exit:;
 
     status = encode_get_meta_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_meta_data);
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+    }
     
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_GET_META_DATA;
@@ -2244,8 +2307,8 @@ int pldm_fwup_generate_activate_firmware_request(struct pldm_fwup_ua_state *stat
     size_t rq_payload_length = sizeof (struct pldm_activate_firmware_req);
 
     int status = encode_activate_firmware_req(instance_id, self_contained_activation_req, rq, rq_payload_length);
-     if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
     
     state->previous_cmd = PLDM_ACTIVATE_FIRMWARE;
@@ -2277,8 +2340,8 @@ int pldm_fwup_process_activate_firmware_response(struct pldm_fwup_ua_state *stat
     uint16_t estimated_time_activation = 0;
     
     int status = decode_activate_firmware_resp(rsp, rsp_payload_length, &completion_code, &estimated_time_activation);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     update_info->estimated_time_activation = estimated_time_activation;
@@ -2310,8 +2373,8 @@ int pldm_fwup_generate_get_status_request(struct pldm_fwup_ua_state *state, uint
     size_t rq_payload_length = 0;
 
     int status = encode_get_status_req(instance_id, rq, rq_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_GET_STATUS;
@@ -2349,8 +2412,8 @@ int pldm_fwup_process_get_status_response(struct pldm_fwup_ua_state *state, stru
 
     int status = decode_get_status_resp(rsp, rsp_payload_length, &completion_code, &current_state, &previous_state,
         &aux_state, &aux_state_status, &progress_percent, &reason_code, &update_option_flags_enabled);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -2383,8 +2446,8 @@ int pldm_fwup_generate_cancel_update_component_request(struct pldm_fwup_ua_state
     size_t rq_payload_length = 0;
 
     int status = encode_cancel_update_component_req(instance_id, rq, rq_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_CANCEL_UPDATE_COMPONENT;
@@ -2412,8 +2475,8 @@ int pldm_fwup_process_cancel_update_component_response(struct pldm_fwup_ua_state
     uint8_t completion_code = 0;
 
     int status = decode_cancel_update_component_resp(rsp, rsp_payload_length, &completion_code);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
@@ -2444,8 +2507,8 @@ int pldm_fwup_generate_cancel_update_request(struct pldm_fwup_ua_state *state, u
     size_t rq_payload_length = 0;
 
     int status = encode_cancel_update_req(instance_id, rq, rq_payload_length);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_cmd = PLDM_CANCEL_UPDATE;
@@ -2478,8 +2541,8 @@ int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, s
 
     int status = decode_cancel_update_resp(rsp, rsp_payload_length, &completion_code, &non_functioning_component_indication, 
         &non_functioning_component_bitmap);
-    if (status != 0) {
-        return status;
+    if (status != PLDM_SUCCESS) {
+        return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
     state->previous_completion_code = completion_code;
