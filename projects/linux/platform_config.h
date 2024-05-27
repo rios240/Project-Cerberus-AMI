@@ -117,7 +117,7 @@
  * PLDM protocol
  ********************/
 
-#define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                    1029
+#define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                    1024
 
 #define PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ         1
 
