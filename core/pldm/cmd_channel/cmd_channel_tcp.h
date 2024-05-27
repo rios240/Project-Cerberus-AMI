@@ -6,7 +6,7 @@
 #include "cmd_interface/cmd_channel.h"
 #include "cmd_interface/cmd_interface.h"
 
-#define CMD_CHANNEL_TCP_ERROR           -1
+#define CMD_CHANNEL_TCP_ERROR           -1000
 
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet);
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout);
