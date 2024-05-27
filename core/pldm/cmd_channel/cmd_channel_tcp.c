@@ -219,7 +219,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 
     int connfd = accept(sockfd, NULL, NULL);
     if (connfd < 0) {
-        perror("accept");
+        platform_printf("accept"NEWLINE);
         close(sockfd);
         return CMD_CHANNEL_SOCKET_ERROR;
     }
@@ -237,7 +237,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 
     close(connfd);
     close(sockfd);
-    return (size_t) received == packet->pkt_size ? 0 : CMD_CHANNEL_SOCKET_ERROR;
+    return (size_t) received == packet->pkt_size && received != -1 ? 0 : CMD_CHANNEL_SOCKET_ERROR;
 }
 
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
@@ -268,5 +268,5 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     close(sockfd);
 
-    return (size_t) sent == packet->pkt_size ? 0 : CMD_CHANNEL_SOCKET_ERROR;
+    return (size_t) sent == packet->pkt_size && sent != -1 ? 0 : CMD_CHANNEL_SOCKET_ERROR;
 }
