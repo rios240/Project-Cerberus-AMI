@@ -194,7 +194,15 @@ int setup_server_socket() {
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, CMD_CHANNEL_SOCKET_PATH, sizeof(addr.sun_path) - 1);
-    unlink(CMD_CHANNEL_SOCKET_PATH);
+
+    if (access(CMD_CHANNEL_SOCKET_PATH, F_OK) == 0) {
+        platform_printf("Removing existing socket file" NEWLINE);
+        if (unlink(CMD_CHANNEL_SOCKET_PATH) < 0) {
+            platform_printf("unlink" NEWLINE);
+            close(sockfd);
+            return CMD_CHANNEL_SOCKET_ERROR;
+        }
+    }
 
     if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
         platform_printf("bind"NEWLINE);
