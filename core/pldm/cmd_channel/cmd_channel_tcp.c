@@ -1,3 +1,4 @@
+/*
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,8 +11,21 @@
 #include <sys/time.h>
 #include "platform_api.h"
 #include "cmd_channel_tcp.h"
+*/
 
-#define PORT 5000
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <pthread.h>
+#include <sys/time.h>
+#include "cmd_channel_tcp.h"
+#include "platform_io.h"
+
 
 void print_packet_data(const uint8_t *data, size_t len) {
     printf("Packet bytes:");
@@ -21,6 +35,7 @@ void print_packet_data(const uint8_t *data, size_t len) {
     printf("\n");
 }
 
+/*
 int set_socket_non_blocking(int sockfd) {
     int flags = fcntl(sockfd, F_GETFL, 0);
     if (flags == -1) {
@@ -28,6 +43,7 @@ int set_socket_non_blocking(int sockfd) {
     }
     return fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 }
+*/
 
 /**
 * Receive a command packet from a communication channel.  This call will block until a packet
@@ -39,7 +55,7 @@ int set_socket_non_blocking(int sockfd) {
 * negative value will wait forever, and a value of 0 will return immediately.
 *
 * @return 0 if a packet was successfully received or an error code.
-*/
+*
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
     int server_fd, new_socket;
     struct sockaddr_in address;
@@ -103,7 +119,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     close(server_fd);
 
     return 0;
-}
+}*/
 
 
 
@@ -118,7 +134,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 * @param packet The packet to send.
 *
 * @return 0 if the the packet was successfully sent or an error code.
-*/
+*
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     struct sockaddr_in serv_addr;
     int sock = 0;
@@ -165,4 +181,92 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     close(sock);
 
     return 0;
+}*/
+
+int setup_server_socket() {
+    int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        platform_printf("socket"NEWLINE);
+        return CMD_CHANNEL_SOCKET_ERROR;
+    }
+
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, CMD_CHANNEL_SOCKET_PATH, sizeof(addr.sun_path) - 1);
+    unlink(CMD_CHANNEL_SOCKET_PATH);
+
+    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        platform_printf("bind"NEWLINE);
+        close(sockfd);
+        return CMD_CHANNEL_SOCKET_ERROR;
+    }
+
+    if (listen(sockfd, 5) < 0) {
+        platform_printf("listen"NEWLINE);
+        close(sockfd);
+        return CMD_CHANNEL_SOCKET_ERROR;
+    }
+
+    return sockfd;
+}
+
+int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
+    int sockfd = setup_server_socket();
+    if (sockfd < 0) {
+        return sockfd;
+    }
+
+    int connfd = accept(sockfd, NULL, NULL);
+    if (connfd < 0) {
+        perror("accept");
+        close(sockfd);
+        return CMD_CHANNEL_SOCKET_ERROR;
+    }
+
+    struct timeval timeout;
+    timeout.tv_sec = ms_timeout / 1000;
+    timeout.tv_usec = (ms_timeout % 1000) * 1000;
+
+    setsockopt(connfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+
+    ssize_t received = recv(connfd, packet, sizeof(*packet), 0);
+
+    packet->pkt_size = received;
+    packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
+
+    close(connfd);
+    close(sockfd);
+    return (size_t) received == packet->pkt_size ? 0 : CMD_CHANNEL_SOCKET_ERROR;
+}
+
+int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
+    int sockfd;
+    struct sockaddr_un addr;
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, CMD_CHANNEL_SOCKET_PATH, sizeof(addr.sun_path) - 1);
+
+    while (1) {
+        sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+        if (sockfd < 0) {
+            platform_printf("socket"NEWLINE);
+            return CMD_CHANNEL_SOCKET_ERROR;
+        }
+
+        if (connect(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+            close(sockfd);
+            sleep(1);
+            continue;
+        }
+
+        break;
+    }
+
+    ssize_t sent = send(sockfd, packet, sizeof(*packet), 0);
+
+    close(sockfd);
+
+    return (size_t) sent == packet->pkt_size ? 0 : CMD_CHANNEL_SOCKET_ERROR;
 }
