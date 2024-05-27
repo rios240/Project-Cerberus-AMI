@@ -186,7 +186,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 int setup_server_socket() {
     static pthread_mutex_t remove_socket_mutex = PTHREAD_MUTEX_INITIALIZER;
     static bool socket_removed = false;
-    
+
     int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd < 0) {
         platform_printf("socket"NEWLINE);
@@ -200,15 +200,19 @@ int setup_server_socket() {
 
     pthread_mutex_lock(&remove_socket_mutex);
 
-    if (!socket_removed && access(CMD_CHANNEL_SOCKET_PATH, F_OK) == 0) {
-        platform_printf("Removing existing socket file" NEWLINE);
-        if (unlink(CMD_CHANNEL_SOCKET_PATH) < 0) {
-            platform_printf("unlink" NEWLINE);
-            close(sockfd);
-            pthread_mutex_unlock(&remove_socket_mutex);
-            return CMD_CHANNEL_SOCKET_ERROR;
+    if (access(CMD_CHANNEL_SOCKET_PATH, F_OK) == 0) {
+        pthread_mutex_lock(&remove_socket_mutex);
+        if (!socket_removed) {
+            platform_printf("Removing existing socket file" NEWLINE);
+            if (unlink(CMD_CHANNEL_SOCKET_PATH) < 0) {
+                platform_printf("unlink" NEWLINE);
+                close(sockfd);
+                pthread_mutex_unlock(&remove_socket_mutex);
+                return CMD_CHANNEL_SOCKET_ERROR;
+            }
+            socket_removed = true;
         }
-        socket_removed = true;
+        pthread_mutex_unlock(&remove_socket_mutex);
     }
 
     pthread_mutex_unlock(&remove_socket_mutex);
