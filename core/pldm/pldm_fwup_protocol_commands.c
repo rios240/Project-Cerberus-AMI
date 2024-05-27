@@ -498,6 +498,8 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    update_info->comp_transfer_flag = transfer_flag;
+
     uint8_t completion_code = PLDM_SUCCESS;
 	uint8_t comp_resp = 0;
 	uint8_t comp_resp_code = 0;
@@ -598,7 +600,7 @@ exit:;
 * @return 0 if the request was successfully processed and a request was generated or an error code.
 *
 * @note For AMI, not every component response code is handled since some depend on the external state/status of Cerberus. Also the FD enabled update options flags is simply set to
-*       what the UA requested without any additional checks, configuration, etc. and the time before RequestFirmwareData field is set to a dummy value of no significance. 
+*       what the UA requested without any additional checks, configuration, etc. The time before RequestFirmwareData field can be changed via the platform config. 
 */
 int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
     struct pldm_fwup_fd_update_info *update_info, struct pldm_fwup_protocol_component_entry *comp_entries, 
@@ -628,7 +630,7 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
 	uint8_t comp_compatibility_resp_code = 0;
 	bitfield32_t update_option_flags_enabled;
     update_option_flags_enabled.value = update_option_flags.value;
-	uint16_t time_before_req_fw_data = 0xFFFF;  //dummy value
+	uint16_t time_before_req_fw_data = PLDM_FWUP_PROTOCOL_TIME_BERFORE_REQ_FW_DATA;
     static uint8_t instance_id = 1;
 
     if (!state->update_mode) {
@@ -770,12 +772,6 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
         return status;
     } else {
         status = 0;
-    }
-
-    if (update_info->current_comp_img_offset + update_info->max_transfer_size >= update_info->current_comp_img_size) {
-        update_info->current_comp_img_offset = 0;
-    } else {
-        update_info->current_comp_img_offset += update_info->max_transfer_size;
     }
 
     response->length = 0;
@@ -939,7 +935,7 @@ int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, 
     uint8_t apply_result = PLDM_FWUP_APPLY_SUCCESS;
     bitfield16_t comp_activation_methods_modification;
     comp_activation_methods_modification.value = 0;
-    switch_state(state, PLDM_FD_STATE_APPLY);
+    switch_state(state, PLDM_FD_STATE_READY_XFER);
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = sizeof (struct pldm_apply_complete_req);
@@ -1088,8 +1084,8 @@ int pldm_fwup_process_get_meta_data_response(struct pldm_fwup_fd_state *state,
 *
 * @return 0 if the request was successfully processed and a request was generated or an error code.
 *
-* @note For AMI, this is skeleton code. The handling of the self contained activation request, the assignment of the estimated time for activation, 
-        determining whether an incomplete update has occurred, and determining is self contained activation is supported is left to the AMI team.
+* @note For AMI, this is skeleton code. The handling of the self contained activation request, determining whether an incomplete update has occurred, 
+*       and determining is self contained activation is supported is left to the AMI team. The estimated time for activation can be set in platform config.
 */
 int pldm_fwup_process_activate_firmware_request(struct pldm_fwup_fd_state *state, 
     struct pldm_fwup_fd_update_info *update_info, struct cmd_interface_msg *request)
@@ -1107,7 +1103,7 @@ int pldm_fwup_process_activate_firmware_request(struct pldm_fwup_fd_state *state
     update_info->self_contained_activation_req = self_contained_activation_req;
 
     static uint8_t instance_id = 1;
-    uint16_t estimated_time_activation = 0; //dummy value
+    uint16_t estimated_time_activation = PLDM_FWUP_PROTOCOL_EST_TIME_SELF_CONTAINED_ACTIVATION;
     uint8_t completion_code = PLDM_SUCCESS;
 
     if (state->current_state != PLDM_FD_STATE_READY_XFER) {
@@ -2168,6 +2164,7 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
     }
 
     update_info->apply_result = apply_result;
+    update_info->comp_activation_methods_modification = comp_activation_methods_modification.value;
 
     static uint8_t instance_id = 1;
     uint8_t completion_code = PLDM_SUCCESS;

@@ -83,7 +83,7 @@ static void deinitialize_testing(struct pldm_fwup_testing *testing) {
     cmd_interface_pldm_deinit(&testing->cmd_pldm);
     flash_virtual_disk_release(&testing->flash);
     device_manager_release(&testing->device_mgr);
-    deinit_pldm_fwup_manager(&testing->fwup_mgr);
+    pldm_fwup_manager_deinit(&testing->fwup_mgr);
     memset (testing, 0, sizeof (struct pldm_fwup_testing));
 }
 
@@ -123,7 +123,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
     struct pldm_fwup_fup_component_image_entry dummy = {0};
     testing.fup_comp_img_list = &dummy;
 
-    status = init_pldm_fwup_manager(&testing.fwup_mgr, &testing.fd_fw_parameters, testing.fup_comp_img_list,
+    status = pldm_fwup_manager_init(&testing.fwup_mgr, &testing.fd_fw_parameters, testing.fup_comp_img_list,
         &testing.fd_flash_mgr, &testing.ua_flash_mgr, &testing.fup_comp_img_set_ver, testing.num_components);
     CuAssertIntEquals(test, 0, status);
 
@@ -148,7 +148,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
     testing.fwup_mgr.fd_mgr.update_info.package_data_len = 10240;
 
     do {
-        status = pldm_fwup_generate_request(&testing.cmd_pldm, PLDM_GET_PACKAGE_DATA, request_buf, sizeof (request_buf));
+        status = pldm_fwup_handler_generate_request(testing.mctp.cmd_pldm, PLDM_GET_PACKAGE_DATA, request_buf, sizeof (request_buf));
         status = mctp_interface_issue_request(&testing.mctp, &testing.channel, 0x6E, 0x60, request_buf, 
             (size_t) status, request_buf, sizeof (request_buf), 0);
         CuAssertIntEquals(test, 0, status);

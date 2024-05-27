@@ -7,16 +7,24 @@
 #include "platform_config.h"
 
 
-#if !PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE 
+#ifndef PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE 
 #define PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE                                            PLDM_FWUP_BASELINE_TRANSFER_SIZE
 #endif
 
-#if !PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ 
+#ifndef PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ 
 #define PLDM_FWUP_PROTOCOL_MAX_OUTSTANDING_TRANSFER_REQ                                 1                     
 #endif
 
 #define PLDM_MCTP_BINDING_MSG_OVERHEAD                                                  (sizeof (struct pldm_msg_hdr) + MCTP_BASE_PROTOCOL_MSG_TYPE_SIZE)
 #define PLDM_MCTP_BINDING_MSG_OFFSET                                                    MCTP_BASE_PROTOCOL_MSG_TYPE_SIZE
+
+#ifndef PLDM_FWUP_PROTOCOL_TIME_BERFORE_REQ_FW_DATA                                     
+#define PLDM_FWUP_PROTOCOL_TIME_BERFORE_REQ_FW_DATA                                     1
+#endif
+
+#ifndef PLDM_FWUP_PROTOCOL_EST_TIME_SELF_CONTAINED_ACTIVATION                           
+#define PLDM_FWUP_PROTOCOL_EST_TIME_SELF_CONTAINED_ACTIVATION                           1
+#endif
 
 #pragma pack(push, 1)
 /**

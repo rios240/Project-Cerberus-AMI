@@ -33,6 +33,7 @@ struct pldm_fwup_ua_update_info {
     enum pldm_firmware_update_transfer_result_values transfer_result;               /**< The result of the firmware transfer indicated by the FD. */
     enum pldm_firmware_update_verify_result_values verify_result;                   /**< The result of the verification the FD performs on the firmware image. */
     enum pldm_firmware_update_apply_result_values apply_result;                     /**< The result the FD returns during the apply state. */
+    uint16_t comp_activation_methods_modification;                                  /**< Component activation methods modified by the FD.*/
     uint16_t estimated_time_activation;                                             /**< The time the FD needs to activate all firmware. */
 };
 
@@ -86,6 +87,7 @@ struct pldm_fwup_fd_update_info {
     uint16_t current_comp_num;                                                      /**< The component in the component table that is currently being updated. */
     uint32_t current_comp_img_size;                                                 /**< The size of the component image being updated. */
     uint32_t current_comp_img_offset;                                               /**< The current offset of the requested component image. */
+    uint8_t comp_transfer_flag;                                                     /**< Flag for the transfer of components for the component table. */
 	bitfield32_t current_comp_update_option_flags;                                  /**< The update options requested by the UA for the component being updated. */
     bool8_t self_contained_activation_req;                                          /**< The activation method requested by the UA. */
     struct pldm_fwup_protocol_component_entry *comp_entries;                        /**< The component table received from the UA. */
