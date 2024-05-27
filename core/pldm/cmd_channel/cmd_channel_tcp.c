@@ -230,7 +230,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 
     setsockopt(connfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
 
-    ssize_t received = recv(connfd, packet, sizeof(*packet), 0);
+    ssize_t received = recv(connfd, packet->data, CMD_MAX_PACKET_SIZE, 0);
 
     packet->pkt_size = received;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
@@ -264,7 +264,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         break;
     }
 
-    ssize_t sent = send(sockfd, packet, sizeof(*packet), 0);
+    ssize_t sent = send(sockfd, packet->data, packet->pkt_size, 0);
 
     close(sockfd);
 
