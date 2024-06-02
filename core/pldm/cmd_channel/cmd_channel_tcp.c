@@ -40,7 +40,7 @@ void print_packet_data(const uint8_t *data, size_t len) {
 int set_socket_non_blocking(int sockfd) {
     int flags = fcntl(sockfd, F_GETFL, 0);
     if (flags == -1) {
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_FCNTL_ERROR;
     }
     return fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 }
@@ -65,31 +65,31 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_CREATE_SOC_ERROR;
     }
 
     if (set_socket_non_blocking(server_fd) < 0) {
         close(server_fd);
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_SET_NON_BLOCKING_ERROR;
     }
     
     // Forcefully attaching socket to the port 5000
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_SET_SOC_OPT_ERROR;
     }
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(CMD_CHANNEL_PORT);
+    address.sin_port = htons(CMD_CHANNEL_SOC_PORT);
 
 
     // Bind the socket to the address
     if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_SOC_BIND_ERROR;
     }
 
     // Listen for incoming connections
     if (listen(server_fd, 3) < 0) {
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_SOC_LISTEN_ERROR;
     }
 
     struct timeval start, now;
@@ -103,8 +103,9 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     } while (new_socket < 0 && errno == EWOULDBLOCK && elapsed_ms < ms_timeout);
 
     if (new_socket < 0) {
+        platform_printf("Time-out reached.\n");
         close(server_fd);
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_SOC_ACCEPT_ERROR;
     }
     
     //platform_mutex_lock(&channel->lock);
@@ -139,14 +140,14 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     struct sockaddr_in serv_addr;
     int sock = 0;
-    int ms_timeout = 60000;
+    int ms_timeout = CMD_CHANNEL_SOC_TIMEOUT;
 
     memset(&serv_addr, '0', sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(CMD_CHANNEL_PORT);
+    serv_addr.sin_port = htons(CMD_CHANNEL_SOC_PORT);
 
     if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        return CMD_CHANNEL_SOCKET_ERROR;
+        return CMD_CHANNEL_SOC_INET_ERROR;
     }
 
     struct timeval start, now;
@@ -156,7 +157,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
 
     while (elapsed_ms < ms_timeout && !connected) {
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-            return CMD_CHANNEL_SOCKET_ERROR;
+            return CMD_CHANNEL_CREATE_SOC_ERROR;
         }
 
         if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) >= 0) {
@@ -170,7 +171,8 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     }
 
     if (!connected) {
-        return CMD_CHANNEL_SOCKET_ERROR;
+        platform_printf("Time-out reached.\n");
+        return CMD_CHANNEL_SOC_CONNECT_ERROR;
     }
 
     //platform_mutex_lock(&channel->lock);
