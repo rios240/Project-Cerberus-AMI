@@ -12,6 +12,7 @@
 #include "common/unused.h"
 #include "status/rot_status.h"
 #include "testing.h"
+#include "testing/platform_pldm_testing.h"
 
 
 TEST_SUITE_LABEL ("pldm_fwup_transfers");
@@ -65,6 +66,9 @@ static void initialize_cmd_channel_and_mctp_interface(CuTest *test, struct pldm_
     int status = cmd_channel_init(&testing->channel, channel_id);
     CuAssertIntEquals(test, 0, status);
 
+    status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
     testing->channel.send_packet = send_packet;
     testing->channel.receive_packet = receive_packet;
 
@@ -85,6 +89,7 @@ static void deinitialize_testing(struct pldm_fwup_testing *testing) {
     device_manager_release(&testing->device_mgr);
     pldm_fwup_manager_deinit(&testing->fwup_mgr);
     memset (testing, 0, sizeof (struct pldm_fwup_testing));
+    close_global_server_socket();
 }
 
 
@@ -155,7 +160,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
         CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
         do {
-            status = cmd_channel_receive_and_process(&testing.channel, &testing.mctp, 10000);
+            status = cmd_channel_receive_and_process(&testing.channel, &testing.mctp, PLDM_TESTING_MS_TIMEOUT);
             CuAssertIntEquals(test, 0, status);
 
         } while (testing.mctp.rsp_state != MCTP_INTERFACE_RESPONSE_SUCCESS);
@@ -183,7 +188,7 @@ static void pldm_fwup_transfers_test_10_kb_transfer(CuTest *test)
 
     do {
         do {
-            status = cmd_channel_receive_and_process(&testing.channel, &testing.mctp, 10000);
+            status = cmd_channel_receive_and_process(&testing.channel, &testing.mctp, PLDM_TESTING_MS_TIMEOUT);
             CuAssertIntEquals(test, 0, status);
         } while (testing.mctp.req_buffer.length != 0);
         mctp_interface_reset_message_processing(&testing.mctp);

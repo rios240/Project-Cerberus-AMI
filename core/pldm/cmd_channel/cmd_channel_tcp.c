@@ -1,4 +1,3 @@
-/*
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,25 +6,11 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <sys/time.h>
 #include "platform_api.h"
 #include "cmd_channel_tcp.h"
-*/
-
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
-#include <sys/time.h>
-#include <fcntl.h>
-#include "cmd_channel_tcp.h"
 #include "platform_io.h"
+#include "testing/platform_pldm_testing.h"
 
 
 void print_packet_data(const uint8_t *data, size_t len) {
@@ -37,14 +22,53 @@ void print_packet_data(const uint8_t *data, size_t len) {
 }
 
 
-int set_socket_non_blocking(int sockfd) {
-    int flags = fcntl(sockfd, F_GETFL, 0);
-    if (flags == -1) {
-        return CMD_CHANNEL_FCNTL_ERROR;
+int global_server_fd = -1;
+
+int initialize_global_server_socket() {
+    if (global_server_fd != -1) {
+        return 0;
     }
-    return fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+
+    struct sockaddr_in address;
+    int opt = 1;
+
+    if ((global_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        return CMD_CHANNEL_CREATE_SOC_ERROR;
+    }
+
+    if (setsockopt(global_server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        close(global_server_fd);
+        global_server_fd = -1;
+        return CMD_CHANNEL_SET_SOC_OPT_ERROR;
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE_TESTS
+    address.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);
+#else
+    address.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
+#endif
+
+    if (bind(global_server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        close(global_server_fd);
+        global_server_fd = -1;
+        return CMD_CHANNEL_SOC_BIND_ERROR;
+    }
+
+    if (listen(global_server_fd, 3) < 0) {
+        close(global_server_fd);
+        global_server_fd = -1;
+        return CMD_CHANNEL_SOC_LISTEN_ERROR;
+    }
+
+    return 0;
 }
 
+
+void close_global_server_socket() {
+    close(global_server_fd);
+}
 
 /**
 * Receive a command packet from a communication channel.  This call will block until a packet
@@ -58,67 +82,34 @@ int set_socket_non_blocking(int sockfd) {
 * @return 0 if a packet was successfully received or an error code.
 */
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
-    int server_fd, new_socket;
-    struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-
-    // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+    if (global_server_fd == -1) {
         return CMD_CHANNEL_CREATE_SOC_ERROR;
     }
 
-    if (set_socket_non_blocking(server_fd) < 0) {
-        close(server_fd);
-        return CMD_CHANNEL_SET_NON_BLOCKING_ERROR;
-    }
-    
-    // Forcefully attaching socket to the port 5000
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-        return CMD_CHANNEL_SET_SOC_OPT_ERROR;
-    }
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(CMD_CHANNEL_SOC_PORT);
-
-
-    // Bind the socket to the address
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
-        return CMD_CHANNEL_SOC_BIND_ERROR;
-    }
-
-    // Listen for incoming connections
-    if (listen(server_fd, 3) < 0) {
-        return CMD_CHANNEL_SOC_LISTEN_ERROR;
-    }
+    int client_socket;
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
 
     struct timeval start, now;
     gettimeofday(&start, NULL);
     long elapsed_ms;
 
     do {
-        new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+        client_socket = accept(global_server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         gettimeofday(&now, NULL);
         elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec - start.tv_usec) / 1000;
-    } while (new_socket < 0 && errno == EWOULDBLOCK && elapsed_ms < ms_timeout);
+    } while (client_socket < 0 && errno == EWOULDBLOCK && elapsed_ms < ms_timeout);
 
-    if (new_socket < 0) {
+    if (client_socket < 0) {
         platform_printf("Time-out reached.\n");
-        close(server_fd);
         return CMD_CHANNEL_SOC_ACCEPT_ERROR;
     }
-    
-    //platform_mutex_lock(&channel->lock);
 
-    size_t valread = read(new_socket, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN);
-
-    //platform_mutex_unlock(&channel->lock);
-
+    ssize_t valread = read(client_socket, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN);
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
-    close(new_socket);
-    close(server_fd);
+    close(client_socket);
 
     return 0;
 }
@@ -140,13 +131,19 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     struct sockaddr_in serv_addr;
     int sock = 0;
-    int ms_timeout = CMD_CHANNEL_SOC_TIMEOUT;
+    int ms_timeout = PLDM_TESTING_MS_TIMEOUT;
 
     memset(&serv_addr, '0', sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(CMD_CHANNEL_SOC_PORT);
 
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+// If Cerberus is the FD then it should connect to the UA port
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE_TESTS
+    serv_addr.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
+#else
+    serv_addr.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);
+#endif
+
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
         return CMD_CHANNEL_SOC_INET_ERROR;
     }
 
@@ -175,11 +172,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         return CMD_CHANNEL_SOC_CONNECT_ERROR;
     }
 
-    //platform_mutex_lock(&channel->lock);
-
     send(sock, packet->data, packet->pkt_size, 0);
-
-    //platform_mutex_unlock(&channel->lock);
 
     close(sock);
 
