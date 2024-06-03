@@ -10,6 +10,7 @@
 #include "pldm/pldm_fwup_handler.h"
 #include "platform_api.h"
 
+initialize_global_server_socket();
 
 TEST_SUITE_LABEL ("pldm_fwup_protocol_fd_commands");
 
@@ -24,15 +25,13 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers(CuTest 
 
     TEST_START;
 
-    int status = initialize_global_server_socket();
-    CuAssertIntEquals(test, 0, status);
 
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
-    status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+    int status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_FD_STATE_IDLE, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_QUERY_DEVICE_IDENTIFIERS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
@@ -43,7 +42,6 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers(CuTest 
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
-    close_global_server_socket();
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_firmware_parameters(CuTest *test) {
@@ -53,15 +51,12 @@ static void pldm_fwup_protocol_fd_commands_test_get_firmware_parameters(CuTest *
 
     TEST_START;
 
-    int status = initialize_global_server_socket();
-    CuAssertIntEquals(test, 0, status);
-
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
-    status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+    int status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_FD_STATE_IDLE, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_GET_FIRMWARE_PARAMETERS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
@@ -72,7 +67,6 @@ static void pldm_fwup_protocol_fd_commands_test_get_firmware_parameters(CuTest *
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
-    close_global_server_socket();
 }
 
 static void pldm_fwup_protocol_fd_commands_test_request_update(CuTest *test) {
@@ -82,15 +76,12 @@ static void pldm_fwup_protocol_fd_commands_test_request_update(CuTest *test) {
 
     TEST_START;
 
-    int status = initialize_global_server_socket();
-    CuAssertIntEquals(test, 0, status);
-
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
-    status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+    int status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_REQUEST_UPDATE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
@@ -105,7 +96,6 @@ static void pldm_fwup_protocol_fd_commands_test_request_update(CuTest *test) {
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
-    close_global_server_socket();
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_package_data(CuTest *test) {
@@ -115,9 +105,6 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data(CuTest *test) {
 
     TEST_START;
 
-    int status = initialize_global_server_socket();
-    CuAssertIntEquals(test, 0, status);
-
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_fd_device_manager(&testing.device_mgr, test);
@@ -126,6 +113,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data(CuTest *test) {
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
 
+    int status;
     do {
         status = send_and_receive_full_mctp_message(&testing, PLDM_GET_PACKAGE_DATA);
         CuAssertIntEquals(test, 0, status);
@@ -140,7 +128,6 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data(CuTest *test) {
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
-    close_global_server_socket();
 }
 
 /*
@@ -151,9 +138,6 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data(CuTest *tes
 
     TEST_START;
 
-    int status = initialize_global_server_socket();
-    CuAssertIntEquals(test, 0, status);
-
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_fd_device_manager(&testing.device_mgr, test);
@@ -163,6 +147,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data(CuTest *tes
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
     testing.fwup_mgr.fd_mgr.update_info.max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 
+    int status;
     do {
         status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
         CuAssertIntEquals(test, 0, status);
@@ -177,7 +162,6 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data(CuTest *tes
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
-    close_global_server_socket();
 }
 */
 
@@ -188,9 +172,6 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *tes
 
     TEST_START;
 
-    int status = initialize_global_server_socket();
-    CuAssertIntEquals(test, 0, status);
-
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_fd_device_manager(&testing.device_mgr, test);
@@ -200,6 +181,7 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *tes
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
     testing.fwup_mgr.fd_mgr.update_info.comp_entries = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_protocol_component_entry));
 
+    int status;
     do {
         status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
         CuAssertIntEquals(test, 0, status);
@@ -226,7 +208,6 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *tes
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
-    close_global_server_socket();
 }
 
 
@@ -240,3 +221,5 @@ TEST (pldm_fwup_protocol_fd_commands_test_get_package_data);
 TEST (pldm_fwup_protocol_fd_commands_test_pass_component_table);
 
 TEST_SUITE_END;
+
+close_global_server_socket();
