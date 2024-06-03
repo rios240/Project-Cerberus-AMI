@@ -131,6 +131,8 @@ static void pldm_fwup_protocol_ua_commands_test_get_package_data(CuTest *test) {
     setup_ua_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
+
     do {
         status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
         CuAssertIntEquals(test, 0, status);
