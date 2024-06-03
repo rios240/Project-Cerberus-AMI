@@ -72,9 +72,13 @@ static void pldm_fwup_protocol_ua_commands_test_get_firmware_parameters(CuTest *
     CuAssertIntEquals(test, PLDM_COMP_FIRMWARE, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[0].comp_classification);
     CuAssertIntEquals(test, 187, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[0].comp_classification_index);
     CuAssertIntEquals(test, 29485, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[0].comp_identifier);
+    CuAssertIntEquals(test, 3780935207, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[0].active_comp_comparison_stamp);
+    CuAssertStrEquals(test, PLDM_FWUP_ACTIVE_FIRMWARE_COMP_VER, (const char *)testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[0].active_comp_ver.version_str);
     CuAssertIntEquals(test, PLDM_COMP_MIDDLEWARE, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[1].comp_classification);
     CuAssertIntEquals(test, 190, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[1].comp_classification_index);
     CuAssertIntEquals(test, 29490, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[1].comp_identifier);
+    CuAssertIntEquals(test, 3780935210, testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[1].active_comp_comparison_stamp);
+    CuAssertStrEquals(test, PLDM_FWUP_ACTIVE_MIDDLEWARE_COMP_VER, (const char *)testing.fwup_mgr.ua_mgr.rec_fw_parameters.entries[1].active_comp_ver.version_str);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
