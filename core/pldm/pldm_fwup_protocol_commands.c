@@ -401,8 +401,8 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
         goto exit;
     }
-    else if (update_info->package_data_len <= 0) {
-        completion_code = PLDM_FWUP_NO_PACKAGE_DATA;
+    else if (flash_mgr->device_meta_data_size <= 0) {
+        completion_code = PLDM_FWUP_NO_DEVICE_METADATA;
         goto exit;
     }
     else if (get_cmd_state->transfer_flag == PLDM_MIDDLE && transfer_operation_flag == PLDM_GET_FIRSTPART) {
