@@ -99,7 +99,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
         client_socket = accept(global_server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         gettimeofday(&now, NULL);
         elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec - start.tv_usec) / 1000;
-    } while (client_socket < 0 && errno == EWOULDBLOCK && elapsed_ms < ms_timeout);
+    } while (client_socket < 0 && elapsed_ms < ms_timeout);
 
     if (client_socket < 0) {
         platform_printf("Time-out reached.\n");
