@@ -258,8 +258,6 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_fd_state *state,
     state->previous_cmd = PLDM_REQUEST_UPDATE;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
     instance_id += 1;
-
-    print_buffer_data(request->data, request->length);
     return status;
 }
 
@@ -1546,8 +1544,6 @@ int pldm_fwup_process_request_update_response(struct pldm_fwup_ua_state *state,
     if (state->previous_cmd != PLDM_REQUEST_UPDATE) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
     }
-    
-    print_buffer_data(response->data, response->length);
 
     struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -1564,7 +1560,6 @@ int pldm_fwup_process_request_update_response(struct pldm_fwup_ua_state *state,
 
     state->previous_completion_code = completion_code;
     response->length = 0;
-    printf("completion code: %d\n", completion_code);
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
