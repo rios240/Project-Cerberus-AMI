@@ -1358,9 +1358,9 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_ua_stat
             descriptor_data, sizeof (uint16_t));
             memcpy(&device_mgr->entries[i].pci_device_id, 
             descriptor_data + sizeof (uint16_t), sizeof (uint16_t));
-            memcpy(&device_mgr->entries[i].pci_vid, 
+            memcpy(&device_mgr->entries[i].pci_subsystem_vid, 
             descriptor_data + (2 * sizeof (uint16_t)), sizeof (uint16_t));
-            memcpy(&device_mgr->entries[i].pci_vid, 
+            memcpy(&device_mgr->entries[i].pci_subsystem_id, 
             descriptor_data + (3 * sizeof (uint16_t)), sizeof (uint16_t));
             break;
         } else if (ROT_IS_ERROR(device_eid)) {
