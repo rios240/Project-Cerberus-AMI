@@ -163,6 +163,7 @@ int cmd_channel_receive_and_process (struct cmd_channel *channel, struct mctp_in
 		return CMD_CHANNEL_INVALID_ARGUMENT;
 	}
 
+    printf("Did we make it here?\n");
 	status = channel->receive_packet (channel, &packet, ms_timeout);
     printf("Did we make it here?\n");
 	if (status != 0) {
