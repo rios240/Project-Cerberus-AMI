@@ -24,12 +24,15 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers(CuTest 
 
     TEST_START;
 
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
-    int status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+    status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_FD_STATE_IDLE, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_QUERY_DEVICE_IDENTIFIERS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
@@ -40,6 +43,7 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers(CuTest 
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
+    close_global_server_socket();
 }
 
 TEST_SUITE_START (pldm_fwup_protocol_fd_commands);
