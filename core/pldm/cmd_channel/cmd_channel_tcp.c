@@ -44,7 +44,7 @@ int initialize_global_server_socket() {
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE_TESTS
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
     address.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);
 #else
     address.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
@@ -137,7 +137,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     serv_addr.sin_family = AF_INET;
 
 // If Cerberus is the FD then it should connect to the UA port
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE_TESTS
+#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
     serv_addr.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
 #else
     serv_addr.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);

@@ -1,10 +1,15 @@
 #ifndef PLATFORM_PLDM_TESTING_H_
 #define PLATFORM_PLDM_TESTING_H_
 
+#include "platform_all_tests.h"
 
 #define PLDM_TESTING_FIRMWARE_DEVICE_PORT           49156
 #define PLDM_TESTING_UPDATE_AGENT_PORT              49155
 
 #define PLDM_TESTING_MS_TIMEOUT                     10000
+
+#ifdef TESTING_RUN_PLDM_FWUP_FD_SUITE
+#define PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+#endif
 
 #endif /* PLATFORM_PLDM_TESTING_H_ */
