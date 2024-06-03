@@ -377,6 +377,7 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
     struct pldm_fwup_flash_manager *flash_mgr, struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
     struct pldm_fwup_fd_update_info *update_info, struct cmd_interface_msg *request)
 {
+    printf("Did we make it here?\n");
     struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
 
