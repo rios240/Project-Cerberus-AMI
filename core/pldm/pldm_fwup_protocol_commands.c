@@ -71,6 +71,8 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_fd_state
     memcpy((uint8_t *)descriptors.ptr + (3 * sizeof (uint16_t)), 
     &device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_subsystem_id, sizeof (uint16_t));
 
+    printf("pci_vid: %d\n", device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_vid);
+
     uint8_t completion_code = PLDM_SUCCESS;
 
     size_t rsp_payload_length = sizeof (struct pldm_query_device_identifiers_resp) + device_identifiers_len;
@@ -1351,8 +1353,11 @@ int pldm_fwup_process_query_device_identifiers_response(struct pldm_fwup_ua_stat
         return 0;
     }
 
+    printf("Source eid: %d\n", response->source_eid);
+
     for (int i = 0; i < device_mgr->num_devices; i++) {
         int device_eid = device_manager_get_device_eid(device_mgr, i);
+        printf("Device eid: %d\n", device_eid);
         if(device_eid == response->source_eid) {
             memcpy(&device_mgr->entries[i].pci_vid, 
             descriptor_data, sizeof (uint16_t));
