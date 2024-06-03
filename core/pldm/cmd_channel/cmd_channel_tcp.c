@@ -56,7 +56,7 @@ int initialize_global_server_socket() {
         return CMD_CHANNEL_SOC_BIND_ERROR;
     }
 
-    if (listen(global_server_fd, 3) < 0) {
+    if (listen(global_server_fd, 100) < 0) {
         close(global_server_fd);
         global_server_fd = -1;
         return CMD_CHANNEL_SOC_LISTEN_ERROR;
