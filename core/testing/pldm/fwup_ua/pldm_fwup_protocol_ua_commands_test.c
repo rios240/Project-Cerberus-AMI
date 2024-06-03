@@ -87,7 +87,6 @@ static void pldm_fwup_protocol_ua_commands_test_get_firmware_parameters(CuTest *
     close_global_server_socket();
 }
 
-/*
 static void pldm_fwup_protocol_ua_commands_test_request_update(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -116,12 +115,12 @@ static void pldm_fwup_protocol_ua_commands_test_request_update(CuTest *test) {
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
-}*/
+}
 
 TEST_SUITE_START (pldm_fwup_protocol_ua_commands);
 
 TEST (pldm_fwup_protocol_ua_commands_test_query_device_identifiers);
 TEST (pldm_fwup_protocol_ua_commands_test_get_firmware_parameters);
-//TEST (pldm_fwup_protocol_ua_commands_test_request_update);
+TEST (pldm_fwup_protocol_ua_commands_test_request_update);
 
 TEST_SUITE_END;
