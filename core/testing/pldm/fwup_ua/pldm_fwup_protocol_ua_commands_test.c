@@ -108,7 +108,6 @@ static void pldm_fwup_protocol_ua_commands_test_request_update(CuTest *test) {
     CuAssertIntEquals(test, 0, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
     CuAssertIntEquals(test, PLDM_FWUP_META_DATA_SIZE, testing.fwup_mgr.ua_mgr.update_info.fd_meta_data_len);
     CuAssertIntEquals(test, 1, testing.fwup_mgr.ua_mgr.update_info.fd_will_send_pkg_data_cmd);
-    
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);

@@ -332,6 +332,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_fd_state *state
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     switch_state(state, PLDM_FD_STATE_LEARN_COMPONENTS);
     if (completion_code != PLDM_SUCCESS) {
         return 0;
@@ -357,7 +358,7 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_fd_state *state
     printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
         next_data_transfer_handle, transfer_flag, crc32(portion_of_package_data.ptr, portion_of_package_data.length));
 
-    response->length = 0;
+    
     return status;
 }
 
@@ -760,6 +761,7 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     switch_state(state, PLDM_FD_STATE_DOWNLOAD);
     if (completion_code != PLDM_SUCCESS) {
         return 0;
@@ -774,7 +776,6 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
         status = 0;
     }
 
-    response->length = 0;
     return status;
 }
 
@@ -841,11 +842,11 @@ int pldm_fwup_process_transfer_complete_response(struct pldm_fwup_fd_state *stat
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
     
-    response->length = 0;
     return 0;
 }
 
@@ -906,11 +907,11 @@ int pldm_fwup_process_verify_complete_response(struct pldm_fwup_fd_state *state,
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
     
-    response->length = 0;
     return 0;
 }
 
@@ -974,11 +975,11 @@ int pldm_fwup_process_apply_complete_response(struct pldm_fwup_fd_state *state, 
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
     
-    response->length = 0;
     return 0;
 }
 
@@ -1048,6 +1049,7 @@ int pldm_fwup_process_get_meta_data_response(struct pldm_fwup_fd_state *state,
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     switch_state(state, state->current_state);
     if (completion_code != PLDM_SUCCESS) {
         return 0;
@@ -1071,7 +1073,6 @@ int pldm_fwup_process_get_meta_data_response(struct pldm_fwup_fd_state *state,
         get_cmd_state->data_transfer_handle = 0;
     }
 
-    response->length = 0;
     return status;
 }
 
@@ -1557,14 +1558,16 @@ int pldm_fwup_process_request_update_response(struct pldm_fwup_ua_state *state,
     }
 
     state->previous_completion_code = completion_code;
-    if (completion_code!= PLDM_SUCCESS) {
+    response->length = 0;
+    printf("completion code: %d\n", completion_code);
+    if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
+    printf("Did we make it this far?\n");
     
     update_info->fd_will_send_pkg_data_cmd = fd_will_send_pkg_data_cmd;
     update_info->fd_meta_data_len = fd_meta_data_len;
 
-    response->length = 0;
     return status;
 }
 
@@ -1738,6 +1741,7 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
@@ -1758,8 +1762,6 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
         get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
     }
 
-
-    response->length = 0;
     return status;
 }
 
@@ -1858,6 +1860,7 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
@@ -1865,7 +1868,6 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
     comp_img_entries[current_comp_num].comp_resp = comp_resp;
     comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
 
-    response->length = 0;
     return status;
 }
 
@@ -1963,6 +1965,7 @@ int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
@@ -1972,7 +1975,7 @@ int pldm_fwup_process_update_component_response(struct pldm_fwup_ua_state *state
     comp_img_entries[current_comp_num].update_option_flags_enabled = update_option_flags_enabled;
     comp_img_entries[current_comp_num].time_before_req_fw_data = time_before_req_fw_data;
 
-    response->length = 0;
+ 
     return status;
 }
 
@@ -2343,11 +2346,11 @@ int pldm_fwup_process_activate_firmware_response(struct pldm_fwup_ua_state *stat
 
     update_info->estimated_time_activation = estimated_time_activation;
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
     
-    response->length = 0;
     return 0;
 }
 
@@ -2414,11 +2417,12 @@ int pldm_fwup_process_get_status_response(struct pldm_fwup_ua_state *state, stru
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
 
-    response->length = 0;
+
     return 0;
 
 }
@@ -2477,11 +2481,11 @@ int pldm_fwup_process_cancel_update_component_response(struct pldm_fwup_ua_state
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
 
-    response->length = 0;
     return 0;
 }
 
@@ -2543,10 +2547,10 @@ int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, s
     }
 
     state->previous_completion_code = completion_code;
+    response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
 
-    response->length = 0;
     return 0;
 }

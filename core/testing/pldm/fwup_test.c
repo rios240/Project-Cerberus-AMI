@@ -285,6 +285,6 @@ int send_and_receive_full_mctp_message(struct pldm_fwup_protocol_commands_testin
         return status;
     }
 
-    status = pldm_fwup_handler_receive_and_respond_full_mctp_message(&testing->channel, &testing->mctp, testing->timeout_ms);
+    status = receive_and_respond_full_mctp_message(&testing->channel, &testing->mctp, testing->timeout_ms);
     return status;
 }
