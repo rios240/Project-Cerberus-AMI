@@ -10,7 +10,6 @@
 #include "platform_api.h"
 #include "cmd_channel_tcp.h"
 #include "platform_io.h"
-#include "testing/platform_pldm_testing.h"
 
 
 void print_packet_data(const uint8_t *data, size_t len) {
@@ -44,7 +43,7 @@ int initialize_global_server_socket() {
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+#if PLDM_TESTING_ENABLE_FIRMWARE_DEVICE == 1
     address.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);
 #else
     address.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
@@ -137,7 +136,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     serv_addr.sin_family = AF_INET;
 
 // If Cerberus is the FD then it should connect to the UA port
-#ifdef PLDM_FWUP_ENABLE_FIRMWARE_DEVICE
+#if PLDM_TESTING_ENABLE_FIRMWARE_DEVICE == 1
     serv_addr.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
 #else
     serv_addr.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);

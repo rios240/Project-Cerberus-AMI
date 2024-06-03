@@ -12,7 +12,6 @@
 #include "common/unused.h"
 #include "status/rot_status.h"
 #include "testing.h"
-#include "testing/platform_pldm_testing.h"
 
 /*
 TEST_SUITE_LABEL ("pldm_fwup_transfers");
