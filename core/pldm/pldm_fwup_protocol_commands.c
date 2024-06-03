@@ -443,6 +443,9 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
     portion_of_device_meta_data.ptr = (const uint8_t *)device_meta_data_buf;
     portion_of_device_meta_data.length = update_info->max_transfer_size;
 
+    printf("REQUEST/RESPONSE | instance id: %d, data transfer handle: %d, transfer op flag: %d, next data transfer handle: %d, transfer flag: %d, CRC: %d\n",
+        instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, transfer_flag, crc32(portion_of_device_meta_data.ptr, portion_of_device_meta_data.length));
+
 exit:;
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = sizeof (struct pldm_multipart_transfer_resp) + portion_of_device_meta_data.length;
@@ -1701,6 +1704,8 @@ int pldm_fwup_generate_get_device_meta_data_request(struct pldm_fwup_ua_state *s
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("REQUEST | instance: %d, data transfer handle: %d, transfer op flag: %d.\n", instance_id, data_transfer_handle, transfer_operation_flag);
+
     state->previous_cmd = PLDM_GET_PACKAGE_DATA;
     instance_id += 1;
     return PLDM_MCTP_BINDING_MSG_OVERHEAD  + rq_payload_length;
@@ -1760,6 +1765,9 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
     } else {
         get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
     }
+
+    printf("RESPONSE | next data transfer handle: %d, transfer flag: %d, CRC: %d.\n", 
+        next_data_transfer_handle, transfer_flag, crc32(portion_of_device_meta_data.ptr, portion_of_device_meta_data.length));
 
     return status;
 }
