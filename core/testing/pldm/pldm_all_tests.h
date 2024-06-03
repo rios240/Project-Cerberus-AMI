@@ -6,12 +6,24 @@
 #include "platform_all_tests.h"
 #include "common/unused.h"
 
-
+/**
+ * Add all tests for components in the 'pldm' directory.
+ *
+ * Be sure to keep the test suites in alphabetical order for easier management.
+ *
+ * @param suite Suite to add the tests to.
+ */
 static void add_all_pldm_tests (CuSuite *suite)
 {
+    /* This is unused when no tests will be executed. */
     UNUSED (suite);
 
-    TESTING_RUN_SUITE (pldm_fwup_transfers);
+#if (defined TESTING_RUN_PLDM_FWUP_TRANSFERS_SUITE || \
+		defined TESTING_RUN_ALL_TESTS || defined TESTING_RUN_ALL_CORE_TESTS || \
+		(!defined TESTING_SKIP_ALL_TESTS && !defined TESTING_SKIP_ALL_CORE_TESTS)) && \
+	!defined TESTING_SKIP_PLDM_FWUP_TRANSFERS_SUITE
+	TESTING_RUN_SUITE (pldm_fwup_transfers);
+#endif
 
 }
 
