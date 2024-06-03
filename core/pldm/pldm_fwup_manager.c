@@ -53,9 +53,6 @@ int pldm_fwup_manager_init(struct pldm_fwup_manager *fwup_mgr,
 void pldm_fwup_manager_deinit(struct pldm_fwup_manager *fwup_mgr)
 {
     if (fwup_mgr != NULL) {
-        free(fwup_mgr->fd_mgr.flash_mgr->comp_regions);
-        free(fwup_mgr->fd_mgr.update_info.comp_entries);
-        free(fwup_mgr->ua_mgr.rec_fw_parameters.entries);
         memset(fwup_mgr, 0, sizeof (struct pldm_fwup_manager));
     }
 }
