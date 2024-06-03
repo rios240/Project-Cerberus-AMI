@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/time.h>
 #include "platform_api.h"
 #include "cmd_channel_tcp.h"
@@ -149,17 +150,47 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     struct timeval start, now;
     gettimeofday(&start, NULL);
     long elapsed_ms = 0;
+
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        return CMD_CHANNEL_CREATE_SOC_ERROR;
+    }
+
+    fcntl(sock, F_SETFL, O_NONBLOCK);
+
     int connected = 0;
 
     while (elapsed_ms < ms_timeout && !connected) {
-        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-            return CMD_CHANNEL_CREATE_SOC_ERROR;
-        }
-
-        if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) >= 0) {
+        int result = connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        if (result == 0) {
             connected = 1;
+        } else if (errno == EINPROGRESS) {
+            fd_set wait_set;
+            FD_ZERO(&wait_set);
+            FD_SET(sock, &wait_set);
+            struct timeval timeout;
+            timeout.tv_sec = (ms_timeout - elapsed_ms) / 1000;
+            timeout.tv_usec = ((ms_timeout - elapsed_ms) % 1000) * 1000;
+
+            result = select(sock + 1, NULL, &wait_set, NULL, &timeout);
+            if (result > 0) {
+                int so_error;
+                socklen_t len = sizeof(so_error);
+                getsockopt(sock, SOL_SOCKET, SO_ERROR, &so_error, &len);
+                if (so_error == 0) {
+                    connected = 1; 
+                } else {
+                    close(sock);
+                    return CMD_CHANNEL_SOC_CONNECT_ERROR;
+                }
+            } else if (result == 0) {
+                close(sock);
+                platform_printf("Time-out reached.\n");
+                return CMD_CHANNEL_SOC_CONNECT_ERROR;
+            }
         } else {
+            // Connection failed immediately
             close(sock);
+            return CMD_CHANNEL_SOC_CONNECT_ERROR;
         }
 
         gettimeofday(&now, NULL);
@@ -167,7 +198,6 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     }
 
     if (!connected) {
-        platform_printf("Time-out reached.\n");
         return CMD_CHANNEL_SOC_CONNECT_ERROR;
     }
 
