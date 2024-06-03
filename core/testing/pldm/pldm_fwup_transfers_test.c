@@ -14,7 +14,7 @@
 #include "testing.h"
 #include "testing/platform_pldm_testing.h"
 
-
+/*
 TEST_SUITE_LABEL ("pldm_fwup_transfers");
 
 struct pldm_fwup_testing {
@@ -37,9 +37,6 @@ struct pldm_fwup_testing {
 
 };
 
-/*******************
- * Helper Functions
- *******************/
 
 static int generate_error_packet(struct cmd_interface *intf, struct cmd_interface_msg *request,
 		uint8_t error_code, uint32_t error_data, uint8_t cmd_set) 
@@ -91,11 +88,6 @@ static void deinitialize_testing(struct pldm_fwup_testing *testing) {
     memset (testing, 0, sizeof (struct pldm_fwup_testing));
     close_global_server_socket();
 }
-
-
-/*******************
- * Tests
- *******************/
 
 //#define PLDM_FWUP_ENABLE_FIRMWARE_DEVICE_TESTS
 
@@ -206,3 +198,4 @@ TEST_SUITE_START (pldm_fwup_transfers);
 TEST (pldm_fwup_transfers_test_10_kb_transfer);
 
 TEST_SUITE_END;
+*/

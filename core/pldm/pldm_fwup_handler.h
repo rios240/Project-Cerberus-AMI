@@ -66,6 +66,8 @@ int pldm_fwup_handler_set_mode(struct pldm_fwup_handler *handler, enum pldm_fwup
 
 // Internal functions
 int pldm_fwup_handler_generate_request(struct cmd_interface *intf, int command, uint8_t *buffer, size_t buf_len);
+int pldm_fwup_handler_receive_and_respond_full_mctp_message(struct cmd_channel *channel, struct mctp_interface *mctp, int timeout_ms);
+int pldm_fwup_handler_send_and_receive_full_mctp_message(struct pldm_fwup_handler *handler, int command, uint8_t fd_eid, uint8_t fd_addr);
 
 
 #define	PLDM_FWUP_HANDLER_ERROR(code)                                               ROT_ERROR (ROT_MODULE_PLDM_FWUP_HANDLER, code)
