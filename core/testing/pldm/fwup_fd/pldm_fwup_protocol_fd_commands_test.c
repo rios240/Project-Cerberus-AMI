@@ -10,8 +10,6 @@
 #include "pldm/pldm_fwup_handler.h"
 #include "platform_api.h"
 
-initialize_global_server_socket();
-
 TEST_SUITE_LABEL ("pldm_fwup_protocol_fd_commands");
 
 /**
@@ -221,5 +219,3 @@ TEST (pldm_fwup_protocol_fd_commands_test_get_package_data);
 TEST (pldm_fwup_protocol_fd_commands_test_pass_component_table);
 
 TEST_SUITE_END;
-
-close_global_server_socket();

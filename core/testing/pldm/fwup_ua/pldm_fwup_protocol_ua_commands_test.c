@@ -10,8 +10,6 @@
 #include "pldm/pldm_fwup_handler.h"
 #include "platform_api.h"
 
-initialize_global_server_socket();
-
 TEST_SUITE_LABEL ("pldm_fwup_protocol_ua_commands");
 
 
@@ -116,8 +114,6 @@ static void pldm_fwup_protocol_ua_commands_test_get_package_data(CuTest *test) {
 
     TEST_START;
 
-    CuAssertIntEquals(test, 0, status);
-
     setup_flash_ctx(&flash_ctx, test);
     setup_testing_ctx(&testing_ctx, &flash_ctx);
     setup_ua_device_manager(&testing.device_mgr, test);
@@ -219,6 +215,3 @@ TEST (pldm_fwup_protocol_ua_commands_test_get_package_data);
 TEST (pldm_fwup_protocol_ua_commands_test_pass_component_table);
 
 TEST_SUITE_END;
-
-
-close_global_server_socket();
