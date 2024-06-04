@@ -1707,7 +1707,7 @@ int pldm_fwup_generate_get_device_meta_data_request(struct pldm_fwup_ua_state *s
 
     printf("REQUEST | instance: %d, data transfer handle: %d, transfer op flag: %d.\n", instance_id, data_transfer_handle, transfer_operation_flag);
 
-    state->previous_cmd = PLDM_GET_PACKAGE_DATA;
+    state->previous_cmd = PLDM_GET_DEVICE_METADATA;
     instance_id += 1;
     return PLDM_MCTP_BINDING_MSG_OVERHEAD  + rq_payload_length;
     
@@ -1728,7 +1728,7 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
     struct pldm_fwup_flash_manager *flash_mgr, struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
     struct cmd_interface_msg *response)
 {
-    if (state->previous_cmd != PLDM_GET_PACKAGE_DATA) {
+    if (state->previous_cmd != PLDM_GET_DEVICE_METADATA) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
     }
     struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);

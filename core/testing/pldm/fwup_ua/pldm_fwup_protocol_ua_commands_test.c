@@ -167,7 +167,6 @@ static void pldm_fwup_protocol_ua_commands_test_get_device_meta_data(CuTest *tes
     testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_GET_PACKAGE_DATA;
 
     do {
-        printf("GetDeviceMetaData UA multipart transfer.");
         status = send_and_receive_full_mctp_message(&testing, PLDM_GET_DEVICE_METADATA);
         CuAssertIntEquals(test, 0, status);
         CuAssertIntEquals(test, PLDM_GET_DEVICE_METADATA, testing.fwup_mgr.ua_mgr.state.previous_cmd);
