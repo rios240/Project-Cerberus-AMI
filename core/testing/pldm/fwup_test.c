@@ -270,7 +270,7 @@ int receive_and_respond_full_mctp_message(struct cmd_channel *channel, struct mc
 int send_and_receive_full_mctp_message(struct pldm_fwup_protocol_commands_testing *testing, int command)
 {
     int status;
-    size_t req_length = pldm_fwup_handler_generate_request(testing->mctp.cmd_pldm, command, testing->req_buffer, sizeof (testing->req_buffer));
+    int req_length = pldm_fwup_handler_generate_request(testing->mctp.cmd_pldm, command, testing->req_buffer, sizeof (testing->req_buffer));
     if (ROT_IS_ERROR(req_length) && req_length == CMD_HANDLER_PLDM_TRANSPORT_ERROR) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     } 
