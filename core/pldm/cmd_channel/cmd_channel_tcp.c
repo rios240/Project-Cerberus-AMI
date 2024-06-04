@@ -99,6 +99,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
         client_socket = accept(global_server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         gettimeofday(&now, NULL);
         elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec - start.tv_usec) / 1000;
+        printf("In Receive Packet accept loop.\n");
     } while (client_socket < 0 && elapsed_ms < ms_timeout);
 
     if (client_socket < 0) {
@@ -107,6 +108,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     }
 
     ssize_t valread = read(client_socket, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN);
+    printf("In Receive Packet read.\n");
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 

@@ -255,7 +255,7 @@ int receive_and_respond_full_mctp_message(struct cmd_channel *channel, struct mc
 {
     int status;
     do {
-        printf("Did we make it here?\n");
+        printf("Receive and Respond.\n");
         status = cmd_channel_receive_and_process(channel, mctp, timeout_ms);
         if (status != 0) {
             return status;

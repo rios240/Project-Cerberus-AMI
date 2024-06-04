@@ -163,9 +163,9 @@ int cmd_channel_receive_and_process (struct cmd_channel *channel, struct mctp_in
 		return CMD_CHANNEL_INVALID_ARGUMENT;
 	}
 
-    printf("Did we make it here?\n");
+    printf("Cmd Channel Receive and Process.\n");
 	status = channel->receive_packet (channel, &packet, ms_timeout);
-    printf("Did we make it here?\n");
+    printf("Cmd Channel Receive and Process Exited Receive Packet.\n");
 	if (status != 0) {
 		debug_log_create_entry (DEBUG_LOG_SEVERITY_ERROR, DEBUG_LOG_COMPONENT_CMD_INTERFACE,
 			CMD_LOGGING_RECEIVE_PACKET_FAIL, channel->id, status);

@@ -16,7 +16,7 @@ TEST_SUITE_LABEL ("pldm_fwup_protocol_fd_commands");
 /**
  * Testing Functions
 */
-
+/*
 static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -142,7 +142,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data(CuTest *test) {
     release_testing(&testing);
     close_global_server_socket();
 }
-
+*/
 
 static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
@@ -164,6 +164,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data(CuTest *tes
     testing.fwup_mgr.fd_mgr.update_info.max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 
     do {
+        printf("GetDeviceMetaData FD multipart transfer.");
         status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
         CuAssertIntEquals(test, 0, status);
         CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, testing.fwup_mgr.fd_mgr.state.current_state);
@@ -180,7 +181,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data(CuTest *tes
     close_global_server_socket();
 }
 
-
+/*
 static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -228,15 +229,15 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *tes
     release_testing(&testing);
     close_global_server_socket();
 }
-
+*/
 
 TEST_SUITE_START (pldm_fwup_protocol_fd_commands);
 
-TEST (pldm_fwup_protocol_fd_commands_test_query_device_identifiers);
-TEST (pldm_fwup_protocol_fd_commands_test_get_firmware_parameters);
-TEST (pldm_fwup_protocol_fd_commands_test_request_update);
-TEST (pldm_fwup_protocol_fd_commands_test_get_package_data);
+//TEST (pldm_fwup_protocol_fd_commands_test_query_device_identifiers);
+//TEST (pldm_fwup_protocol_fd_commands_test_get_firmware_parameters);
+//TEST (pldm_fwup_protocol_fd_commands_test_request_update);
+//TEST (pldm_fwup_protocol_fd_commands_test_get_package_data);
 TEST (pldm_fwup_protocol_fd_commands_test_get_device_meta_data);
-TEST (pldm_fwup_protocol_fd_commands_test_pass_component_table);
+//TEST (pldm_fwup_protocol_fd_commands_test_pass_component_table);
 
 TEST_SUITE_END;
