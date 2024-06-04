@@ -126,6 +126,16 @@ static void pldm_fwup_protocol_fd_commands_test_update_component(CuTest *test) {
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_protocol_component_entry));
+    testing.fwup_mgr.fd_mgr.update_info.num_components = PLDM_FWUP_NUM_COMPONENTS;
+
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification = PLDM_COMP_FIRMWARE;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification_index = 187;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_identifier = 29485;
+
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification = PLDM_COMP_MIDDLEWARE;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification_index = 190;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_identifier = 29490;
 
     status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
@@ -235,6 +245,7 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *tes
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_DEVICE_METADATA;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
     testing.fwup_mgr.fd_mgr.update_info.comp_entries = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_protocol_component_entry));
+    testing.fwup_mgr.fd_mgr.update_info.num_components = PLDM_FWUP_NUM_COMPONENTS;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
 
     do {

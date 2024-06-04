@@ -646,7 +646,7 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
     int comp_num;
     bool comp_supported = 0;
     for (comp_num = 0; comp_num < update_info->num_components; comp_num++) {
-        if (comp_classification_index == comp_entries[comp_num].comp_identifier && comp_identifier == comp_entries[comp_num].comp_identifier &&
+        if (comp_classification_index == comp_entries[comp_num].comp_classification_index && comp_identifier == comp_entries[comp_num].comp_identifier &&
             comp_classification == comp_entries[comp_num].comp_classification) {
             comp_supported = 1;
             break;
