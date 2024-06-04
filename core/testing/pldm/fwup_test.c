@@ -51,6 +51,7 @@ const struct pldm_fwup_protocol_firmware_parameters PLDM_FWUP_FD_FIRMWARE_PARAME
     .pending_comp_img_set_ver.version_str = PLDM_FWUP_PENDING_COMP_IMG_SET_VER,
     .pending_comp_img_set_ver.version_str_length = PLDM_FWUP_PENDING_COMP_IMG_SET_VER_LEN,
     .count = PLDM_FWUP_NUM_COMPONENTS,
+    .entries = NULL
 };
 
 const struct pldm_fwup_fup_component_image_entry PLDM_FWUP_UA_FUP_COMP_INFO_LIST[] = {
