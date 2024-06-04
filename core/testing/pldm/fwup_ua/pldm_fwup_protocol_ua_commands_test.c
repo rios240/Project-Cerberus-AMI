@@ -214,7 +214,7 @@ static void pldm_fwup_protocol_ua_commands_test_get_device_meta_data(CuTest *tes
     close_global_server_socket();
 }
 
-/*
+
 static void pldm_fwup_protocol_ua_commands_test_pass_component_table(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -255,7 +255,7 @@ static void pldm_fwup_protocol_ua_commands_test_pass_component_table(CuTest *tes
     release_testing(&testing);
     close_global_server_socket();
 }
-*/
+
 
 TEST_SUITE_START (pldm_fwup_protocol_ua_commands);
 
@@ -263,8 +263,8 @@ TEST (pldm_fwup_protocol_ua_commands_test_query_device_identifiers);
 TEST (pldm_fwup_protocol_ua_commands_test_get_firmware_parameters);
 TEST (pldm_fwup_protocol_ua_commands_test_request_update);
 TEST (pldm_fwup_protocol_ua_commands_update_component);
+TEST (pldm_fwup_protocol_ua_commands_test_pass_component_table);
 TEST (pldm_fwup_protocol_ua_commands_test_get_package_data);
 TEST (pldm_fwup_protocol_ua_commands_test_get_device_meta_data);
-//TEST (pldm_fwup_protocol_ua_commands_test_pass_component_table);
 
 TEST_SUITE_END;
