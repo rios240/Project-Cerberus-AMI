@@ -132,6 +132,7 @@ static void pldm_fwup_protocol_ua_commands_update_component(CuTest *test) {
     setup_testing(&testing, &testing_ctx, test);
 
     testing.fwup_mgr.ua_mgr.current_comp_num = 0;
+    testing.fwup_mgr.ua_mgr.rec_fw_parameters = *testing.fwup_mgr.fd_mgr.fw_parameters;
 
     status = send_and_receive_full_mctp_message(&testing, PLDM_UPDATE_COMPONENT);
     printf("Code: %d\n", testing.fwup_mgr.ua_mgr.comp_img_entries[0].comp_compatibility_resp_code);
