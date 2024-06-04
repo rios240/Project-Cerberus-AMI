@@ -654,8 +654,8 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
     }
 
     if (!comp_supported) {
-        comp_compatibility_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
-        comp_compatibility_resp_code = PLDM_CRC_COMP_NOT_SUPPORTED;
+        comp_compatibility_resp = PLDM_CCR_COMP_CANNOT_BE_UPDATED;
+        comp_compatibility_resp_code = PLDM_CCRC_COMP_NOT_SUPPORTED;
     }
     else if (comp_comparison_stamp == comp_entries[comp_num].comp_comparison_stamp && !update_option_flags_enabled.bits.bit0) {
         comp_compatibility_resp = PLDM_CCR_COMP_CANNOT_BE_UPDATED;
