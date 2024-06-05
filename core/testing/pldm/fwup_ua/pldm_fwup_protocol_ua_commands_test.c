@@ -373,10 +373,6 @@ static void pldm_fwup_protocol_ua_commands_test_get_status(CuTest *test) {
     CuAssertIntEquals(test, PLDM_FD_INITIALIZATION, testing.fwup_mgr.ua_mgr.update_info.fd_status.reason_code);
     CuAssertIntEquals(test, 1, testing.fwup_mgr.ua_mgr.update_info.fd_status.update_option_flags_enabled);
 
-
-
-    
-
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
