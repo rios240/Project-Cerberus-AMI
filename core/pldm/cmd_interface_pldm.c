@@ -207,7 +207,7 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
             status = pldm_fwup_process_activate_firmware_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
             break;
         case PLDM_GET_STATUS:
-            status = pldm_fwup_process_get_status_response(&interface->fwup_mgr->ua_mgr.state, response);
+            status = pldm_fwup_process_get_status_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
             break;
         case PLDM_CANCEL_UPDATE_COMPONENT:
             status = pldm_fwup_process_cancel_update_component_response(&interface->fwup_mgr->ua_mgr.state, response);

@@ -1167,7 +1167,7 @@ int pldm_fwup_process_get_status_request(struct pldm_fwup_fd_state *state,
     } else {
         aux_state = state->previous_completion_code == 0 ? PLDM_FD_OPERATION_SUCCESSFUL : PLDM_FD_OPERATION_FAILED;
     }
-	uint8_t aux_state_status = aux_state == PLDM_FD_OPERATION_SUCCESSFUL || aux_state == PLDM_FD_OPERATION_IN_PROGRESS
+	uint8_t aux_state_status = aux_state == PLDM_FD_OPERATION_SUCCESSFUL || aux_state == PLDM_FD_OPERATION_IN_PROGRESS || aux_state == PLDM_FD_IDLE_LEARN_COMPONENTS_READ_XFER
         ? PLDM_FD_AUX_STATE_IN_PROGRESS_OR_SUCCESS : PLDM_FD_GENERIC_ERROR;
 	uint8_t progress_percent = PLDM_FWUP_MAX_PROGRESS_PERCENT;
 	uint8_t reason_code = 0;
@@ -2394,13 +2394,15 @@ int pldm_fwup_generate_get_status_request(struct pldm_fwup_ua_state *state, uint
  * Process a GetStatus response.
  * 
  * @param state - Variable context for a PLDM FWUP.
+ * @param update_info - Update information retained by UA.
  * @param response - The response data to process.
  * 
  * @return 0 on success or an error code.
  * 
- * @note For AMI, this is skeleton code. The current implementation of the firmware update flow does not ever call GetStatus, so the extracted fields are not saved.  
+ * @note For AMI, this is skeleton code. The current implementation of the firmware update flow does not ever call GetStatus. 
 */
-int pldm_fwup_process_get_status_response(struct pldm_fwup_ua_state *state, struct cmd_interface_msg *response)
+int pldm_fwup_process_get_status_response(struct pldm_fwup_ua_state *state, struct pldm_fwup_ua_update_info *update_info,
+     struct cmd_interface_msg *response)
 {
     if (state->previous_cmd != PLDM_GET_STATUS) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
@@ -2423,6 +2425,15 @@ int pldm_fwup_process_get_status_response(struct pldm_fwup_ua_state *state, stru
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    update_info->fd_status.aux_state = aux_state;
+    update_info->fd_status.aux_state_status = aux_state_status;
+    update_info->fd_status.current_state = current_state;
+    update_info->fd_status.previous_state = previous_state;
+    update_info->fd_status.progress_percent = progress_percent;
+    update_info->fd_status.reason_code = reason_code;
+    update_info->fd_status.update_option_flags_enabled = update_option_flags_enabled.value;
+
 
     state->previous_completion_code = completion_code;
     response->length = 0;

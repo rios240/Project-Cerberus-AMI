@@ -22,6 +22,20 @@ struct pldm_fwup_flash_manager {
 };
 
 /**
+ * Variable status of the FD that the UA receives during a GetStatus request.
+ * 
+ */
+struct pldm_fwup_fd_status {
+	uint8_t current_state;
+	uint8_t previous_state;
+	uint8_t aux_state;
+	uint8_t aux_state_status;
+	uint8_t progress_percent;
+	uint8_t reason_code;
+	uint32_t update_option_flags_enabled;
+};
+
+/**
  * Variable context that the UA needs to retain from the FD during a firmware update. 
  * 
  * @note The component flash regions will be equal to the number of components in the component image list.
@@ -35,6 +49,7 @@ struct pldm_fwup_ua_update_info {
     enum pldm_firmware_update_apply_result_values apply_result;                     /**< The result the FD returns during the apply state. */
     uint16_t comp_activation_methods_modification;                                  /**< Component activation methods modified by the FD.*/
     uint16_t estimated_time_activation;                                             /**< The time the FD needs to activate all firmware. */
+    struct pldm_fwup_fd_status fd_status;                                           /**< Status the FD returns after receiving a GetStatus command. */
 };
 
 /**
