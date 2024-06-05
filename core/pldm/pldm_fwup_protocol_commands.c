@@ -561,9 +561,9 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
     
 
     printf("FD received comp ver: %s.\n", (const char *)comp_ver_str.ptr);
-    printf("FD received comp ver str len: %s.\n", comp_ver_str.length);
+    printf("FD received comp ver str len: %d.\n", comp_ver_str.length);
     printf("FD active comp ver: %s.\n", (const char *)fw_parameters->entries[fw_parameters_idx].active_comp_ver.version_str);
-    printf("FD active comp ver str len: %s.\n", fw_parameters->entries[fw_parameters_idx].active_comp_ver.version_str_length);
+    printf("FD active comp ver str len: %d.\n", fw_parameters->entries[fw_parameters_idx].active_comp_ver.version_str_length);
 
     if (comp_comparison_stamp == fw_parameters->entries[fw_parameters_idx].active_comp_comparison_stamp) {
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
