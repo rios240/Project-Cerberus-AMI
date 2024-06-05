@@ -489,6 +489,7 @@ TEST (pldm_fwup_protocol_ua_commands_test_verify_complete);
 TEST (pldm_fwup_protocol_ua_commands_test_apply_complete);
 TEST (pldm_fwup_protocol_ua_commands_test_activate_firmware);
 TEST (pldm_fwup_protocol_ua_commands_test_get_status);
+TEST (pldm_fwup_protocol_ua_commands_test_cancel_update_component);
 //TEST (pldm_fwup_protocol_ua_commands_test_get_package_data);
 //TEST (pldm_fwup_protocol_ua_commands_test_get_device_meta_data);
 
