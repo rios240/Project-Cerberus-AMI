@@ -109,6 +109,55 @@ static void pldm_fwup_protocol_fd_commands_test_request_update(CuTest *test) {
     close_global_server_socket();
 }
 
+static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_DEVICE_METADATA;
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_protocol_component_entry));
+    testing.fwup_mgr.fd_mgr.update_info.num_components = PLDM_FWUP_NUM_COMPONENTS;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+
+    do {
+        status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+        CuAssertIntEquals(test, 0, status);
+        CuAssertIntEquals(test, PLDM_PASS_COMPONENT_TABLE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+        CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+    } while (testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag != PLDM_START_AND_END && 
+        testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag != PLDM_END);
+    
+    CuAssertIntEquals(test, PLDM_FD_STATE_READY_XFER, testing.fwup_mgr.fd_mgr.state.current_state);
+    CuAssertIntEquals(test, PLDM_COMP_FIRMWARE, testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification);
+    CuAssertIntEquals(test, 29485, testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_identifier);
+    CuAssertIntEquals(test, 3780935208, testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_comparison_stamp);
+    CuAssertIntEquals(test, testing.fwup_mgr.fd_mgr.fw_parameters->entries[0].comp_classification_index, 
+        testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification_index);
+    CuAssertIntEquals(test, PLDM_COMP_MIDDLEWARE, testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification);
+    CuAssertIntEquals(test, 29490, testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_identifier);
+    CuAssertIntEquals(test, 3780935211, testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_comparison_stamp);
+    CuAssertIntEquals(test, testing.fwup_mgr.fd_mgr.fw_parameters->entries[1].comp_classification_index, 
+        testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification_index);
+
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+}
+
 static void pldm_fwup_protocol_fd_commands_test_update_component(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -152,6 +201,39 @@ static void pldm_fwup_protocol_fd_commands_test_update_component(CuTest *test) {
     release_testing(&testing);
     close_global_server_socket();
 }
+
+static void pldm_fwup_protocol_fd_commands_test_request_firmware_data(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
+    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    
+
+    status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+    CuAssertIntEquals(test, 0, status);
+    CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
+    CuAssertIntEquals(test, PLDM_REQUEST_FIRMWARE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+}
+
 
 /*
 static void pldm_fwup_protocol_fd_commands_test_get_package_data(CuTest *test) {
@@ -226,54 +308,6 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data(CuTest *tes
     close_global_server_socket();
 }
 */
-
-static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *test) {
-    struct pldm_fwup_protocol_testing_ctx testing_ctx;
-    struct pldm_fwup_protocol_flash_ctx flash_ctx;
-    struct pldm_fwup_protocol_commands_testing testing;
-
-    TEST_START;
-
-    int status = initialize_global_server_socket();
-    CuAssertIntEquals(test, 0, status);
-
-    setup_flash_ctx(&flash_ctx, test);
-    setup_testing_ctx(&testing_ctx, &flash_ctx);
-    setup_fd_device_manager(&testing.device_mgr, test);
-    setup_testing(&testing, &testing_ctx, test);
-
-    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_DEVICE_METADATA;
-    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
-    testing.fwup_mgr.fd_mgr.update_info.comp_entries = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_protocol_component_entry));
-    testing.fwup_mgr.fd_mgr.update_info.num_components = PLDM_FWUP_NUM_COMPONENTS;
-    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
-
-    do {
-        status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
-        CuAssertIntEquals(test, PLDM_PASS_COMPONENT_TABLE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
-        CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
-    } while (testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag != PLDM_START_AND_END && 
-        testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag != PLDM_END);
-    
-    CuAssertIntEquals(test, PLDM_FD_STATE_READY_XFER, testing.fwup_mgr.fd_mgr.state.current_state);
-    CuAssertIntEquals(test, PLDM_COMP_FIRMWARE, testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification);
-    CuAssertIntEquals(test, 29485, testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_identifier);
-    CuAssertIntEquals(test, 3780935208, testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_comparison_stamp);
-    CuAssertIntEquals(test, testing.fwup_mgr.fd_mgr.fw_parameters->entries[0].comp_classification_index, 
-        testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification_index);
-    CuAssertIntEquals(test, PLDM_COMP_MIDDLEWARE, testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification);
-    CuAssertIntEquals(test, 29490, testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_identifier);
-    CuAssertIntEquals(test, 3780935211, testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_comparison_stamp);
-    CuAssertIntEquals(test, testing.fwup_mgr.fd_mgr.fw_parameters->entries[1].comp_classification_index, 
-        testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification_index);
-
-
-    release_flash_ctx(&flash_ctx);
-    release_testing_ctx(&testing_ctx);
-    release_device_manager(&testing.device_mgr);
-    release_testing(&testing);
-    close_global_server_socket();
-}
 
 
 TEST_SUITE_START (pldm_fwup_protocol_fd_commands);
