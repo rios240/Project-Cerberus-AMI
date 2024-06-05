@@ -951,6 +951,7 @@ int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, 
     }
 
     state->previous_cmd = PLDM_APPLY_COMPLETE;
+    printf("Previous cmd 1: %d.\n", state->previous_cmd);
     instance_id += 1;
     return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
 }
@@ -965,6 +966,7 @@ int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, 
 */
 int pldm_fwup_process_apply_complete_response(struct pldm_fwup_fd_state *state, struct cmd_interface_msg *response)
 {
+    printf("Previous cmd 2: %d.\n", state->previous_cmd);
     if (state->previous_cmd != PLDM_APPLY_COMPLETE) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
     }

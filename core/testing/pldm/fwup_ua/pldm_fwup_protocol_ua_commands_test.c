@@ -277,7 +277,7 @@ static void pldm_fwup_protocol_ua_commands_test_verify_complete(CuTest *test) {
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_VERIFY_COMPLETE, testing.fwup_mgr.ua_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
-    CuAssertIntEquals(test, PLDM_FWUP_VERIFY_SUCCESS, testing.fwup_mgr.ua_mgr.update_info.transfer_result);
+    CuAssertIntEquals(test, PLDM_FWUP_VERIFY_SUCCESS, testing.fwup_mgr.ua_mgr.update_info.verify_result);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -307,7 +307,7 @@ static void pldm_fwup_protocol_ua_commands_test_apply_complete(CuTest *test) {
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_APPLY_COMPLETE, testing.fwup_mgr.ua_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
-    CuAssertIntEquals(test, PLDM_FWUP_APPLY_SUCCESS, testing.fwup_mgr.ua_mgr.update_info.transfer_result);
+    CuAssertIntEquals(test, PLDM_FWUP_APPLY_SUCCESS, testing.fwup_mgr.ua_mgr.update_info.apply_result);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
