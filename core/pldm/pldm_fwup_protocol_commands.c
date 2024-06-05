@@ -553,18 +553,6 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
         comp_num = 0;
     }
 
-    printf("FD calculated comp num: %u.\n", comp_num);
-    printf("FD calculated fw parameter idx: %d.\n", fw_parameters_idx);
-    printf("FD received transfer flag: %u.\n", transfer_flag);
-    printf("FD received comp comparison stamp: %u\n", comp_comparison_stamp);
-    printf("FD active comp comparison stamp: %u\n", fw_parameters->entries[fw_parameters_idx].active_comp_comparison_stamp);
-    
-
-    printf("FD received comp ver: %s.\n", (const char *)comp_ver_str.ptr);
-    printf("FD received comp ver str len: %d.\n", comp_ver_str.length);
-    printf("FD active comp ver: %s.\n", (const char *)fw_parameters->entries[fw_parameters_idx].active_comp_ver.version_str);
-    printf("FD active comp ver str len: %d.\n", fw_parameters->entries[fw_parameters_idx].active_comp_ver.version_str_length);
-
     if (comp_comparison_stamp == fw_parameters->entries[fw_parameters_idx].active_comp_comparison_stamp) {
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_COMPARISON_STAMP_IDENTICAL;
@@ -1836,12 +1824,6 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = sizeof (struct pldm_pass_component_table_req) + comp_ver.length;
-
-    printf("UA comp num: %u.\n", comp_num);
-    printf("UA sent transfer flag: %u.\n", transfer_flag);
-    printf("UA sent comp comparison stamp: %u.\n", comp_comparison_stamp);
-    printf("UA sent comp ver str: %s.\n", (const char *)comp_ver.ptr);
-    printf("UA sent comp ver str len: %u.\n", comp_ver.length);
 
     int status = encode_pass_component_table_req(instance_id, transfer_flag, comp_classification, comp_identifier, 
         comp_classification_index, comp_comparison_stamp, comp_ver_str_type, comp_ver_str_len, &comp_ver, rq, rq_payload_length);
