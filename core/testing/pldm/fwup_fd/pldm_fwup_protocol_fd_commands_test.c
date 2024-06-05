@@ -249,12 +249,12 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table(CuTest *tes
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
 
     do {
+        printf("Transfer flag: %u.\n", testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag);
         status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
         CuAssertIntEquals(test, 0, status);
         CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, testing.fwup_mgr.fd_mgr.state.current_state);
         CuAssertIntEquals(test, PLDM_PASS_COMPONENT_TABLE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
-        printf("Transfer flag: %u.\n", testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag);
     } while (testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag != PLDM_END && 
         testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag != PLDM_START_AND_END);
     

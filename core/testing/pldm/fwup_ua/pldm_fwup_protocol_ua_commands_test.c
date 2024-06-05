@@ -244,8 +244,6 @@ static void pldm_fwup_protocol_ua_commands_test_pass_component_table(CuTest *tes
         CuAssertIntEquals(test, PLDM_PASS_COMPONENT_TABLE, testing.fwup_mgr.ua_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
     }
-    printf("CRC for comp 1: %d\n", testing.fwup_mgr.ua_mgr.comp_img_entries[0].comp_resp_code);
-    printf("CRC for comp 2: %d\n", testing.fwup_mgr.ua_mgr.comp_img_entries[1].comp_resp_code);
 
     CuAssertIntEquals(test, PLDM_CR_COMP_CAN_BE_UPDATED, testing.fwup_mgr.ua_mgr.comp_img_entries[0].comp_resp);
     CuAssertIntEquals(test, PLDM_CRC_COMP_CAN_BE_UPDATED, testing.fwup_mgr.ua_mgr.comp_img_entries[0].comp_resp_code);

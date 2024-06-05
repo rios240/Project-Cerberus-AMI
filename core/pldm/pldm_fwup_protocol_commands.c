@@ -582,6 +582,8 @@ exit:;
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     update_info->comp_transfer_flag = transfer_flag;
+    prtintf("FD received transfer flag: %u\n", transfer_flag);
+    printf("FD saved transfer flag: %u\n", update_info->comp_transfer_flag);
     if (transfer_flag == PLDM_START || transfer_flag == PLDM_MIDDLE) {
         switch_state(state, PLDM_FD_STATE_LEARN_COMPONENTS);
     } 
