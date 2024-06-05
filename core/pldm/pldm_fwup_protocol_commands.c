@@ -574,7 +574,7 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
         comp_resp_code = PLDM_CRC_COMP_COMPARISON_STAMP_LOWER;
     } 
     else if (buffer_compare(comp_ver_str.ptr, (const uint8_t *)fw_parameters->entries[fw_parameters_idx].active_comp_ver.version_str, 
-        comp_ver_str.length)) {
+        comp_ver_str.length) == 0) {
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_VER_STR_IDENTICAL;
     } else {
@@ -679,7 +679,7 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
         comp_compatibility_resp_code = PLDM_CCRC_COMP_COMPARISON_STAMP_LOWER;
     } 
     else if (buffer_compare(comp_ver.ptr, (const uint8_t *)comp_entries[comp_num].comp_ver.version_str, 
-        comp_ver.length) && !update_option_flags_enabled.bits.bit0) {
+        comp_ver.length) == 0 && !update_option_flags_enabled.bits.bit0) {
         comp_compatibility_resp = PLDM_CCR_COMP_CANNOT_BE_UPDATED;
         comp_compatibility_resp_code = PLDM_CCRC_COMP_VER_STR_IDENTICAL;
     } else {
