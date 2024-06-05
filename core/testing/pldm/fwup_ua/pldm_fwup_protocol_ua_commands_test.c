@@ -216,6 +216,7 @@ static void pldm_fwup_protocol_ua_commands_test_request_firmware_data(CuTest *te
         CuAssertIntEquals(test, 0, status);
         CuAssertIntEquals(test, PLDM_REQUEST_FIRMWARE_DATA, testing.fwup_mgr.ua_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
+        i++;
     }
 
     release_flash_ctx(&flash_ctx);
