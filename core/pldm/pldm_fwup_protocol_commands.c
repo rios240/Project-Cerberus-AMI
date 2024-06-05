@@ -502,7 +502,13 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
-    update_info->comp_transfer_flag = transfer_flag;
+    static uint8_t comp_num = 0;
+    if (transfer_flag == PLDM_START || transfer_flag == PLDM_START_AND_END) {
+        comp_num = 0;
+    }
+    else if (transfer_flag == PLDM_MIDDLE || transfer_flag == PLDM_END) {
+        comp_num += 1;
+    }
 
     uint8_t completion_code = PLDM_SUCCESS;
 	uint8_t comp_resp = 0;
@@ -521,29 +527,10 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
         goto exit;
     }
 
-    static uint8_t comp_table_idx = 0;
-    if (transfer_flag == PLDM_START || transfer_flag == PLDM_START_AND_END) {
-        comp_table_idx = 0;
-    }
-    else if (transfer_flag == PLDM_MIDDLE || transfer_flag == PLDM_END) {
-        comp_table_idx += 1;
-    }
-
-    update_info->comp_entries[comp_table_idx].comp_classification = comp_classification;
-    update_info->comp_entries[comp_table_idx].comp_classification_index = comp_classification_index;
-    update_info->comp_entries[comp_table_idx].comp_comparison_stamp = comp_comparison_stamp;
-    update_info->comp_entries[comp_table_idx].comp_identifier = comp_identifier;
-    memcpy(update_info->comp_entries[comp_table_idx].comp_ver.version_str, comp_ver_str.ptr, comp_ver_str.length);
-    update_info->comp_entries[comp_table_idx].comp_ver.version_str_length = comp_ver_str_len;
-    update_info->comp_entries[comp_table_idx].comp_ver.version_str_type = comp_ver_str_type;
-    if (transfer_flag == PLDM_END) {
-        comp_table_idx = 0;
-    }
-
-    int comp_num;
+    int fw_parameters_idx;
     bool comp_supported = 0;
-    for (comp_num = 0; comp_num < fw_parameters->count; comp_num++) {
-        if (comp_classification_index == fw_parameters->entries[comp_num].comp_classification_index) {
+    for (fw_parameters_idx = 0; fw_parameters_idx < fw_parameters->count; fw_parameters_idx++) {
+        if (comp_classification_index == fw_parameters->entries[fw_parameters_idx].comp_classification_index) {
             comp_supported = 1;
             break;
         }
@@ -552,16 +539,35 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
     if (!comp_supported) {
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_NOT_SUPPORTED;
+        goto exit;
     }
-    else if (comp_comparison_stamp == fw_parameters->entries[comp_num].active_comp_comparison_stamp) {
+
+    update_info->comp_entries[comp_num].comp_classification = comp_classification;
+    update_info->comp_entries[comp_num].comp_classification_index = comp_classification_index;
+    update_info->comp_entries[comp_num].comp_comparison_stamp = comp_comparison_stamp;
+    update_info->comp_entries[comp_num].comp_identifier = comp_identifier;
+    memcpy(update_info->comp_entries[comp_num].comp_ver.version_str, comp_ver_str.ptr, comp_ver_str.length);
+    update_info->comp_entries[comp_num].comp_ver.version_str_length = comp_ver_str_len;
+    update_info->comp_entries[comp_num].comp_ver.version_str_type = comp_ver_str_type;
+    if (transfer_flag == PLDM_END) {
+        comp_num = 0;
+    }
+
+    printf("FD calculated comp num: %d.\n", comp_num);
+    printf("FD calculated fw parameter idx: %d.\n", fw_parameters_idx);
+    printf("FD received transfer flag: %d.\n", transfer_flag);
+    printf("FD received comp comparison stamp: %d\n", comp_comparison_stamp);
+    printf("FD active comp comparison stamp: %d\n", fw_parameters->entries[fw_parameters_idx].active_comp_comparison_stamp);
+
+    if (comp_comparison_stamp == fw_parameters->entries[fw_parameters_idx].active_comp_comparison_stamp) {
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_COMPARISON_STAMP_IDENTICAL;
     } 
-    else if (comp_comparison_stamp < fw_parameters->entries[comp_num].active_comp_comparison_stamp) {
+    else if (comp_comparison_stamp < fw_parameters->entries[fw_parameters_idx].active_comp_comparison_stamp) {
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_COMPARISON_STAMP_LOWER;
     } 
-    else if (buffer_compare(comp_ver_str.ptr, (const uint8_t *)fw_parameters->entries[comp_num].active_comp_ver.version_str, 
+    else if (buffer_compare(comp_ver_str.ptr, (const uint8_t *)fw_parameters->entries[fw_parameters_idx].active_comp_ver.version_str, 
         comp_ver_str.length)) {
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_VER_STR_IDENTICAL;
@@ -581,6 +587,7 @@ exit:;
 
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_PASS_COMPONENT_TABLE;
+    update_info->comp_transfer_flag = transfer_flag;
     if (transfer_flag == PLDM_START || transfer_flag == PLDM_MIDDLE) {
         switch_state(state, PLDM_FD_STATE_LEARN_COMPONENTS);
     } 
@@ -1823,6 +1830,10 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = sizeof (struct pldm_pass_component_table_req) + comp_ver.length;
+
+    printf("UA comp num: %d.\n", comp_num);
+    printf("UA sent transfer flag: %d.\n", transfer_flag);
+    printf("UA sent comp comparison stamp: %d.\n", comp_comparison_stamp);
 
     int status = encode_pass_component_table_req(instance_id, transfer_flag, comp_classification, comp_identifier, 
         comp_classification_index, comp_comparison_stamp, comp_ver_str_type, comp_ver_str_len, &comp_ver, rq, rq_payload_length);
