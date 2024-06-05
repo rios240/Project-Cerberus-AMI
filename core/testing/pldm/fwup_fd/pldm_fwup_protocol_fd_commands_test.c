@@ -343,6 +343,40 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete(CuTest *test) {
     close_global_server_socket();
 }
 
+static void pldm_fwup_protocol_fd_commands_test_activate_firmware(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    testing.fwup_mgr.fd_mgr.state.previous_completion_code = PLDM_SUCCESS;
+
+
+    status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+    CuAssertIntEquals(test, 0, status);
+    CuAssertIntEquals(test, PLDM_FD_STATE_ACTIVATE, testing.fwup_mgr.fd_mgr.state.current_state);
+    CuAssertIntEquals(test, PLDM_ACTIVATE_FIRMWARE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+    CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+    CuAssertIntEquals(test, 1, testing.fwup_mgr.fd_mgr.update_info.self_contained_activation_req);
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+}
+
 /*
 static void pldm_fwup_protocol_fd_commands_test_get_package_data(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
@@ -429,6 +463,7 @@ TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data);
 TEST (pldm_fwup_protocol_fd_commands_test_transfer_complete);
 TEST (pldm_fwup_protocol_fd_commands_test_verify_complete);
 TEST (pldm_fwup_protocol_fd_commands_test_apply_complete);
+TEST (pldm_fwup_protocol_fd_commands_test_activate_firmware);
 //TEST (pldm_fwup_protocol_fd_commands_test_get_package_data);
 //TEST (pldm_fwup_protocol_fd_commands_test_get_device_meta_data);
 
