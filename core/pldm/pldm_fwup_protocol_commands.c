@@ -2540,13 +2540,15 @@ int pldm_fwup_generate_cancel_update_request(struct pldm_fwup_ua_state *state, u
  * Process a CancelUpdate response.
  * 
  * @param state - Variable context for a PLDM FWUP.
+ * @param update_info - Update information retained by UA.
  * @param response - The response data to process.
  * 
  * @return 0 on success or an error code.
  * 
  * @note For AMI, this is skeleton code. The handling of the non functioning component indication and bitmap is left to the AMI team. 
  */
-int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, struct cmd_interface_msg *response)
+int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, struct pldm_fwup_ua_update_info *update_info, 
+    struct cmd_interface_msg *response)
 {
     if (state->previous_cmd != PLDM_CANCEL_UPDATE) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
@@ -2564,6 +2566,9 @@ int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, s
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    update_info->non_functioning_component_indication = non_functioning_component_indication;
+    update_info->non_functioning_component_bitmap.value = non_functioning_component_bitmap.value;
 
     state->previous_completion_code = completion_code;
     response->length = 0;

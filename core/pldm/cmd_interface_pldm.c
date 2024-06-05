@@ -213,7 +213,7 @@ static int cmd_interface_pldm_process_response (struct cmd_interface *intf,
             status = pldm_fwup_process_cancel_update_component_response(&interface->fwup_mgr->ua_mgr.state, response);
             break;
         case PLDM_CANCEL_UPDATE:
-            status = pldm_fwup_process_cancel_update_response(&interface->fwup_mgr->ua_mgr.state, response);
+            status = pldm_fwup_process_cancel_update_response(&interface->fwup_mgr->ua_mgr.state, &interface->fwup_mgr->ua_mgr.update_info, response);
             break;
         default:
             status = CMD_HANDLER_PLDM_UNKNOWN_RESPONSE;

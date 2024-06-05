@@ -49,6 +49,8 @@ struct pldm_fwup_ua_update_info {
     enum pldm_firmware_update_apply_result_values apply_result;                     /**< The result the FD returns during the apply state. */
     uint16_t comp_activation_methods_modification;                                  /**< Component activation methods modified by the FD.*/
     uint16_t estimated_time_activation;                                             /**< The time the FD needs to activate all firmware. */
+    bool8_t non_functioning_component_indication;                                   /**< Indication that one or more components of the FD will be non functioning. */
+    bitfield64_t non_functioning_component_bitmap;                                  /**< Bitmap corresponding to the components in the component table that will be non functioning. */
     struct pldm_fwup_fd_status fd_status;                                           /**< Status the FD returns after receiving a GetStatus command. */
 };
 

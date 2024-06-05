@@ -156,6 +156,7 @@ int pldm_fwup_generate_cancel_update_component_request(struct pldm_fwup_ua_state
 int pldm_fwup_process_cancel_update_component_response(struct pldm_fwup_ua_state *state, struct cmd_interface_msg *response);
 
 int pldm_fwup_generate_cancel_update_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len);
-int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, struct cmd_interface_msg *response);
+int pldm_fwup_process_cancel_update_response(struct pldm_fwup_ua_state *state, struct pldm_fwup_ua_update_info *update_info, 
+    struct cmd_interface_msg *response);
 
 #endif /* PLDM_FWUP_PROTOCOL_COMMANDS_H_ */
