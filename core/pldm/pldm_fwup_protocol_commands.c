@@ -951,7 +951,6 @@ int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, 
     }
 
     state->previous_cmd = PLDM_APPLY_COMPLETE;
-    printf("Previous cmd 1: %d.\n", state->previous_cmd);
     instance_id += 1;
     return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
 }
@@ -966,7 +965,6 @@ int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, 
 */
 int pldm_fwup_process_apply_complete_response(struct pldm_fwup_fd_state *state, struct cmd_interface_msg *response)
 {
-    printf("Previous cmd 2: %d.\n", state->previous_cmd);
     if (state->previous_cmd != PLDM_APPLY_COMPLETE) {
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
     }
@@ -2188,7 +2186,7 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = sizeof (completion_code);
 
-    status = encode_verify_complete_resp(instance_id, completion_code, rsp, rsp_payload_length);
+    status = encode_apply_complete_resp(instance_id, completion_code, rsp, rsp_payload_length);
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
