@@ -2025,7 +2025,7 @@ int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *s
     if (length > PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE) {
         completion_code = PLDM_FWUP_INVALID_TRANSFER_LENGTH;
     }
-    else if (state->previous_cmd != PLDM_UPDATE_COMPONENT) {
+    else if (state->previous_cmd != PLDM_UPDATE_COMPONENT || state->previous_cmd != PLDM_REQUEST_FIRMWARE_DATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
     }
     else if (offset > comp_img_entries[current_comp_num].comp_size) {
