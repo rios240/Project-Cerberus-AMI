@@ -48,7 +48,6 @@ static void pldm_fwup_get_commands_ua_test_get_package_data(CuTest *test) {
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
-    sleep(5);
 }
 
 
