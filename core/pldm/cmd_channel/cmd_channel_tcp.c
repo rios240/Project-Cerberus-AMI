@@ -83,6 +83,7 @@ void close_global_server_socket() {
 * @return 0 if a packet was successfully received or an error code.
 */
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
+    printf("Receiving packet.\n");
     if (global_server_fd == -1) {
         return CMD_CHANNEL_CREATE_SOC_ERROR;
     }
@@ -95,11 +96,19 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     gettimeofday(&start, NULL);
     long elapsed_ms;
 
+    printf("channel id: %d.\n", channel->id);
+    printf("channel overflow: %d.\n", channel->overflow);
+    printf("packet size: %zu.\n", packet->pkt_size);
+    printf("packet dest_addr: %u.\n", packet->dest_addr);
+    printf("packet state: %u.\n", packet->state);
+    printf("packet timeout_valid: %d.\n", packet->timeout_valid);
+
     do {
         client_socket = accept(global_server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         gettimeofday(&now, NULL);
         elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec - start.tv_usec) / 1000;
     } while (client_socket < 0 && elapsed_ms < ms_timeout);
+    printf("Accepted connection.\n");
 
     if (client_socket < 0) {
         platform_printf("Time-out reached.\n");
@@ -107,6 +116,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     }
 
     ssize_t valread = read(client_socket, packet->data, MCTP_BASE_PROTOCOL_MAX_PACKET_LEN);
+    printf("Read packet.\n");
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
@@ -130,6 +140,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 * @return 0 if the the packet was successfully sent or an error code.
 */
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
+    printf("Sending packet.\n");
     struct sockaddr_in serv_addr;
     int sock = 0;
     int ms_timeout = PLDM_TESTING_MS_TIMEOUT;
@@ -152,6 +163,13 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     gettimeofday(&start, NULL);
     long elapsed_ms = 0;
 
+    printf("channel id: %d.\n", channel->id);
+    printf("channel overflow: %d.\n", channel->overflow);
+    printf("packet size: %zu.\n", packet->pkt_size);
+    printf("packet dest_addr: %u.\n", packet->dest_addr);
+    printf("packet state: %u.\n", packet->state);
+    printf("packet timeout_valid: %d.\n", packet->timeout_valid);
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return CMD_CHANNEL_CREATE_SOC_ERROR;
     }
@@ -162,8 +180,10 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         }
 
         int result = connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        printf("Connected to server.\n");
         if (result == 0) {
             send(sock, packet->data, packet->pkt_size, 0);
+            printf("Sent packet.\n");
             close(sock);
             return 0;
         } else {
