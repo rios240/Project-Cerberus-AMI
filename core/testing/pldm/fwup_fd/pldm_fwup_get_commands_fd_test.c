@@ -18,6 +18,83 @@ TEST_SUITE_LABEL ("pldm_fwup_get_commands_fd");
  * Testing Functions
 */
 
+static void pldm_fwup_protocol_fd_commands_test_transfer_complete(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    testing.fwup_mgr.fd_mgr.state.previous_completion_code = PLDM_SUCCESS;
+
+
+    status = send_and_receive_full_mctp_message(&testing, PLDM_TRANSFER_COMPLETE);
+    CuAssertIntEquals(test, 0, status);
+    CuAssertIntEquals(test, PLDM_FD_STATE_VERIFY, testing.fwup_mgr.fd_mgr.state.current_state);
+    CuAssertIntEquals(test, PLDM_TRANSFER_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+    CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+}
+
+static void pldm_fwup_protocol_fd_commands_test_update_component(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_protocol_component_entry));
+    testing.fwup_mgr.fd_mgr.update_info.num_components = PLDM_FWUP_NUM_COMPONENTS;
+
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification = PLDM_COMP_FIRMWARE;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_classification_index = 187;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[0].comp_identifier = 29485;
+
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification = PLDM_COMP_MIDDLEWARE;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification_index = 190;
+    testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_identifier = 29490;
+
+    status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
+    CuAssertIntEquals(test, 0, status);
+    CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
+    CuAssertIntEquals(test, PLDM_UPDATE_COMPONENT, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+    CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+    CuAssertIntEquals(test, PLDM_FWUP_COMP_SIZE, testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size);
+    CuAssertIntEquals(test, 1, testing.fwup_mgr.fd_mgr.update_info.current_comp_update_option_flags.bits.bit0);
+    CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.update_info.current_comp_num);
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+}
+
 
 static void pldm_fwup_get_commands_fd_test_get_package_data(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
@@ -94,6 +171,8 @@ static void pldm_fwup_get_commands_fd_test_get_device_meta_data(CuTest *test) {
 
 TEST_SUITE_START (pldm_fwup_get_commands_fd);
 
+TEST (pldm_fwup_protocol_fd_commands_test_transfer_complete);
+TEST (pldm_fwup_protocol_fd_commands_test_update_component);
 TEST (pldm_fwup_get_commands_fd_test_get_package_data);
 TEST (pldm_fwup_get_commands_fd_test_get_device_meta_data);
 
