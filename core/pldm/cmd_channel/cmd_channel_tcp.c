@@ -69,8 +69,6 @@ int initialize_global_server_socket() {
 void close_global_server_socket() {
     close(global_server_fd);
     global_server_fd = -1;
-    close(global_server_fd);
-    global_server_fd = -1;
 
     int sock;
     struct sockaddr_in serv_addr;
