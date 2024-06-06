@@ -25,6 +25,13 @@ static void add_all_pldm_fwup_ua_tests (CuSuite *suite)
 	TESTING_RUN_SUITE (pldm_fwup_protocol_ua_commands);
 #endif
 
+#if (defined TESTING_RUN_PLDM_FWUP_GET_COMMANDS_UA_SUITE || \
+	    defined TESTING_RUN_ALL_TESTS || defined TESTING_RUN_ALL_CORE_TESTS || \
+		(!defined TESTING_SKIP_ALL_TESTS && !defined TESTING_SKIP_ALL_CORE_TESTS)) && \
+	!defined TESTING_SKIP_PLDM_FWUP_GET_COMMANDS_UA_SUITE
+	TESTING_RUN_SUITE (pldm_fwup_get_commands_ua);
+#endif
+
 }
 
 #endif /* PLDM_FWUP_UA_ALL_TESTS_H_ */

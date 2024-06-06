@@ -24,6 +24,13 @@ static void add_all_pldm_fwup_fd_tests (CuSuite *suite)
 	!defined TESTING_SKIP_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
 	TESTING_RUN_SUITE (pldm_fwup_protocol_fd_commands);
 #endif
+
+#if (defined TESTING_RUN_PLDM_FWUP_GET_COMMANDS_FD_SUITE || \
+	    defined TESTING_RUN_ALL_TESTS || defined TESTING_RUN_ALL_CORE_TESTS || \
+		(!defined TESTING_SKIP_ALL_TESTS && !defined TESTING_SKIP_ALL_CORE_TESTS)) && \
+	!defined TESTING_SKIP_PLDM_FWUP_GET_COMMANDS_FD_SUITE
+	TESTING_RUN_SUITE (pldm_fwup_get_commands_fd);
+#endif
 }
 
 #endif /* PLDM_FWUP_FD_ALL_TESTS_H_ */

@@ -96,13 +96,6 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     gettimeofday(&start, NULL);
     long elapsed_ms;
 
-    printf("channel id: %d.\n", channel->id);
-    printf("channel overflow: %d.\n", channel->overflow);
-    printf("packet size: %zu.\n", packet->pkt_size);
-    printf("packet dest_addr: %u.\n", packet->dest_addr);
-    printf("packet state: %u.\n", packet->state);
-    printf("packet timeout_valid: %d.\n", packet->timeout_valid);
-
     do {
         client_socket = accept(global_server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         gettimeofday(&now, NULL);
@@ -119,6 +112,13 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     printf("Read packet.\n");
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
+
+    printf("channel id: %d.\n", channel->id);
+    printf("channel overflow: %d.\n", channel->overflow);
+    printf("packet size: %zu.\n", packet->pkt_size);
+    printf("packet dest_addr: %u.\n", packet->dest_addr);
+    printf("packet state: %u.\n", packet->state);
+    printf("packet timeout_valid: %d.\n", packet->timeout_valid);
 
     close(client_socket);
 
@@ -163,13 +163,6 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     gettimeofday(&start, NULL);
     long elapsed_ms = 0;
 
-    printf("channel id: %d.\n", channel->id);
-    printf("channel overflow: %d.\n", channel->overflow);
-    printf("packet size: %zu.\n", packet->pkt_size);
-    printf("packet dest_addr: %u.\n", packet->dest_addr);
-    printf("packet state: %u.\n", packet->state);
-    printf("packet timeout_valid: %d.\n", packet->timeout_valid);
-
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return CMD_CHANNEL_CREATE_SOC_ERROR;
     }
@@ -184,6 +177,14 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         if (result == 0) {
             send(sock, packet->data, packet->pkt_size, 0);
             printf("Sent packet.\n");
+
+            printf("channel id: %d.\n", channel->id);
+            printf("channel overflow: %d.\n", channel->overflow);
+            printf("packet size: %zu.\n", packet->pkt_size);
+            printf("packet dest_addr: %u.\n", packet->dest_addr);
+            printf("packet state: %u.\n", packet->state);
+            printf("packet timeout_valid: %d.\n", packet->timeout_valid);
+
             close(sock);
             return 0;
         } else {
