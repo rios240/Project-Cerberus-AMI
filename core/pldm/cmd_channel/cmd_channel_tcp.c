@@ -69,6 +69,34 @@ int initialize_global_server_socket() {
 void close_global_server_socket() {
     close(global_server_fd);
     global_server_fd = -1;
+    close(global_server_fd);
+    global_server_fd = -1;
+
+    int sock;
+    struct sockaddr_in serv_addr;
+    serv_addr.sin_family = AF_INET;
+
+#if PLDM_TESTING_ENABLE_FIRMWARE_DEVICE == 1
+    serv_addr.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);
+#else
+    serv_addr.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
+#endif
+
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+        printf("Invalid address/ Address not supported \n");
+        return;
+    }
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    while (sock < 0 && errno == EADDRINUSE) {
+        printf("Socket still in use, waiting...\n");
+        usleep(100000);
+        sock = socket(AF_INET, SOCK_STREAM, 0);
+    }
+
+    if (sock >= 0) {
+        close(sock);
+    }
 }
 
 /**
@@ -112,13 +140,6 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     printf("Read packet.\n");
     packet->pkt_size = valread;
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
-
-    printf("channel id: %d.\n", channel->id);
-    printf("channel overflow: %d.\n", channel->overflow);
-    printf("packet size: %zu.\n", packet->pkt_size);
-    printf("packet dest_addr: %u.\n", packet->dest_addr);
-    printf("packet state: %u.\n", packet->state);
-    printf("packet timeout_valid: %d.\n", packet->timeout_valid);
 
     close(client_socket);
 
@@ -177,14 +198,6 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         if (result == 0) {
             send(sock, packet->data, packet->pkt_size, 0);
             printf("Sent packet.\n");
-
-            printf("channel id: %d.\n", channel->id);
-            printf("channel overflow: %d.\n", channel->overflow);
-            printf("packet size: %zu.\n", packet->pkt_size);
-            printf("packet dest_addr: %u.\n", packet->dest_addr);
-            printf("packet state: %u.\n", packet->state);
-            printf("packet timeout_valid: %d.\n", packet->timeout_valid);
-
             close(sock);
             return 0;
         } else {
