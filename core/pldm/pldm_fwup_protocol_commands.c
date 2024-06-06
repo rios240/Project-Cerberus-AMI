@@ -276,6 +276,9 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_fd_state *state
     struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
     uint8_t *buffer, size_t buf_len)
 {
+    if (state->current_state != PLDM_FD_STATE_LEARN_COMPONENTS) {
+        return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
+    }
     static uint8_t instance_id = 1;
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
@@ -397,7 +400,7 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
     portion_of_device_meta_data.length = sizeof (completion_code);
     uint8_t device_meta_data_buf[(size_t)update_info->max_transfer_size];
 
-    if (state->previous_cmd != PLDM_GET_PACKAGE_DATA && state->previous_cmd != PLDM_GET_DEVICE_METADATA) {
+    if (state->previous_cmd != PLDM_GET_PACKAGE_DATA && state->previous_cmd != PLDM_GET_DEVICE_METADATA && state->current_state != PLDM_FD_STATE_LEARN_COMPONENTS) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
         goto exit;
     }
@@ -1001,6 +1004,9 @@ int pldm_fwup_generate_get_meta_data_request(struct pldm_fwup_fd_state *state,
     struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
     uint8_t *buffer, size_t buf_len)
 {
+    if (state->current_state == PLDM_FD_STATE_IDLE || state->current_state == PLDM_FD_STATE_LEARN_COMPONENTS) {
+        return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
+    }
     static uint8_t instance_id = 1;
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
