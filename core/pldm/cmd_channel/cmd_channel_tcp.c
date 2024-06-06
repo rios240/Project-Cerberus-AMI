@@ -69,32 +69,7 @@ int initialize_global_server_socket() {
 void close_global_server_socket() {
     close(global_server_fd);
     global_server_fd = -1;
-
-    int sock;
-    struct sockaddr_in serv_addr;
-    serv_addr.sin_family = AF_INET;
-
-#if PLDM_TESTING_ENABLE_FIRMWARE_DEVICE == 1
-    serv_addr.sin_port = htons(PLDM_TESTING_FIRMWARE_DEVICE_PORT);
-#else
-    serv_addr.sin_port = htons(PLDM_TESTING_UPDATE_AGENT_PORT);
-#endif
-
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        printf("Invalid address/ Address not supported \n");
-        return;
-    }
-
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    while (sock < 0 && errno == EADDRINUSE) {
-        printf("Socket still in use, waiting...\n");
-        usleep(100000);
-        sock = socket(AF_INET, SOCK_STREAM, 0);
-    }
-
-    if (sock >= 0) {
-        close(sock);
-    }
+    usleep(100000);
 }
 
 /**
