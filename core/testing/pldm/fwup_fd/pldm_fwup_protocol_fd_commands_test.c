@@ -568,6 +568,7 @@ TEST_SUITE_START (pldm_fwup_protocol_fd_commands);
 TEST (pldm_fwup_protocol_fd_commands_test_query_device_identifiers);
 TEST (pldm_fwup_protocol_fd_commands_test_get_firmware_parameters);
 TEST (pldm_fwup_protocol_fd_commands_test_request_update);
+TEST (pldm_fwup_protocol_fd_commands_test_get_package_data);
 TEST (pldm_fwup_protocol_fd_commands_test_pass_component_table);
 TEST (pldm_fwup_protocol_fd_commands_test_update_component);
 TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data);
@@ -579,6 +580,5 @@ TEST (pldm_fwup_protocol_fd_commands_test_get_status);
 TEST (pldm_fwup_protocol_fd_commands_test_cancel_update_component);
 TEST (pldm_fwup_protocol_fd_commands_test_cancel_update);
 TEST (pldm_fwup_protocol_fd_commands_test_get_device_meta_data);
-TEST (pldm_fwup_protocol_fd_commands_test_get_package_data);
 
 TEST_SUITE_END;
