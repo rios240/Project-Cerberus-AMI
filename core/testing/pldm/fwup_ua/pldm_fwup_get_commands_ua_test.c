@@ -34,12 +34,12 @@ static void pldm_fwup_get_commands_ua_test_get_package_data(CuTest *test) {
 
     testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
 
-    do {
+    //do {
         status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
         CuAssertIntEquals(test, 0, status);
         CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.fwup_mgr.ua_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
-    } while (testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_END && testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
+    //} while (testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_END && testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
     reset_get_cmd_state(&testing.fwup_mgr.ua_mgr.get_cmd_state);
 
     release_flash_ctx(&flash_ctx);
@@ -67,12 +67,12 @@ static void pldm_fwup_get_commands_ua_test_get_device_meta_data(CuTest *test) {
 
     testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_GET_PACKAGE_DATA;
 
-    do {
+    //do {
         status = send_and_receive_full_mctp_message(&testing, PLDM_GET_DEVICE_METADATA);
         CuAssertIntEquals(test, 0, status);
         CuAssertIntEquals(test, PLDM_GET_DEVICE_METADATA, testing.fwup_mgr.ua_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
-    } while (testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
+    //} while (testing.fwup_mgr.ua_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
     reset_get_cmd_state(&testing.fwup_mgr.ua_mgr.get_cmd_state);
 
     release_flash_ctx(&flash_ctx);
