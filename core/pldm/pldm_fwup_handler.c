@@ -202,7 +202,7 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
         }
         platform_printf("QueryDeviceIdentifier.\n");
 
-        status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_GET_FIRMWARE_PARAMETERS, fd_eid, fd_eid);
+        status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_GET_FIRMWARE_PARAMETERS, fd_eid, fd_addr);
         if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
@@ -210,7 +210,7 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
     }
 
     /* We now proceed in sending the RequestUpdate command starting the firmware update process. */
-    status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_REQUEST_UPDATE, fd_eid, fd_eid);
+    status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_REQUEST_UPDATE, fd_eid, fd_addr);
     if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
         return status;
     }
