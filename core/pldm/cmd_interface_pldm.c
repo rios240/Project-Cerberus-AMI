@@ -38,7 +38,6 @@ static int cmd_interface_pldm_process_pldm_protocol_message (
     }
 
     *pldm_command = header.command;
-    printf("Command: %u\n", *pldm_command);
 
     return 0;
 
