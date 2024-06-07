@@ -2226,6 +2226,7 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
 
     int status = decode_get_meta_data_req(rq, rq_payload_length, &data_transfer_handle, &transfer_operation_flag);
     if (status != PLDM_SUCCESS) {
+        printf("Status: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
@@ -2287,6 +2288,7 @@ exit:;
     status = encode_get_meta_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_meta_data);
     if (status != PLDM_SUCCESS) {
+        printf("Status: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
     
