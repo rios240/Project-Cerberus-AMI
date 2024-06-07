@@ -2218,6 +2218,7 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
     struct pldm_fwup_flash_manager *flash_mgr, struct pldm_fwup_protocol_multipart_transfer *get_cmd_state,
     struct cmd_interface_msg *request)
 {
+    printf("Are we executing here.\n");
     struct pldm_msg *rq = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = request->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
 
