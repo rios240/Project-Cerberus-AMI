@@ -163,6 +163,10 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     }
 
     while (elapsed_ms < ms_timeout) {
+        if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+            return CMD_CHANNEL_CREATE_SOC_ERROR;
+        }
+
         int result = connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
         if (result == 0) {
             send(sock, packet->data, packet->pkt_size, 0);
@@ -178,7 +182,6 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         elapsed_ms = (now.tv_sec - start.tv_sec) * 1000 + (now.tv_usec - start.tv_usec) / 1000;
     }
 
-    close(sock);
     platform_printf("Time-out reached.\n");
     return CMD_CHANNEL_SOC_CONNECT_ERROR;
 }
