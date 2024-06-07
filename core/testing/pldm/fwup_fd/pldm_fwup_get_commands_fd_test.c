@@ -53,7 +53,7 @@ static void pldm_fwup_get_commands_fd_test_get_package_data(CuTest *test) {
     close_global_server_socket();
 }
 
-/*
+
 static void pldm_fwup_get_commands_fd_test_get_device_meta_data(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -89,11 +89,11 @@ static void pldm_fwup_get_commands_fd_test_get_device_meta_data(CuTest *test) {
     release_testing(&testing);
     close_global_server_socket();
 }
-*/
+
 
 TEST_SUITE_START (pldm_fwup_get_commands_fd);
 
 TEST (pldm_fwup_get_commands_fd_test_get_package_data);
-//TEST (pldm_fwup_get_commands_fd_test_get_device_meta_data);
+TEST (pldm_fwup_get_commands_fd_test_get_device_meta_data);
 
 TEST_SUITE_END;
