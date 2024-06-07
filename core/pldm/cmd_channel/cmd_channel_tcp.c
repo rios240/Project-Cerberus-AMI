@@ -115,6 +115,7 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
     close(client_socket);
+    counter++;
 
     return 0;
 }
@@ -172,6 +173,7 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         if (result == 0) {
             send(sock, packet->data, packet->pkt_size, 0);
             close(sock);
+            counter++;
             return 0;
         } else {
             close(sock);
