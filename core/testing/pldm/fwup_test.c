@@ -3,6 +3,8 @@
 #include "pldm/cmd_channel/cmd_channel_tcp.h"
 #include "pldm/pldm_fwup_handler.h"
 #include "status/rot_status.h"
+#include "common/unused.h"
+#include "pldm/pldm_fwup_protocol.h"
 
 const struct pldm_fwup_protocol_component_parameter_entry PLDM_FWUP_PARAMETER_ENTRIES[] = {
     {
@@ -127,6 +129,17 @@ const struct pldm_fwup_flash_manager PLDM_FWUP_FD_FLASH_MANAGER = {
     .package_data_size = 0
 };
 
+int generate_error_packet(struct cmd_interface *intf, struct cmd_interface_msg *request,
+		uint8_t error_code, uint32_t error_data, uint8_t cmd_set)
+{
+    UNUSED (intf);
+    UNUSED (request);
+    UNUSED (error_code);
+    UNUSED (error_data);
+    UNUSED (cmd_set);
+
+    return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
+}
 
 
 void setup_flash_ctx(struct pldm_fwup_protocol_flash_ctx *flash_ctx, CuTest *test) 
@@ -236,6 +249,8 @@ void setup_testing(struct pldm_fwup_protocol_commands_testing *testing, struct p
 
     testing->channel.send_packet = send_packet;
     testing->channel.receive_packet = receive_packet;
+
+    testing_ctx->cmd_cerberus.generate_error_packet = generate_error_packet;
 
     status = mctp_interface_init(&testing->mctp, &testing_ctx->cmd_cerberus, &testing_ctx->cmd_mctp, &testing_ctx->cmd_spdm,
         &testing->pldm.base, &testing->device_mgr);
