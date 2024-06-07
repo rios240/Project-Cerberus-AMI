@@ -37,6 +37,9 @@ static void pldm_fwup_handler_ua_test_run_update_ua(CuTest *test)
     status = pldm_fwup_handler_init(&handler, &testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
 
+    status = pldm_fwup_handler_set_mode(&handler, PLDM_FWUP_HANDLER_UA_MODE);
+    CuAssertIntEquals(test, 0, status);
+
     status = handler.run_update_ua(&handler, true, testing.device_mgr.entries[2].eid, testing.device_mgr.entries[2].smbus_addr);
     CuAssertIntEquals(test, 0, status);
 

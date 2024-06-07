@@ -37,6 +37,9 @@ static void pldm_fwup_handler_fd_test_start_update_fd(CuTest *test)
     status = pldm_fwup_handler_init(&handler, &testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
 
+    status = pldm_fwup_handler_set_mode(&handler, PLDM_FWUP_HANDLER_FD_MODE);
+    CuAssertIntEquals(test, 0, status);
+
     status = handler.start_update_fd(&handler, testing.device_mgr.entries[2].eid, testing.device_mgr.entries[2].smbus_addr);
     CuAssertIntEquals(test, 0, status);
 
