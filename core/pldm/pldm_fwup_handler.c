@@ -107,6 +107,7 @@ int pldm_fwup_handler_receive_and_respond_full_mctp_message(struct cmd_channel *
         }
     } while (mctp->req_buffer.length != 0);
     
+    mctp_interface_reset_message_processing(mctp);
     return status;
 }
 

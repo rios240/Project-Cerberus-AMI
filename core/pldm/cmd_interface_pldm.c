@@ -20,7 +20,7 @@
 static int cmd_interface_pldm_process_pldm_protocol_message (
     struct cmd_interface_pldm *intf, struct cmd_interface_msg *message, uint8_t *pldm_command)
 {
-    struct pldm_msg *msg = (struct pldm_msg *)&message->data[PLDM_MCTP_BINDING_MSG_OFFSET];
+    struct pldm_msg *msg = (struct pldm_msg *)(message->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     struct pldm_header_info header = { 0 };
 
     UNUSED (intf);
