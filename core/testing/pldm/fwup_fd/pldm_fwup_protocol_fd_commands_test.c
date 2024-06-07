@@ -575,7 +575,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data(CuTest *test) {
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
-    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
+    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
 
     do {
