@@ -84,8 +84,6 @@ void close_global_server_socket() {
 * @return 0 if a packet was successfully received or an error code.
 */
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
-    static int counter = 1;
-    printf("Receive: %d\n", counter);
     if (global_server_fd == -1) {
         return CMD_CHANNEL_CREATE_SOC_ERROR;
     }
@@ -114,7 +112,6 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
     packet->dest_addr = (uint8_t)cmd_channel_get_id(channel);
 
     close(client_socket);
-    counter++;
 
     return 0;
 }
@@ -134,8 +131,6 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 * @return 0 if the the packet was successfully sent or an error code.
 */
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
-    static int counter = 1;
-    printf("Send: %d\n", counter);
     struct sockaddr_in serv_addr;
     int sock = 0;
     int ms_timeout = PLDM_TESTING_MS_TIMEOUT;
@@ -158,10 +153,6 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
     gettimeofday(&start, NULL);
     long elapsed_ms = 0;
 
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        return CMD_CHANNEL_CREATE_SOC_ERROR;
-    }
-
     while (elapsed_ms < ms_timeout) {
         if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
             return CMD_CHANNEL_CREATE_SOC_ERROR;
@@ -171,7 +162,6 @@ int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
         if (result == 0) {
             send(sock, packet->data, packet->pkt_size, 0);
             close(sock);
-            counter++;
             return 0;
         } else {
             close(sock);
