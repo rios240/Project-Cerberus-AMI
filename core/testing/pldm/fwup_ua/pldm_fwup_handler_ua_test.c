@@ -68,6 +68,13 @@ static void pldm_fwup_handler_ua_test_run_update_ua_no_inventory_cmds(CuTest *te
     setup_ua_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    testing.device_mgr.entries[2].pci_device_id = 8765;
+    testing.device_mgr.entries[2].pci_vid = 4321;
+    testing.device_mgr.entries[2].pci_subsystem_id = 2109;
+    testing.device_mgr.entries[2].pci_subsystem_vid = 6789;
+
+    testing.fwup_mgr.ua_mgr.rec_fw_parameters = *testing.fwup_mgr.fd_mgr.fw_parameters;
+
     status = pldm_fwup_handler_init(&handler, &testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
 

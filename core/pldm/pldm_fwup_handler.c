@@ -395,10 +395,9 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
     }
     /* After RequestUpdate is received the FD transitions into the Learn Components state. */
-    platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
     /* If there is package data present in the Firmware Device Identification Area of the Firmware Update Package 
      * the UA will specify this in RequestUpdate. The FD will then send the GetPackageData command to the UA. */
