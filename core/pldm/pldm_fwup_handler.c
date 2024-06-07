@@ -13,6 +13,27 @@
 
 #include "libpldm/firmware_update.h"
 
+const char * fd_state_to_str(uint8_t state)
+{
+    switch (state) {
+        case PLDM_FD_STATE_IDLE:
+            return "Idle";
+        case PLDM_FD_STATE_LEARN_COMPONENTS:
+            return "Learn Components";
+        case PLDM_FD_STATE_READY_XFER:
+            return "Ready Xfer";
+        case PLDM_FD_STATE_DOWNLOAD:
+            return "Download";
+        case PLDM_FD_STATE_VERIFY:
+            return "Verify";
+        case PLDM_FD_STATE_APPLY:
+            return "Apply";
+        case PLDM_FD_STATE_ACTIVATE:
+            return "Activate";
+        default:
+            return "";
+    }
+}
 
 /**
 * Generate PLDM FWUP request for use in the MCTP interface
@@ -196,26 +217,27 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
      * the QueryDeviceIdentifier command and the GetFirmwareParameter command so that Cerberus
      * has the most recent configuration from the FD it is trying to update. */
     if (inventory_cmds) {
+        platform_printf("Handler UA issues: QueryDeviceIdentifier.\n");
         status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_QUERY_DEVICE_IDENTIFIERS, fd_eid, fd_addr);
         if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("QueryDeviceIdentifier.\n");
 
+        platform_printf("Handler UA issues: GetFirmwareParameters.\n");
         status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_GET_FIRMWARE_PARAMETERS, fd_eid, fd_addr);
         if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("GetFirmwareParameters.\n");
     }
 
+    platform_printf("Handler UA issues: RequestUpdate.\n");
     /* We now proceed in sending the RequestUpdate command starting the firmware update process. */
     status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_REQUEST_UPDATE, fd_eid, fd_addr);
     if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
         return status;
     }
-    platform_printf("RequestUpdate.\n");
 
+    platform_printf("Handler UA receives: GetPackageData.\n");
     /* If there was package data present in the Firmware Device Identification Area of the Firmware Update Package then 
      * the FD will specify to the UA that it will send the GetPackageData command. */
     if (ua_mgr->update_info.fd_will_send_pkg_data_cmd) {
@@ -228,9 +250,9 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
             }
         } while (ua_mgr->get_cmd_state.transfer_flag != PLDM_END && ua_mgr->get_cmd_state.transfer_flag != PLDM_START_AND_END);
         reset_get_cmd_state(&ua_mgr->get_cmd_state);
-        platform_printf("GetPackageData.\n");
     }
 
+    platform_printf("Handler UA issues: GetDeviceMetaData.\n");
     /* If the FD has specified that it has additional meta data it needs to UA to retain
      * then the UA will send the GetDeviceMetaData command. */
     if (ua_mgr->update_info.fd_meta_data_len > 0) {
@@ -246,9 +268,9 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
             }
         } while (ua_mgr->get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
         reset_get_cmd_state(&ua_mgr->get_cmd_state);
-        platform_printf("GetDeviceMetaData.\n");
     }
 
+    platform_printf("Handler UA issues: PassComponentTable.\n");
     /* Now we pass the component table to the FD. The component table is a list of component information
      * from the Component Image Information Area from the Firmware Update Package. */
     int num_components = ua_mgr->num_components;
@@ -258,22 +280,24 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
             return status;
         }
     }
-    platform_printf("PassComponentTable.\n");
 
     /* After passing the component parameter table we can begin to update each firmware component. */
     for (ua_mgr->current_comp_num = 0; ua_mgr->current_comp_num < num_components; ua_mgr->current_comp_num++) {
+
+        platform_printf("Handler UA issues: UpdateComponent %u.\n", ua_mgr->current_comp_num);
         /* We first send the UpdateComponent command to specify to the FD which component should be updated. 
          * We do this by sequentially traversing the component list although this can be changed to be any order. */
         status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_UPDATE_COMPONENT, fd_eid, fd_addr);
         if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("UpdateComponent.\n");
 
+        platform_printf("Handler UA waits.\n");
         /* We then sleep for as long as the FD specified durng the UpdateComponent command
          * before receiving RequestFirmwareData command. */
         platform_msleep(ua_mgr->comp_img_entries[ua_mgr->current_comp_num].time_before_req_fw_data * 1000);
 
+        platform_printf("Handler UA receives: RequestFirmwareData until TransferComplete.\n");
         /* After receiving the UpdateComponent command the FD will begin to request parts of the 
          * firmware image via the RequestFirmwareData command. The UA will continue to receive until the FD
          * sends the TransferComplete command. */
@@ -283,8 +307,9 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
                 return status;
             }
         } while (ua_mgr->state.previous_cmd != PLDM_TRANSFER_COMPLETE);
-        platform_printf("RequestFirmwareData and TransferComplete.\n");
 
+
+        platform_printf("Handler UA receives: VerifyComplete.\n");
         /* After the firmware component image has been transferred the FD will verify the image. We leave the implementation of the
          * verify stage up to the AMI team including the mechanism by which the UA will wait for verification to complete.
          * In lieu of the implementation we immediately receive the VerifyComplete command. A few examples of the mechanism 
@@ -297,8 +322,8 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
         if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("VerifyComplete.\n");
 
+        platform_printf("Handler UA receives: ApplyComplete.\n");
         /* After verification is completed the FD will then transfer the component to a storage area and send ApplyComplete
          * command once it is done. Similarly to the verify stage, the FD may take significant time to transfer the component
          * in which case the UA needs a mechanism to wait. In lieu of this we immediately receive the ApplyComplete command. */
@@ -306,9 +331,9 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
         if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("ApplyComplete.\n");
     }
 
+    platform_printf("Handler UA issues: ActivateFirmware.\n");
     /* After all the firmware components have been downloaded, verified, and applied the UA sends the ActivateFirmware command
      * with a boolean flag telling the FD whether to activate any self-contained component or not. Setting this flag is to the
      * chosen value is left up to the AMI team. */
@@ -316,7 +341,6 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
     if ((status = pldm_fwup_handler_check_operation_status(status, ua_mgr->state.previous_completion_code)) != 0) {
         return status;
     }
-    platform_printf("ActivateFirmware.\n");
 
     return 0;
 }
@@ -346,35 +370,40 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
 
     int status;
 
+    platform_printf("Handler FD receives: ");
     /* The FD waits to receive the first command issued by the UA. If it was not RequestUpdate then we know the UA is
      * sending the inventory commands first. */
     status = pldm_fwup_handler_receive_and_respond_full_mctp_message(handler->channel, handler->mctp, handler->timeout_ms);
     if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
         return status;
     }
-    platform_printf("First command: %u.\n", fd_mgr->state.previous_cmd);
+    platform_printf("%s.\n", fd_mgr->state.previous_cmd == PLDM_REQUEST_UPDATE ? "RequestUpdate" : "QueryDeviceIdentifiers");
+    platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
     if (fd_mgr->state.previous_cmd != PLDM_REQUEST_UPDATE) {
-        /* If the first command was not RequestUpdate then process the second inventory command. */
+        platform_printf("Handler FD receives: GetFirmwareParameters.\n");
+        /* If the first command was not RequestUpdate then receive and process the second inventory command. */
         status = pldm_fwup_handler_receive_and_respond_full_mctp_message(handler->channel, handler->mctp, handler->timeout_ms);
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("Second command: %u.\n", fd_mgr->state.previous_cmd);
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
-        /* After processing both inventory commands the FD should then process the RequestUpdate command. */
+        platform_printf("Handler FD receives: RequestUpdate.\n");
+        /* After processing both inventory commands the FD should then receive and process the RequestUpdate command. */
         status = pldm_fwup_handler_receive_and_respond_full_mctp_message(handler->channel, handler->mctp, handler->timeout_ms);
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("RequestUpdate.\n");
         
     }
     /* After RequestUpdate is received the FD transitions into the Learn Components state. */
+    platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
     /* If there is package data present in the Firmware Device Identification Area of the Firmware Update Package 
      * the UA will specify this in RequestUpdate. The FD will then send the GetPackageData command to the UA. */
     if (fd_mgr->update_info.package_data_len > 0) {
+        platform_printf("Handler FD issues: GetPackageData.\n");
         /* Since this is a multipart transfer we will send GetPackageData commands
          * so long as the transfer flag does not indicate the end of the transfer. After the first
          * GetPackageData command is sent the transfer operation flag will switch to indicate to
@@ -387,12 +416,13 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
             }
         } while (fd_mgr->get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
         reset_get_cmd_state(&fd_mgr->get_cmd_state);
-        platform_printf("GetPackageData.\n");
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
     }
 
     /* If the FD has meta data to send to the UA then it will indicate that in its response to the 
      * RequestUpdate command. */
     if (fd_mgr->flash_mgr->device_meta_data_size > 0) {
+        platform_printf("Handler FD receives: GetDeviceMetaData.\n");
         /* Since this is a multipart transfer we will receive and respond to GetDeviceMetaData commands
          * so long as the transfer flag does not indicate the end of the transfer. */
         do {
@@ -402,10 +432,10 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
             }
         } while (fd_mgr->get_cmd_state.transfer_flag != PLDM_END && fd_mgr->get_cmd_state.transfer_flag != PLDM_START_AND_END);
         reset_get_cmd_state(&fd_mgr->get_cmd_state);
-        platform_printf("GetDeviceMetaData.\n");
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
     }
 
-
+    platform_printf("Handler FD receives: PassComponentTable.\n");
     /* After the GetPackageData and GetDeviceMetaData commands the UA will begin to transfer the component parameter table via PassComponentTable. 
      * The number of components the UA will transfer was specified in the RequestUpdate command. The order of components received
      * is determiend by the UA. */
@@ -415,21 +445,29 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
             return status;
         }
     } while (fd_mgr->update_info.comp_transfer_flag != PLDM_START_AND_END && fd_mgr->update_info.comp_transfer_flag != PLDM_END);
-    platform_printf("PassComponentTable.\n");
+    platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
+
 
     /* After receiving the component parameter table the FD transitions into the Ready Xfer state and waits to receive the 
      * UpdateComponent command. Like PassComponentTable the order by which the components are updated is determined by the UA. */
     int components_updated = 0;
     while (components_updated < fd_mgr->update_info.num_components) {
+
+        platform_printf("Handler FD receives: UpdateComponent ");
         /* Receive and respond to a UpdateComponent command. FD will transition to the Download state upon success. */
         status = pldm_fwup_handler_receive_and_respond_full_mctp_message(handler->channel, handler->mctp, handler->timeout_ms);
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("UpdateComponent.\n");
+        platform_printf("%u.\n", fd_mgr->update_info.current_comp_num);
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
+
+        platform_printf("Handler FD prepares.\n");
         platform_msleep(PLDM_FWUP_PROTOCOL_TIME_BERFORE_REQ_FW_DATA * 1000);
 
+
+        platform_printf("Handler FD issues: RequestFirmwareData until image is received.\n");
         uint32_t current_comp_img_size = fd_mgr->update_info.current_comp_img_size;
         uint32_t max_transfer_size = fd_mgr->update_info.max_transfer_size;
         for (fd_mgr->update_info.current_comp_img_offset = 0; 
@@ -443,23 +481,29 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
                 return status;
             }
         }
-        platform_printf("RequestFirmwareData.\n");
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
+
+        platform_printf("Handler FD issues: TransferComplete.\n");
         /* After the FD downloads the image it will send a TransferComplete command to the UA and transition into the Verify state. */
         status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_TRANSFER_COMPLETE, ua_eid, ua_addr);
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("TransferComplete.\n");
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
+
+        platform_printf("Handler FD issues: VerifyComplete.\n");
         /* The specifics on how the FD verifies the component image is left up to the AMI team. For now the FD will immediately send
          * the VerifyComplete command. After verification the FD will transition to the Apply state. */
         status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_VERIFY_COMPLETE, ua_eid, ua_addr);
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("VerifyComplete.\n");
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
+
+        platform_printf("Handler FD issues: ApplyComplete.\n");
         /* During the Apply state the FD is supposed to transfer the firmware image to a storage location. However, this was already
          * done upon each RequestFirmwareData command. Therefore, no operation is currently performed in the Apply state. The AMI team
          * could use this state to write the firmware image to another location in flash than the ones designated in the flash manager of
@@ -468,11 +512,12 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("ApplyComplete.\n");
+        platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
         components_updated++;
     }
 
+    platform_printf("Handler FD receives: ActivateFirmware.\n");
     /* After all the firmware components have been updated the UA will send the ActivateFirmware command. How the firmware
      * is activated is left up to the AMI team and their specific requirements. The time for self contained activation can be set
      * in the platform config or through some other configuration. */
@@ -480,7 +525,7 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
     if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
         return status;
     }
-    platform_printf("ActivateFirmware.\n");
+    platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
     return 0;
 }
