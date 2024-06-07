@@ -534,7 +534,7 @@ void pldm_fwup_handler_release(struct pldm_fwup_handler *handler)
  */
 int pldm_fwup_handler_set_mode(struct pldm_fwup_handler *handler, enum pldm_fwup_handler_mode mode)
 {
-    if (mode != PLDM_FWUP_HANDLER_UA_MODE && mode != PLDM_FWUP_HANDLER_UA_MODE) {
+    if (mode != PLDM_FWUP_HANDLER_UA_MODE && mode != PLDM_FWUP_HANDLER_FD_MODE) {
         return PLDM_FWUP_HANDLER_INVALID_ARGUMENT;
     }
 
