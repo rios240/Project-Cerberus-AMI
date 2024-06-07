@@ -17,7 +17,7 @@ TEST_SUITE_LABEL ("pldm_fwup_handler_ua");
  * Testing Functions
 */
 
-static void pldm_fwup_handler_ua_test_start_update_fd(CuTest *test)
+static void pldm_fwup_handler_ua_test_run_update_ua(CuTest *test)
 {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -34,6 +34,9 @@ static void pldm_fwup_handler_ua_test_start_update_fd(CuTest *test)
     setup_ua_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    status = pldm_fwup_handler_init(&handler, &testing.channel, &testing.mctp, testing.timeout_ms);
+    CuAssertIntEquals(test, 0, status);
+
     status = handler.run_update_ua(&handler, true, testing.device_mgr.entries[2].eid, testing.device_mgr.entries[2].smbus_addr);
     CuAssertIntEquals(test, 0, status);
 
@@ -47,6 +50,6 @@ static void pldm_fwup_handler_ua_test_start_update_fd(CuTest *test)
 
 TEST_SUITE_START (pldm_fwup_handler_ua);
 
-TEST (pldm_fwup_handler_ua_test_start_update_fd);
+TEST (pldm_fwup_handler_ua_test_run_update_ua);
 
 TEST_SUITE_END;
