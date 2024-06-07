@@ -2281,6 +2281,9 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
     portion_of_meta_data.ptr = (const uint8_t *)meta_data_buf;
     portion_of_meta_data.length = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 
+     printf("REQUEST/RESPONSE | instance id: %u, data transfer handle: %u, transfer op flag: %u, next data transfer handle: %u, transfer flag: %u, CRC: %u\n",
+        instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, transfer_flag, crc32(portion_of_meta_data.ptr, portion_of_meta_data.length));
+
 exit:;
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = sizeof (struct pldm_multipart_transfer_resp) + portion_of_meta_data.length;
