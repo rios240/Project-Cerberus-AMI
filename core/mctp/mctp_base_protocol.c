@@ -72,6 +72,14 @@ int mctp_base_protocol_interpret (uint8_t *buf, size_t buf_len, uint8_t dest_add
 	*tag_owner = header->tag_owner;
 	*payload = &buf[sizeof (struct mctp_base_protocol_transport_header)];
 
+    printf("mctp base interpret source_addr: %u\n", *source_addr);
+    printf("mctp base interpret dest_eid: %u\n", *dest_eid);
+    printf("mctp base interpret src_eid: %u\n", *src_eid);
+    printf("mctp base interpret packet_seq: %u\n", *packet_seq);
+    printf("mctp base interpret msg_tag: %u\n", *msg_tag);
+    printf("mctp base interpret tag_owner: %u\n", *tag_owner);
+    printf("mctp base interpret dest_addr: %u\n", dest_addr);
+
 
 	if (header->som) {
 		*msg_type = (*payload)[0];
@@ -170,6 +178,14 @@ int mctp_base_protocol_construct (uint8_t *buf, size_t buf_len, uint8_t *out_buf
 	if (out_buf_len < out_len) {
 		return MCTP_BASE_PROTOCOL_BUF_TOO_SMALL;
 	}
+
+    printf("mctp base construct source_addr: %u\n", source_addr);
+    printf("mctp base construct dest_eid: %u\n", dest_eid);
+    printf("mctp base construct src_eid: %u\n", source_eid);
+    printf("mctp base construct packet_seq: %u\n", packet_seq);
+    printf("mctp base construct msg_tag: %u\n", msg_tag);
+    printf("mctp base construct tag_owner: %u\n", tag_owner);
+    printf("mctp base construct dest_addr: %u\n", dest_addr);
 
 	memmove (&out_buf[msg_offset], buf, buf_len);
 	memset (header, 0, sizeof (struct mctp_base_protocol_transport_header));

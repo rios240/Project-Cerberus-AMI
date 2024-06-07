@@ -284,6 +284,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 	status = mctp_base_protocol_interpret (rx_packet->data, rx_packet->pkt_size,
 		rx_packet->dest_addr, &source_addr, &som, &eom, &src_eid, &dest_eid, &payload, &payload_len,
 		&msg_tag, &packet_seq, &crc, &mctp->msg_type, &tag_owner);
+    printf("Are we making it here: %u\n", status);
 	
 
 	response_addr = source_addr;
@@ -387,6 +388,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 	mctp->req_buffer.length += payload_len;
 	mctp->packet_seq = (mctp->packet_seq + 1) % 4;
 
+    printf("Are we making it here?\n");
 
 	if (eom) {
 		if (tag_owner == MCTP_BASE_PROTOCOL_TO_RESPONSE) {
@@ -460,6 +462,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 		else if (MCTP_BASE_PROTOCOL_IS_PLDM_MSG (mctp->msg_type)) {
 			mctp->req_buffer.max_response = device_manager_get_max_message_len_by_eid (
 				mctp->device_manager, src_eid);
+            printf("Are we making it here?\n");
 
 	
 			status = mctp->cmd_pldm->process_request (mctp->cmd_pldm, &mctp->req_buffer);
@@ -469,6 +472,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 
 				return status;
 			}
+            printf("Are we making it here?\n");
 		}
 		else if (MCTP_BASE_PROTOCOL_IS_VENDOR_MSG (mctp->msg_type)) {
 			header = (struct cerberus_protocol_header*) mctp->req_buffer.data;
@@ -524,6 +528,7 @@ int mctp_interface_process_packet (struct mctp_interface *mctp, struct cmd_packe
 					return status;
 				}
 			}
+            printf("Are we making it here?\n");
 
 			mctp->resp_buffer.msg_size = status;
 			mctp->resp_buffer.dest_addr = response_addr;
