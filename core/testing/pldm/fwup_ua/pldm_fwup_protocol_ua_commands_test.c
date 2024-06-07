@@ -520,6 +520,7 @@ static void pldm_fwup_protocol_ua_commands_test_get_meta_data(CuTest *test) {
     setup_testing(&testing, &testing_ctx, test);
 
     testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
+     testing.fwup_mgr.ua_mgr.flash_mgr->device_meta_data_size = PLDM_FWUP_META_DATA_SIZE;
 
     do {
         status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);

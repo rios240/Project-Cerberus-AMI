@@ -1021,6 +1021,8 @@ int pldm_fwup_generate_get_meta_data_request(struct pldm_fwup_fd_state *state,
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("REQUEST | instance: %u, data transfer handle: %u, transfer op flag: %u.\n", instance_id, data_transfer_handle, transfer_operation_flag);
+
     switch_state(state, state->current_state);
     state->previous_cmd = PLDM_GET_META_DATA;
     instance_id += 1;
@@ -1082,6 +1084,10 @@ int pldm_fwup_process_get_meta_data_response(struct pldm_fwup_fd_state *state,
         get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
         get_cmd_state->data_transfer_handle = 0;
     }
+
+     printf("RESPONSE | next data transfer handle: %u, transfer flag: %u, CRC: %u.\n", 
+        next_data_transfer_handle, transfer_flag, crc32(portion_of_meta_data.ptr, portion_of_meta_data.length));
+
 
     return status;
 }
@@ -2226,7 +2232,6 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
 
     int status = decode_get_meta_data_req(rq, rq_payload_length, &data_transfer_handle, &transfer_operation_flag);
     if (status != PLDM_SUCCESS) {
-        printf("Status 1: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
@@ -2281,7 +2286,7 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
     portion_of_meta_data.ptr = (const uint8_t *)meta_data_buf;
     portion_of_meta_data.length = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 
-     printf("REQUEST/RESPONSE | instance id: %u, data transfer handle: %u, transfer op flag: %u, next data transfer handle: %u, transfer flag: %u, CRC: %u\n",
+    printf("REQUEST/RESPONSE | instance id: %u, data transfer handle: %u, transfer op flag: %u, next data transfer handle: %u, transfer flag: %u, CRC: %u\n",
         instance_id, data_transfer_handle, transfer_operation_flag, next_data_transfer_handle, transfer_flag, crc32(portion_of_meta_data.ptr, portion_of_meta_data.length));
 
 exit:;
@@ -2291,7 +2296,6 @@ exit:;
     status = encode_get_meta_data_resp(instance_id, rsp_payload_length, rsp, completion_code,
         next_data_transfer_handle, transfer_flag, &portion_of_meta_data);
     if (status != PLDM_SUCCESS) {
-        printf("Status 2: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
     
