@@ -29,7 +29,7 @@ static void add_all_pldm_fwup_ua_tests (CuSuite *suite)
 	    defined TESTING_RUN_ALL_TESTS || defined TESTING_RUN_ALL_CORE_TESTS || \
 		(!defined TESTING_SKIP_ALL_TESTS && !defined TESTING_SKIP_ALL_CORE_TESTS)) && \
 	!defined TESTING_SKIP_PLDM_FWUP_HANDLER_UA_SUITE
-	TESTING_RUN_SUITE (pldm_fwup_handler_UA);
+	TESTING_RUN_SUITE (pldm_fwup_handler_ua);
 #endif
 
 }
