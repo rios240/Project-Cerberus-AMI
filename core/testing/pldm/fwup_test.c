@@ -256,14 +256,11 @@ void release_testing(struct pldm_fwup_protocol_commands_testing *testing)
 int receive_and_respond_full_mctp_message(struct cmd_channel *channel, struct mctp_interface *mctp, int timeout_ms)
 {
     int status;
-    int counter = 1;
     do {
-        printf("Counter: %d.\n", counter);
         status = cmd_channel_receive_and_process(channel, mctp, timeout_ms);
         if (status != 0) {
             return status;
         }
-        counter++;
     } while (mctp->req_buffer.length != 0);
     
     return status;

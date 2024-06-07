@@ -69,7 +69,7 @@ int initialize_global_server_socket() {
 void close_global_server_socket() {
     close(global_server_fd);
     global_server_fd = -1;
-    usleep(100000);
+    //usleep(100000);
 }
 
 /**
@@ -84,6 +84,9 @@ void close_global_server_socket() {
 * @return 0 if a packet was successfully received or an error code.
 */
 int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int ms_timeout) {
+    static int counter = 1;
+    printf("Receive: %d.\n", counter);
+
     if (global_server_fd == -1) {
         return CMD_CHANNEL_CREATE_SOC_ERROR;
     }
@@ -131,6 +134,9 @@ int receive_packet(struct cmd_channel *channel, struct cmd_packet *packet, int m
 * @return 0 if the the packet was successfully sent or an error code.
 */
 int send_packet(struct cmd_channel *channel, struct cmd_packet *packet) {
+    static int counter = 1;
+    printf("Send: %d.\n", counter);
+
     struct sockaddr_in serv_addr;
     int sock = 0;
     int ms_timeout = PLDM_TESTING_MS_TIMEOUT;
