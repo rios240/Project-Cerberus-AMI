@@ -48,8 +48,8 @@ Once repo is installed, it will be used to download the Cerberus source code int
 
 This will the typical method for initializing the local repository.
 ```bash
-mkdir Project-Cerberus
-cd Project-Cerberus
+mkdir Project-Cerberus-PLDM
+cd Project-Cerberus-PLDM
 repo init -u https://github.com/rios240/project-cerberus-ami-manifest.git -b main
 repo sync
 ```
@@ -58,8 +58,8 @@ repo sync
 
 If an SSH connection is desired or required to retrieve the Cerberus code, the repository must be initalized in this way.
 ```bash
-mkdir Project-Cerberus
-cd Project-Cerberus
+mkdir Project-Cerberus-PLDM
+cd Project-Cerberus-PLDM
 repo init -u git@github.com:rios240/project-cerberus-ami-manifest.git -m default-ssh.xml -b main
 repo sync
 ```
