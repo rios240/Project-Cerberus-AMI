@@ -206,7 +206,7 @@ To enable the tests and skip the other core suites:
 	python3 setup_fwup_flash_virtual_disk.py
 	```
     
-9. Complete steps 1-5 from the previous section
+9. Complete steps 1-6 from the previous section
 
 ### Unit Tests With Coverage Report
 
