@@ -171,22 +171,26 @@ To enable the tests and skip the other core suites:
 	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
 	#define TESTING_SKIP_PLDM_FWUP_HANDLER_FD_SUITE
 	#define TESTING_RUN_PLDM_FWUP_HANDLER_UA_SUITE
+    ```
     
 2. Under the Cerberus Update Agent (UA) source folder modify platform_config.h in /projects/linux/ to include:
    	```c
-    	#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         0
+    #define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         0
+    ```
     
 3. Under the Cerberus Firmware Device (FD) source folder modify user_all_tests.h in /projects/linux/testing/config/ to include:
    	```c
-    	#define TESTING_SKIP_ALL_TESTS
+    #define TESTING_SKIP_ALL_TESTS
 	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
 	#define TESTING_RUN_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
 	#define TESTING_RUN_PLDM_FWUP_HANDLER_FD_SUITE
 	#define TESTING_SKIP_PLDM_FWUP_HANDLER_UA_SUITE
+    ```
     
 4. Under the Cerberus Firmware Device (FD) source folder modify platform_config.h in /projects/linux/ to include:
    	```c
-    	#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         1
+    #define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         1
+    ```
     
 5. Complete steps 1-5 from the previous section
 
