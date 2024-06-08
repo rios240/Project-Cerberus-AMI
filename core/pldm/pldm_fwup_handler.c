@@ -284,7 +284,7 @@ int pldm_fwup_handler_run_update_ua(struct pldm_fwup_handler *handler, bool inve
     /* After passing the component parameter table we can begin to update each firmware component. */
     for (ua_mgr->current_comp_num = 0; ua_mgr->current_comp_num < num_components; ua_mgr->current_comp_num++) {
 
-        platform_printf("Handler UA issues: UpdateComponent %u.\n", ua_mgr->current_comp_num);
+        platform_printf("Handler UA issues: UpdateComponent %u.\n", ua_mgr->current_comp_num + 1);
         /* We first send the UpdateComponent command to specify to the FD which component should be updated. 
          * We do this by sequentially traversing the component list although this can be changed to be any order. */
         status = pldm_fwup_handler_send_and_receive_full_mctp_message(handler, PLDM_UPDATE_COMPONENT, fd_eid, fd_addr);
@@ -458,7 +458,7 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
-        platform_printf("%u.\n", fd_mgr->update_info.current_comp_num);
+        platform_printf("%u.\n", fd_mgr->update_info.current_comp_num + 1);
         platform_printf("State: %s.\n", fd_state_to_str(fd_mgr->state.current_state));
 
 
