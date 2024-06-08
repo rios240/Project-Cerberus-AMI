@@ -164,7 +164,7 @@ the main development environment for adding core functionality and serves as an 
 The master branch of this repository is configured to skip over the PLDM firmware update testing suites.
 To enable the tests and skip the other core suites:
 
-1. Under the Cerberus Update Agent (UA) source folder modify user_all_tests.h in projects/linux/testing/config to include:
+1. Under the Cerberus Update Agent (UA) source folder modify user_all_tests.h in projects/linux/testing/config to include
    	```c
     #define TESTING_SKIP_ALL_TESTS
 	#define TESTING_RUN_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
@@ -173,12 +173,19 @@ To enable the tests and skip the other core suites:
 	#define TESTING_RUN_PLDM_FWUP_HANDLER_UA_SUITE
     ```
     
-2. Under the Cerberus Update Agent (UA) source folder modify platform_config.h in projects/linux to include:
+2. Under the Cerberus Update Agent (UA) source folder modify platform_config.h in projects/linux to include
    	```c
     #define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         0
     ```
     
-3. Under the Cerberus Firmware Device (FD) source folder modify user_all_tests.h in projects/linux/testing/config to include:
+3. Under the Cerberus Update Agent (UA) source folder setup the binary files used for virtual flash
+    	```bash
+   	cd <cerberus_ua_src_dir>
+    	cd tools/testing/pldm
+   	python3 setup_fwup_flash_virtual_disk.py
+   	```
+    
+4. Under the Cerberus Firmware Device (FD) source folder modify user_all_tests.h in projects/linux/testing/config to include
    	```c
     #define TESTING_SKIP_ALL_TESTS
 	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
@@ -187,12 +194,19 @@ To enable the tests and skip the other core suites:
 	#define TESTING_SKIP_PLDM_FWUP_HANDLER_UA_SUITE
     ```
     
-4. Under the Cerberus Firmware Device (FD) source folder modify platform_config.h in projects/linux to include:
+5. Under the Cerberus Firmware Device (FD) source folder modify platform_config.h in projects/linux to include
    	```c
     #define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         1
     ```
     
-5. Complete steps 1-5 from the previous section
+6. Under the Cerberus Firmware Device (FD) source folder setup the binary files used for virtual flash
+    	```bash
+   	cd <cerberus_fd_src_dir>
+    	cd tools/testing/pldm
+   	python3 setup_fwup_flash_virtual_disk.py
+   	```
+    
+7. Complete steps 1-5 from the previous section
 
 ### Unit Tests With Coverage Report
 
