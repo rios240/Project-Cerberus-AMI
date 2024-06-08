@@ -130,6 +130,6 @@
 
 #define PLDM_TESTING_MS_TIMEOUT                     10000
 
-#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         1
+#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         0
 
 #endif /* PLATFORM_CONFIG_H_ */
