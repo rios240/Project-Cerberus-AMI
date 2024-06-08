@@ -345,8 +345,6 @@ int pldm_fwup_process_get_package_data_response(struct pldm_fwup_fd_state *state
         get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
     }
 
-    printf("Processing response. Package data CRC: %u.\n", crc32(portion_of_package_data.ptr, portion_of_package_data.length));
-
     return status;
 }
 
@@ -430,8 +428,6 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
     }
     portion_of_device_meta_data.ptr = (const uint8_t *)device_meta_data_buf;
     portion_of_device_meta_data.length = update_info->max_transfer_size;
-
-    printf("Generating response. Device meta data CRC: %u\n", crc32(portion_of_device_meta_data.ptr, portion_of_device_meta_data.length));
 
 exit:;
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
@@ -768,8 +764,6 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
         status = 0;
     }
 
-    printf("Processing response. Component image CRC: %u.\n", crc32(rsp->payload + 1, rsp_payload_length - sizeof (completion_code)));
-
     return status;
 }
 
@@ -1069,8 +1063,6 @@ int pldm_fwup_process_get_meta_data_response(struct pldm_fwup_fd_state *state,
         get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
         get_cmd_state->data_transfer_handle = 0;
     }
-
-    printf("Processing response. Meta data CRC: %u.\n", crc32(portion_of_meta_data.ptr, portion_of_meta_data.length));
 
     return status;
 }
@@ -1650,8 +1642,6 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_ua_state *state,
     portion_of_package_data.ptr = (const uint8_t *)package_data_buf;
     portion_of_package_data.length = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
 
-    printf("Generating response. Package data CRC: %u\n", crc32(portion_of_package_data.ptr, portion_of_package_data.length));
-
 exit:;
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = sizeof (struct pldm_multipart_transfer_resp) + portion_of_package_data.length;
@@ -1758,8 +1748,6 @@ int pldm_fwup_process_get_device_meta_data_response(struct pldm_fwup_ua_state *s
     } else {
         get_cmd_state->transfer_op_flag = PLDM_GET_FIRSTPART;
     }
-
-    printf("Processing response. Device meta data CRC: %u.\n", crc32(portion_of_device_meta_data.ptr, portion_of_device_meta_data.length));
 
     return status;
 }
@@ -2043,8 +2031,6 @@ int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *s
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
-    printf("Processing response. Component image CRC: %u.\n", crc32(rsp->payload + 1, length));
-
     state->previous_cmd = PLDM_REQUEST_FIRMWARE_DATA;
     state->previous_completion_code = completion_code;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -2266,8 +2252,6 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
     }
     portion_of_meta_data.ptr = (const uint8_t *)meta_data_buf;
     portion_of_meta_data.length = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
-
-    printf("Processing response. Meta data CRC: %u\n", crc32(portion_of_meta_data.ptr, portion_of_meta_data.length));
 
 exit:;
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
