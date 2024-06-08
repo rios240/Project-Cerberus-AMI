@@ -131,7 +131,7 @@ the main development environment for adding core functionality and serves as an 
 
 1. Install pre-requisites
 	```bash
-	sudo apt install git build-essential libssl-dev ninja-build cmake lcov
+	sudo apt install git build-essential libssl-dev ninja-build cmake lcov meson
 	```
 
 2. Install latest cmake
@@ -146,41 +146,84 @@ the main development environment for adding core functionality and serves as an 
 	# Validate CMake version is 3.16
 	cmake --version
 	```
-
-3. Under the Cerberus source folder create "build" folder
+3. Build the OpenBMC libpldm dependency
+   	```bash
+    	cd <cerberus_src_dir>
+    	cd external/openbmc-libpldm
+    	meson setup builddir -Dabi=deprecated,stable,testing -Dtests=disabled
+    	ninja -C builddir
+    	```
+    
+4. Under the Cerberus source folder create "build" folder
 	```bash
 	cd <cerberus_src_dir>
 	mkdir build
 	cd build
 	```
 
-4. Create the build scripts
+5. Create the build scripts
 	```bash
 	cmake -G Ninja ../projects/linux/testing/
 	```
 
-5. Build the Cerberus source
+6. Build the Cerberus source
 	```bash
 	ninja
 	```
 
-5. Run Unit Tests
+7. Run Unit Tests
 	```bash
 	./cerberus-linux-unit-tests
 	```
-	
+ 
+### Unit Test Build for PLDM Firmware Update
+
+The master branch of this repository is configured to skip over the PLDM firmware update testing suites.
+To enable the tests and skip the other core suites:
+
+1. Under the Cerberus Update Agent (UA) source folder modify user_all_tests.h in /projects/linux/testing/config/ to include:
+   	```c
+    	#define TESTING_SKIP_ALL_TESTS
+	#define TESTING_RUN_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
+	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
+	#define TESTING_SKIP_PLDM_FWUP_HANDLER_FD_SUITE
+	#define TESTING_RUN_PLDM_FWUP_HANDLER_UA_SUITE
+    	```
+    
+2. Under the Cerberus Update Agent (UA) source folder modify platform_config.h in /projects/linux/ to include:
+   	```c
+    	#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         0
+    	```
+    
+3. Under the Cerberus Firmware Device (FD) source folder modify user_all_tests.h in /projects/linux/testing/config/ to include:
+   	```c
+    	#define TESTING_SKIP_ALL_TESTS
+	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
+	#define TESTING_RUN_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
+	#define TESTING_RUN_PLDM_FWUP_HANDLER_FD_SUITE
+	#define TESTING_SKIP_PLDM_FWUP_HANDLER_UA_SUITE
+    	```
+    
+4. Under the Cerberus Firmware Device (FD) source folder modify platform_config.h in /projects/linux/ to include:
+   	```c
+    	#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         1
+    	```
+    
+5. Complete steps 1-5 from the previous section
+
 ### Unit Tests With Coverage Report
 
 The unit test build includes a target which runs the unit tests and generates a code coverate 
 report. If necessary, this target also builds the unit tests. The report output can be found at
 build/coverage_report.
 
-1. Complete steps 1-4 from the previous section
+1. Complete steps 1-5 from the Linux Unit Test Build section
 
 2. Build, run unit tests, and generate coverage report
 	```bash
 	ninja coverage
 	```
+
 ## Contributing
 
 Cerberus code is developed following Test-Driven Development (TDD) practices.  Any code submissions are expected to be
