@@ -130,12 +130,12 @@ the main development environment for adding core functionality and serves as an 
 	cmake --version
 	```
 3. Build the OpenBMC libpldm dependency
-   	```bash
-    	cd <cerberus_src_dir>
-    	cd external/openbmc-libpldm
-    	meson setup builddir -Dabi=deprecated,stable,testing -Dtests=disabled
-    	ninja -C builddir
-    	```
+	```bash
+	cd <cerberus_src_dir>
+	cd external/openbmc-libpldm
+	meson setup builddir -Dabi=deprecated,stable,testing -Dtests=disabled
+	ninja -C builddir
+	```
     
 4. Under the Cerberus source folder create "build" folder
 	```bash
@@ -180,7 +180,7 @@ To enable the tests and skip the other core suites:
     
 3. Under the Cerberus Update Agent (UA) source folder setup the binary files used for virtual flash
 	```bash
-	cd <cerberus_fd_src_dir>
+	cd <cerberus_ua_src_dir>
 	cd tools/testing/pldm
 	python3 setup_fwup_flash_virtual_disk.py 
 	```
