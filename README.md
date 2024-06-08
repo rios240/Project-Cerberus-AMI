@@ -165,44 +165,46 @@ The master branch of this repository is configured to skip over the PLDM firmwar
 To enable the tests and skip the other core suites:
 
 1. Under the Cerberus Update Agent (UA) source folder modify user_all_tests.h in projects/linux/testing/config to include
-   	```c
-    #define TESTING_SKIP_ALL_TESTS
+	```c
+	#define TESTING_SKIP_ALL_TESTS
 	#define TESTING_RUN_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
 	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
 	#define TESTING_SKIP_PLDM_FWUP_HANDLER_FD_SUITE
 	#define TESTING_RUN_PLDM_FWUP_HANDLER_UA_SUITE
-    ```
+	```
     
 2. Under the Cerberus Update Agent (UA) source folder modify platform_config.h in projects/linux to include
-   	```c
-    #define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         0
-    ```
+	```c
+	#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         0
+	```
     
 3. Under the Cerberus Update Agent (UA) source folder setup the binary files used for virtual flash
-    	```bash
-   	cd <cerberus_ua_src_dir>
-   	cd tools/testing/pldm
-   	python3 setup_fwup_flash_virtual_disk.py ```
+	```bash
+	cd <cerberus_fd_src_dir>
+	cd tools/testing/pldm
+	python3 setup_fwup_flash_virtual_disk.py 
+	```
     
 5. Under the Cerberus Firmware Device (FD) source folder modify user_all_tests.h in projects/linux/testing/config to include
-   	```c
-    #define TESTING_SKIP_ALL_TESTS
+	```c
+	#define TESTING_SKIP_ALL_TESTS
 	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
 	#define TESTING_RUN_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
 	#define TESTING_RUN_PLDM_FWUP_HANDLER_FD_SUITE
 	#define TESTING_SKIP_PLDM_FWUP_HANDLER_UA_SUITE
-    ```
+	```
     
 6. Under the Cerberus Firmware Device (FD) source folder modify platform_config.h in projects/linux to include
-   	```c
-    #define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         1
-    ```
+	```c
+	#define PLDM_TESTING_ENABLE_FIRMWARE_DEVICE         1
+	```
     
 7. Under the Cerberus Firmware Device (FD) source folder setup the binary files used for virtual flash
-    	```bash
-   	cd <cerberus_fd_src_dir>
-   	cd tools/testing/pldm
-   	python3 setup_fwup_flash_virtual_disk.py ```
+	```bash
+	cd <cerberus_fd_src_dir>
+	cd tools/testing/pldm
+	python3 setup_fwup_flash_virtual_disk.py
+	```
     
 9. Complete steps 1-5 from the previous section
 
