@@ -166,7 +166,7 @@ To enable the tests and skip the other core suites:
 
 1. Under the Cerberus Update Agent (UA) source folder modify user_all_tests.h in /projects/linux/testing/config/ to include:
    	```c
-    	#define TESTING_SKIP_ALL_TESTS
+    #define TESTING_SKIP_ALL_TESTS
 	#define TESTING_RUN_PLDM_FWUP_PROTOCOL_UA_COMMANDS_SUITE
 	#define TESTING_SKIP_PLDM_FWUP_PROTOCOL_FD_COMMANDS_SUITE
 	#define TESTING_SKIP_PLDM_FWUP_HANDLER_FD_SUITE
