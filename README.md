@@ -1,20 +1,3 @@
-# Running Cerberus on CSU CS Machines:
-
-```bash 
-mkdir Cerberus-PLDM
-cd Cerberus-PLDM
-~/.local/bin/repo init -u https://github.com/rios240/cerberus-pldm-manifest -b main  
-~/.local/bin/repo sync
-cd Cerberus-PLDM-Client
-cd external/openbmc-libpldm
-meson setup builddir -Dabi=deprecated,stable,testing -Dtests=disabled && ninja -C builddir
-cd ../..
-mkdir build && cd build
-cmake -G Ninja ../projects/linux/testing/
-ninja
-./cerberus-linux-unit-tests
-```
-
 # Project Cerberus
 
 Project Cerberus is designed to be a hardware root of trust (RoT) for server platforms.  It provides functionality 
