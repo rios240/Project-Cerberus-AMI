@@ -499,6 +499,7 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
     static uint8_t instance_id = 1;
 
     if (state->update_mode == 0) {
+        printf("Did we get here?\n");
         completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_PREREQUISITES_NOT_MET;
@@ -554,6 +555,7 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
     }
 
 exit:;
+    printf("comp_resp: %u\n", comp_resp);
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = sizeof (struct pldm_pass_component_table_resp);
 
