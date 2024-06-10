@@ -384,14 +384,14 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_50_kb_succ
         printf("Offset: %u.\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
         status = send_and_receive_full_mctp_message(&testing, PLDM_REQUEST_FIRMWARE_DATA);
         CuAssertIntEquals(test, 0, status);
-        printf("Fail 1\n");
+        printf("Pass 1: %d\n", status);
         CuAssertIntEquals(test, PLDM_REQUEST_FIRMWARE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
-        printf("Fail 2\n");
+        printf("Pass 2\n");
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
-        printf("Fail 3\n");
+        printf("Pass 3\n");
     }
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
-    printf("Fail 4\n");
+    printf("Pass 4\n");
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
