@@ -27,9 +27,15 @@
 
 #define PLDM_FWUP_NUM_COMPONENTS                        2
 
-#define PLDM_FWUP_COMP_SIZE                             5120
-#define PLDM_FWUP_PKG_DATA_SIZE                         5120
-#define PLDM_FWUP_META_DATA_SIZE                        5120
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB          5120
+
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_50_KB         51200
+
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_100_KB        102400
+
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_500_KB        512000
+
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_1_MB          1048576
 
 #define PLDM_FWUP_FD_EID                                0x40
 #define PLDM_FWUP_FD_SMBUS_ADDR                         0x4E
@@ -91,7 +97,7 @@ struct pldm_fwup_protocol_commands_testing {
 
 void setup_flash_ctx(struct pldm_fwup_protocol_flash_ctx *flash_ctx, CuTest *test);
 void release_flash_ctx(struct pldm_fwup_protocol_flash_ctx *flash_ctx);
-void setup_testing_ctx(struct pldm_fwup_protocol_testing_ctx *testing_ctx, struct pldm_fwup_protocol_flash_ctx *flash_ctx) ;
+void setup_testing_ctx(struct pldm_fwup_protocol_testing_ctx *testing_ctx, struct pldm_fwup_protocol_flash_ctx *flash_ctx, size_t size);
 void release_testing_ctx(struct pldm_fwup_protocol_testing_ctx *testing_ctx);
 void setup_ua_device_manager(struct device_manager *device_mgr, CuTest *test);
 void setup_fd_device_manager(struct device_manager *device_mgr, CuTest *test);
