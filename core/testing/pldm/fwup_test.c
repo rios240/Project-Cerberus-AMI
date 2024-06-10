@@ -65,7 +65,7 @@ const struct pldm_fwup_fup_component_image_entry PLDM_FWUP_UA_FUP_COMP_INFO_LIST
         .comp_ver.version_str = PLDM_FWUP_PENDING_FIRMWARE_COMP_VER,
         .comp_ver.version_str_length = PLDM_FWUP_PENDING_FIRMWARE_COMP_VER_LEN,
         .comp_ver.version_str_type = PLDM_STR_TYPE_ASCII,
-        .comp_size = PLDM_FWUP_COMP_SIZE,
+        .comp_size = 0,
         .comp_options.value = 0,
         .comp_options.bits.bit0 = 1,
         .requested_comp_activation_method.value = 0,
@@ -78,7 +78,7 @@ const struct pldm_fwup_fup_component_image_entry PLDM_FWUP_UA_FUP_COMP_INFO_LIST
         .comp_ver.version_str = PLDM_FWUP_PENDING_MIDDLEWARE_COMP_VER,
         .comp_ver.version_str_length = PLDM_FWUP_PENDING_MIDDLEWARE_COMP_VER_LEN,
         .comp_ver.version_str_type = PLDM_STR_TYPE_ASCII,
-        .comp_size = PLDM_FWUP_COMP_SIZE,
+        .comp_size = 0,
         .comp_options.value = 0,
         .comp_options.bits.bit0 = 1,
         .requested_comp_activation_method.value = 0,
@@ -113,7 +113,7 @@ const struct pldm_fwup_flash_manager PLDM_FWUP_UA_FLASH_MANAGER = {
         .length = PLDM_FWUP_FLASH_MANAGER_REGION_SIZE,
         .start_addr = PLDM_FWUP_FLASH_MANAGER_PKG_DATA_ADDR
     },
-    .package_data_size = PLDM_FWUP_PKG_DATA_SIZE
+    .package_data_size = 0
 };
 
 const struct pldm_fwup_flash_manager PLDM_FWUP_FD_FLASH_MANAGER = {
@@ -121,7 +121,7 @@ const struct pldm_fwup_flash_manager PLDM_FWUP_FD_FLASH_MANAGER = {
         .length = PLDM_FWUP_FLASH_MANAGER_REGION_SIZE,
         .start_addr = PLDM_FWUP_FLASH_MANAGER_META_DATA_ADDR
     },
-    .device_meta_data_size = PLDM_FWUP_META_DATA_SIZE,
+    .device_meta_data_size = 0,
     .package_data_region = {
         .length = PLDM_FWUP_FLASH_MANAGER_REGION_SIZE,
         .start_addr = PLDM_FWUP_FLASH_MANAGER_PKG_DATA_ADDR
@@ -157,7 +157,7 @@ void release_flash_ctx(struct pldm_fwup_protocol_flash_ctx *flash_ctx)
     flash_virtual_disk_release(&flash_ctx->ua_flash);
 }
 
-void setup_testing_ctx(struct pldm_fwup_protocol_testing_ctx *testing_ctx, struct pldm_fwup_protocol_flash_ctx *flash_ctx) 
+void setup_testing_ctx(struct pldm_fwup_protocol_testing_ctx *testing_ctx, struct pldm_fwup_protocol_flash_ctx *flash_ctx, size_t size) 
 {
     testing_ctx->fd_fw_parameters = PLDM_FWUP_FD_FIRMWARE_PARAMETERS;
     testing_ctx->fd_fw_parameters.entries = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_protocol_component_parameter_entry));
@@ -165,16 +165,20 @@ void setup_testing_ctx(struct pldm_fwup_protocol_testing_ctx *testing_ctx, struc
 
     testing_ctx->fup_comp_img_list = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct pldm_fwup_fup_component_image_entry));
     memcpy(testing_ctx->fup_comp_img_list, PLDM_FWUP_UA_FUP_COMP_INFO_LIST, PLDM_FWUP_NUM_COMPONENTS * sizeof (struct pldm_fwup_fup_component_image_entry));
+    testing_ctx->fup_comp_img_list[0].comp_size = size;
+    testing_ctx->fup_comp_img_list[1].comp_size = size;
 
     testing_ctx->fd_flash_mgr = PLDM_FWUP_FD_FLASH_MANAGER;
     testing_ctx->fd_flash_mgr.comp_regions = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct flash_region));
     memcpy(testing_ctx->fd_flash_mgr.comp_regions, PLDM_FWUP_COMP_REGIONS, PLDM_FWUP_NUM_COMPONENTS * sizeof (struct flash_region));
     testing_ctx->fd_flash_mgr.flash = &flash_ctx->fd_flash.base;
+    testing_ctx->fd_flash_mgr.device_meta_data_size = size;
 
     testing_ctx->ua_flash_mgr = PLDM_FWUP_UA_FLASH_MANAGER;
     testing_ctx->ua_flash_mgr.comp_regions = platform_calloc(PLDM_FWUP_NUM_COMPONENTS, sizeof (struct flash_region));
     memcpy(testing_ctx->ua_flash_mgr.comp_regions, PLDM_FWUP_COMP_REGIONS, PLDM_FWUP_NUM_COMPONENTS * sizeof (struct flash_region));
     testing_ctx->ua_flash_mgr.flash = &flash_ctx->ua_flash.base;
+    testing_ctx->ua_flash_mgr.package_data_size = size;
 
     testing_ctx->fup_comp_img_set_ver = PLDM_FWUP_UA_FUP_COMP_IMG_SET_VER;
 
