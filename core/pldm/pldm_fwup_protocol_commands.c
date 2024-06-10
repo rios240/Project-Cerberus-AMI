@@ -699,9 +699,18 @@ int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *
     uint32_t offset = update_info->current_comp_img_offset;
     uint32_t length = update_info->max_transfer_size;
 
+    if (buffer == NULL) {
+        printf("buffer is null\n");
+        return -12;
+    }
+
+    if (buffer + PLDM_MCTP_BINDING_MSG_OFFSET == NULL) {
+        printf("buffer plus offset is null\n");
+        return -13;
+    }
+
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = sizeof (struct pldm_request_firmware_data_req);
-    printf("This might seg fault: %u\n", rq->hdr.command);
 
     int status = encode_request_firmware_data_req(instance_id, rq, rq_payload_length,
         offset, length);
