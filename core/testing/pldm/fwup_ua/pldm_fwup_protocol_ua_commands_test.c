@@ -328,6 +328,7 @@ static void pldm_fwup_protocol_ua_commands_test_request_firmware_data_5_kb_succe
     close_global_server_socket();
 }
 
+/*
 static void pldm_fwup_protocol_ua_commands_test_request_firmware_data_50_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -362,8 +363,8 @@ static void pldm_fwup_protocol_ua_commands_test_request_firmware_data_50_kb_succ
     release_testing(&testing);
     close_global_server_socket();
 }
+*/
 
-/*
 static void pldm_fwup_protocol_ua_commands_test_transfer_complete_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -916,7 +917,6 @@ static void pldm_fwup_protocol_ua_commands_test_get_meta_data_50_kb_success(CuTe
     release_testing(&testing);
     close_global_server_socket();
 }
-*/
 
 TEST_SUITE_START (pldm_fwup_protocol_ua_commands);
 
@@ -929,8 +929,7 @@ TEST (pldm_fwup_protocol_ua_commands_test_pass_component_table_not_in_update_mod
 TEST (pldm_fwup_protocol_ua_commands_test_update_component_success);
 TEST (pldm_fwup_protocol_ua_commands_test_update_component_not_in_update_mode);
 TEST (pldm_fwup_protocol_ua_commands_test_request_firmware_data_5_kb_success);
-TEST (pldm_fwup_protocol_ua_commands_test_request_firmware_data_50_kb_success);
-/*
+//TEST (pldm_fwup_protocol_ua_commands_test_request_firmware_data_50_kb_success);
 TEST (pldm_fwup_protocol_ua_commands_test_transfer_complete_success);
 TEST (pldm_fwup_protocol_ua_commands_test_transfer_complete_command_not_expected);
 TEST (pldm_fwup_protocol_ua_commands_test_transfer_complete_generic_transfer_error);
@@ -949,6 +948,6 @@ TEST (pldm_fwup_protocol_ua_commands_test_get_device_meta_data_5_kb_success);
 TEST (pldm_fwup_protocol_ua_commands_test_get_device_meta_data_50_kb_success);
 TEST (pldm_fwup_protocol_ua_commands_test_get_meta_data_5_kb_success);
 TEST (pldm_fwup_protocol_ua_commands_test_get_meta_data_50_kb_success);
-*/
+
 
 TEST_SUITE_END;

@@ -711,6 +711,7 @@ int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *
     int status = encode_request_firmware_data_req(instance_id, rq, rq_payload_length,
         offset, length);
     if (status != PLDM_SUCCESS) {
+        printf("Request transport error: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
@@ -745,6 +746,7 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
     
     int status = decode_request_firmware_data_resp(rsp, rsp_payload_length, &completion_code);
     if (status != PLDM_SUCCESS) {
+        printf("Response transport error: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
