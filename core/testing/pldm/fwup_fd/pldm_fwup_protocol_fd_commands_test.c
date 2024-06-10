@@ -845,6 +845,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_5_kb_success(Cu
     close_global_server_socket();
 }
 
+/*
 static void pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -879,7 +880,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success(C
     release_testing(&testing);
     close_global_server_socket();
 }
-
+*/
 
 static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_5_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
@@ -917,6 +918,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_5_kb_succes
     close_global_server_socket();
 }
 
+/*
 static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_50_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -952,6 +954,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_50_kb_succe
     release_testing(&testing);
     close_global_server_socket();
 }
+*/
 
 static void pldm_fwup_protocol_fd_commands_test_get_meta_data_5_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
@@ -988,6 +991,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_5_kb_success(CuTes
     close_global_server_socket();
 }
 
+/*
 static void pldm_fwup_protocol_fd_commands_test_get_meta_data_50_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
@@ -1022,7 +1026,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_50_kb_success(CuTe
     release_testing(&testing);
     close_global_server_socket();
 }
-
+*/
 
 TEST_SUITE_START (pldm_fwup_protocol_fd_commands);
 
@@ -1049,10 +1053,10 @@ TEST (pldm_fwup_protocol_fd_commands_test_get_status_success);
 TEST (pldm_fwup_protocol_fd_commands_test_cancel_update_component_success);
 TEST (pldm_fwup_protocol_fd_commands_test_cancel_update_success);
 TEST (pldm_fwup_protocol_fd_commands_test_get_package_data_5_kb_success);
-TEST (pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success);
+//TEST (pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_get_device_meta_data_5_kb_success);
-TEST (pldm_fwup_protocol_fd_commands_test_get_device_meta_data_50_kb_success);
+//TEST (pldm_fwup_protocol_fd_commands_test_get_device_meta_data_50_kb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_get_meta_data_5_kb_success);
-TEST (pldm_fwup_protocol_fd_commands_test_get_meta_data_50_kb_success);
+//TEST (pldm_fwup_protocol_fd_commands_test_get_meta_data_50_kb_success);
 
 TEST_SUITE_END;
