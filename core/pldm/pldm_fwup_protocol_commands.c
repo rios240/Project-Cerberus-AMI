@@ -1850,6 +1850,7 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+    printf("comp_resp: %u\n", comp_resp);
 
     comp_img_entries[current_comp_num].comp_resp = comp_resp;
     comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
