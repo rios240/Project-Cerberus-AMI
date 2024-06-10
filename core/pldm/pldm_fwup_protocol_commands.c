@@ -2150,8 +2150,6 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
 
     uint8_t apply_result = 0;
     bitfield16_t comp_activation_methods_modification;
-
-    printf("Did we get here?\n");
     
     int status = decode_apply_complete_req(rq, rq_payload_length, &apply_result, &comp_activation_methods_modification);
     if (status != PLDM_SUCCESS) {
@@ -2174,7 +2172,6 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
-    printf("Did we get here?\n");
 
     state->previous_cmd = PLDM_APPLY_COMPLETE;
     state->previous_completion_code = completion_code;

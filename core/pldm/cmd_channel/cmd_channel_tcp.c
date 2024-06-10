@@ -69,7 +69,7 @@ int initialize_global_server_socket() {
 void close_global_server_socket() {
     close(global_server_fd);
     global_server_fd = -1;
-    usleep(500000);
+    usleep(100000);
 }
 
 /**

@@ -38,6 +38,7 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers_success
     CuAssertIntEquals(test, PLDM_QUERY_DEVICE_IDENTIFIERS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -67,6 +68,7 @@ static void pldm_fwup_protocol_fd_commands_test_get_firmware_parameters_success(
     CuAssertIntEquals(test, PLDM_GET_FIRMWARE_PARAMETERS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -102,6 +104,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_update_success(CuTest *t
     CuAssertIntEquals(test, PLDM_FWUP_NUM_COMPONENTS, testing.fwup_mgr.fd_mgr.update_info.num_components);
     CuAssertStrEquals(test, PLDM_FWUP_PENDING_COMP_IMG_SET_VER, (const char *)testing.fwup_mgr.fd_mgr.update_info.comp_img_set_ver.version_str);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -131,6 +135,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_update_already_in_update
     CuAssertIntEquals(test, PLDM_FD_STATE_IDLE, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_REQUEST_UPDATE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_ALREADY_IN_UPDATE_MODE, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -180,6 +186,7 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table_success(CuT
     CuAssertIntEquals(test, testing.fwup_mgr.fd_mgr.fw_parameters->entries[1].comp_classification_index, 
         testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification_index);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -218,6 +225,8 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table_not_in_upda
         testing.fwup_mgr.fd_mgr.update_info.comp_transfer_flag != PLDM_END);
     
     CuAssertIntEquals(test, PLDM_FD_STATE_READY_XFER, testing.fwup_mgr.fd_mgr.state.current_state);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -263,6 +272,8 @@ static void pldm_fwup_protocol_fd_commands_test_update_component_success(CuTest 
     CuAssertIntEquals(test, 1, testing.fwup_mgr.fd_mgr.update_info.current_comp_update_option_flags.bits.bit0);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.update_info.current_comp_num);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -303,6 +314,8 @@ static void pldm_fwup_protocol_fd_commands_test_update_component_not_in_update_m
     CuAssertIntEquals(test, PLDM_FD_STATE_READY_XFER, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_UPDATE_COMPONENT, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_NOT_IN_UPDATE_MODE, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -346,6 +359,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_5_kb_succe
     }
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -388,6 +403,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_50_kb_succ
     }
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -420,6 +437,8 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_success(CuTest
     CuAssertIntEquals(test, PLDM_FD_STATE_VERIFY, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_TRANSFER_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -454,6 +473,8 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_command_not_ex
     CuAssertIntEquals(test, PLDM_TRANSFER_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_COMMAND_NOT_EXPECTED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -486,6 +507,8 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_generic_transf
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_TRANSFER_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -520,6 +543,8 @@ static void pldm_fwup_protocol_fd_commands_test_verify_complete_success(CuTest *
     CuAssertIntEquals(test, PLDM_VERIFY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -552,6 +577,8 @@ static void pldm_fwup_protocol_fd_commands_test_verify_complete_command_not_expe
     CuAssertIntEquals(test, PLDM_FD_STATE_VERIFY, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_VERIFY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_COMMAND_NOT_EXPECTED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -587,6 +614,8 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete_success(CuTest *t
     CuAssertIntEquals(test, PLDM_APPLY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -619,6 +648,8 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete_command_not_expec
     CuAssertIntEquals(test, PLDM_FD_STATE_APPLY, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_APPLY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_COMMAND_NOT_EXPECTED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
@@ -654,6 +685,8 @@ static void pldm_fwup_protocol_fd_commands_test_activate_firmware_success(CuTest
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     CuAssertIntEquals(test, 1, testing.fwup_mgr.fd_mgr.update_info.self_contained_activation_req);
 
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
@@ -687,6 +720,8 @@ static void pldm_fwup_protocol_fd_commands_test_activate_firmware_activation_not
     CuAssertIntEquals(test, PLDM_FD_STATE_ACTIVATE, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_ACTIVATE_FIRMWARE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_ACTIVATION_NOT_REQUIRED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    printf("Command: %u.\n", testing.fwup_mgr.fd_mgr.state.previous_cmd);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
