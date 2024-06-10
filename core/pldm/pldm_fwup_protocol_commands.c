@@ -498,7 +498,7 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
 	uint8_t comp_resp_code = 0;
     static uint8_t instance_id = 1;
 
-    if (!state->update_mode) {
+    if (state->update_mode == 0) {
         completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
         comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
         comp_resp_code = PLDM_CRC_COMP_PREREQUISITES_NOT_MET;
@@ -1850,7 +1850,6 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
-    printf("comp_resp: %u\n", comp_resp);
 
     comp_img_entries[current_comp_num].comp_resp = comp_resp;
     comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
