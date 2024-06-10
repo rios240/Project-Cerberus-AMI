@@ -30,7 +30,7 @@ static void pldm_fwup_handler_fd_test_start_update_fd(CuTest *test)
     CuAssertIntEquals(test, 0, status);
 
     setup_flash_ctx(&flash_ctx, test);
-    setup_testing_ctx(&testing_ctx, &flash_ctx);
+    setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
@@ -64,7 +64,7 @@ static void pldm_fwup_handler_fd_test_start_update_fd_no_inventory_cmds(CuTest *
     CuAssertIntEquals(test, 0, status);
 
     setup_flash_ctx(&flash_ctx, test);
-    setup_testing_ctx(&testing_ctx, &flash_ctx);
+    setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
