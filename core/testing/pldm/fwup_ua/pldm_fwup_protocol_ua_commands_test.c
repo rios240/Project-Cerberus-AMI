@@ -216,11 +216,6 @@ static void pldm_fwup_protocol_ua_commands_test_pass_component_table_not_in_upda
         CuAssertIntEquals(test, PLDM_FWUP_NOT_IN_UPDATE_MODE, testing.fwup_mgr.ua_mgr.state.previous_completion_code);
     }
 
-    CuAssertIntEquals(test, PLDM_CR_COMP_MAY_BE_UPDATEABLE, testing.fwup_mgr.ua_mgr.comp_img_entries[0].comp_resp);
-    CuAssertIntEquals(test, PLDM_CRC_COMP_PREREQUISITES_NOT_MET, testing.fwup_mgr.ua_mgr.comp_img_entries[0].comp_resp_code);
-    CuAssertIntEquals(test, PLDM_CR_COMP_MAY_BE_UPDATEABLE, testing.fwup_mgr.ua_mgr.comp_img_entries[1].comp_resp);
-    CuAssertIntEquals(test, PLDM_CRC_COMP_PREREQUISITES_NOT_MET, testing.fwup_mgr.ua_mgr.comp_img_entries[1].comp_resp_code);
-
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);

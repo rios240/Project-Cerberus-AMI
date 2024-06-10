@@ -498,16 +498,11 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
 	uint8_t comp_resp_code = 0;
     static uint8_t instance_id = 1;
 
-    if (state->update_mode == 0) {
-        printf("Did we get here?\n");
+    if (!state->update_mode) {
         completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
-        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
-        comp_resp_code = PLDM_CRC_COMP_PREREQUISITES_NOT_MET;
         goto exit;
     } else if (state->current_state != PLDM_FD_STATE_LEARN_COMPONENTS) {
         completion_code = PLDM_FWUP_INVALID_STATE_FOR_COMMAND;
-        comp_resp = PLDM_CR_COMP_MAY_BE_UPDATEABLE;
-        comp_resp_code = PLDM_CRC_COMP_PREREQUISITES_NOT_MET;
         goto exit;
     }
 
@@ -555,7 +550,6 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
     }
 
 exit:;
-    printf("comp_resp: %u\n", comp_resp);
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = sizeof (struct pldm_pass_component_table_resp);
 
@@ -625,8 +619,6 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
 
     if (!state->update_mode) {
         completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
-        comp_compatibility_resp = PLDM_CCR_COMP_CANNOT_BE_UPDATED;
-        comp_compatibility_resp_code = PLDM_CCRC_COMP_PREREQUISITES_NOT_MET;
         goto exit;
     }
     int comp_num;
@@ -1845,24 +1837,22 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
     struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
 
-    printf("PassComponentTable response.\n");
-
     uint8_t completion_code = 0;
-	uint8_t comp_resp = 50;
+	uint8_t comp_resp = 0;
 	uint8_t comp_resp_code = 0;
     int status = decode_pass_component_table_resp(rsp, rsp_payload_length, &completion_code, &comp_resp, &comp_resp_code);
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
-    comp_img_entries[current_comp_num].comp_resp = comp_resp;
-    comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
-
     state->previous_completion_code = completion_code;
     response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
+
+    comp_img_entries[current_comp_num].comp_resp = comp_resp;
+    comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
 
     return status;
 }
