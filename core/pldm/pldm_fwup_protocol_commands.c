@@ -1778,7 +1778,7 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
     uint8_t comp_num = ua_mgr->current_comp_num;
     uint8_t transfer_flag;
     if (comp_num == 0) {
-        if (comp_num == ua_mgr->num_components) {
+        if (comp_num == ua_mgr->num_components - 1) {
             transfer_flag = PLDM_START_AND_END;
         } else {
             transfer_flag = PLDM_START;
@@ -1846,7 +1846,7 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
     size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
 
     uint8_t completion_code = 0;
-	uint8_t comp_resp = 0;
+	uint8_t comp_resp = 50;
 	uint8_t comp_resp_code = 0;
     int status = decode_pass_component_table_resp(rsp, rsp_payload_length, &completion_code, &comp_resp, &comp_resp_code);
     if (status != PLDM_SUCCESS) {
