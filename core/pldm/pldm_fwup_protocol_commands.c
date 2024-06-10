@@ -701,7 +701,6 @@ int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = sizeof (struct pldm_request_firmware_data_req);
-    printf("This might seg fault: %u\n", rq->hdr.command);
 
     int status = encode_request_firmware_data_req(instance_id, rq, rq_payload_length,
         offset, length);
