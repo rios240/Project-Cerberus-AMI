@@ -832,6 +832,7 @@ int pldm_fwup_process_transfer_complete_response(struct pldm_fwup_fd_state *stat
     state->previous_completion_code = completion_code;
     response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
+        switch_state(state, PLDM_FD_STATE_DOWNLOAD);
         return 0;
     }
     
@@ -897,6 +898,7 @@ int pldm_fwup_process_verify_complete_response(struct pldm_fwup_fd_state *state,
     state->previous_completion_code = completion_code;
     response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
+        switch_state(state, PLDM_FD_STATE_VERIFY);
         return 0;
     }
     
@@ -965,6 +967,7 @@ int pldm_fwup_process_apply_complete_response(struct pldm_fwup_fd_state *state, 
     state->previous_completion_code = completion_code;
     response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
+        switch_state(state, PLDM_FD_STATE_APPLY);
         return 0;
     }
     
