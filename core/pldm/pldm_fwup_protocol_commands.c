@@ -1851,14 +1851,14 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    comp_img_entries[current_comp_num].comp_resp = comp_resp;
+    comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
+
     state->previous_completion_code = completion_code;
     response->length = 0;
     if (completion_code != PLDM_SUCCESS) {
         return 0;
     }
-
-    comp_img_entries[current_comp_num].comp_resp = comp_resp;
-    comp_img_entries[current_comp_num].comp_resp_code = comp_resp_code;
 
     return status;
 }
