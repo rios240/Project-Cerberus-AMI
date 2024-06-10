@@ -432,7 +432,7 @@ static void pldm_fwup_protocol_ua_commands_test_transfer_complete_generic_transf
     setup_ua_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
-    testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
+    testing.fwup_mgr.ua_mgr.state.previous_cmd = PLDM_REQUEST_FIRMWARE_DATA;
 
     status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
