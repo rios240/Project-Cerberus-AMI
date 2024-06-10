@@ -42,6 +42,9 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_fd_state
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     
     struct variable_field descriptors;
     descriptors.length = DEVICE_MANAGER_PLDM_NUM_DESCRIPTORS * sizeof (uint16_t);
@@ -97,6 +100,9 @@ int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_fd_state
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
 
     struct variable_field active_comp_img_set_ver;
     active_comp_img_set_ver.length = fw_parameters->active_comp_img_set_ver.version_str_length;
@@ -217,6 +223,9 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_fd_state *state,
     size_t rsp_payload_length = sizeof (struct pldm_request_update_resp);
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
 
     uint8_t completion_code = 0;
 	uint16_t fd_meta_data_len = flash_mgr->device_meta_data_size;
@@ -269,6 +278,9 @@ int pldm_fwup_generate_get_package_data_request(struct pldm_fwup_fd_state *state
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
     }
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint32_t data_transfer_handle = get_cmd_state->data_transfer_handle;
@@ -375,6 +387,9 @@ int pldm_fwup_process_get_device_meta_data_request(struct pldm_fwup_fd_state *st
     }
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
     uint8_t transfer_flag = 0;
     struct variable_field portion_of_device_meta_data;
@@ -497,6 +512,9 @@ int pldm_fwup_process_pass_component_table_request(struct pldm_fwup_fd_state *st
 	uint8_t comp_resp = 0;
 	uint8_t comp_resp_code = 0;
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
 
     if (!state->update_mode) {
         completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
@@ -616,6 +634,9 @@ int pldm_fwup_process_update_component_request(struct pldm_fwup_fd_state *state,
     update_option_flags_enabled.value = update_option_flags.value;
 	uint16_t time_before_req_fw_data = PLDM_FWUP_PROTOCOL_TIME_BERFORE_REQ_FW_DATA;
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
 
     if (!state->update_mode) {
         completion_code = PLDM_FWUP_NOT_IN_UPDATE_MODE;
@@ -694,33 +715,20 @@ int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *
     struct pldm_fwup_fd_update_info *update_info, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint32_t offset = update_info->current_comp_img_offset;
     uint32_t length = update_info->max_transfer_size;
 
-    if (buffer == NULL) {
-        printf("buffer is null\n");
-        return -12;
-    }
-
-    if (buffer + PLDM_MCTP_BINDING_MSG_OFFSET == NULL) {
-        printf("buffer plus offset is null\n");
-        return -13;
-    }
-
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = sizeof (struct pldm_request_firmware_data_req);
-
-    if (rq == NULL) {
-        printf("rq msg is null\n");
-        return -14;
-    }
 
     int status = encode_request_firmware_data_req(instance_id, rq, rq_payload_length,
         offset, length);
     if (status != PLDM_SUCCESS) {
-        printf("Request transport error: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
@@ -755,7 +763,6 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
     
     int status = decode_request_firmware_data_resp(rsp, rsp_payload_length, &completion_code);
     if (status != PLDM_SUCCESS) {
-        printf("Response transport error: %u\n", status);
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
@@ -793,6 +800,9 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
 int pldm_fwup_generate_transfer_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint8_t transfer_result = 0;
@@ -865,6 +875,9 @@ int pldm_fwup_process_transfer_complete_response(struct pldm_fwup_fd_state *stat
 int pldm_fwup_generate_verify_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint8_t verify_result = PLDM_FWUP_VERIFY_SUCCESS;
@@ -932,6 +945,9 @@ int pldm_fwup_process_verify_complete_response(struct pldm_fwup_fd_state *state,
 int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint8_t apply_result = PLDM_FWUP_APPLY_SUCCESS;
@@ -1003,6 +1019,9 @@ int pldm_fwup_generate_get_meta_data_request(struct pldm_fwup_fd_state *state,
         return CMD_HANDLER_PLDM_OPERATION_NOT_EXPECTED;
     }
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint32_t data_transfer_handle = get_cmd_state->data_transfer_handle;
@@ -1109,6 +1128,9 @@ int pldm_fwup_process_activate_firmware_request(struct pldm_fwup_fd_state *state
     update_info->self_contained_activation_req = self_contained_activation_req;
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint16_t estimated_time_activation = PLDM_FWUP_PROTOCOL_EST_TIME_SELF_CONTAINED_ACTIVATION;
     uint8_t completion_code = PLDM_SUCCESS;
 
@@ -1156,6 +1178,9 @@ int pldm_fwup_process_get_status_request(struct pldm_fwup_fd_state *state,
     size_t rsp_payload_length = sizeof (struct pldm_get_status_resp);
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
 
     uint8_t completion_code = PLDM_SUCCESS;
 	uint8_t current_state = state->current_state;
@@ -1220,6 +1245,9 @@ int pldm_fwup_process_cancel_update_component_request(struct pldm_fwup_fd_state 
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
     size_t rsp_payload_length = sizeof (completion_code);
 
@@ -1265,6 +1293,9 @@ int pldm_fwup_process_cancel_update_request(struct pldm_fwup_fd_state *state,
     size_t rsp_payload_length = sizeof (struct pldm_cancel_update_resp);
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
 	bool8_t non_functioning_component_indication = 0;
     bitfield64_t non_functioning_component_bitmap;
@@ -1304,6 +1335,9 @@ int pldm_fwup_generate_query_device_identifiers_request(struct pldm_fwup_ua_stat
 {
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
@@ -1392,6 +1426,9 @@ int pldm_fwup_generate_get_firmware_parameters_request(struct pldm_fwup_ua_state
 {   
 
     static uint8_t instance_id;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
@@ -1501,6 +1538,9 @@ int pldm_fwup_generate_request_update_request(struct pldm_fwup_ua_manager *ua_mg
 {
     
     static uint8_t instance_id;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
@@ -1602,6 +1642,9 @@ int pldm_fwup_process_get_package_data_request(struct pldm_fwup_ua_state *state,
     }
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
     uint8_t transfer_flag = 0;
     struct variable_field portion_of_package_data;
@@ -1690,6 +1733,9 @@ int pldm_fwup_generate_get_device_meta_data_request(struct pldm_fwup_ua_state *s
     uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint32_t data_transfer_handle = get_cmd_state->data_transfer_handle;
@@ -1780,6 +1826,9 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
     uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint8_t comp_num = ua_mgr->current_comp_num;
@@ -1892,6 +1941,9 @@ int pldm_fwup_generate_update_component_request(struct pldm_fwup_ua_state *state
     struct pldm_fwup_protocol_firmware_parameters *rec_fw_parameters, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     uint16_t comp_classification = comp_img_entries[current_comp_num].comp_classification;
@@ -2010,6 +2062,9 @@ int pldm_fwup_process_request_firmware_data_request(struct pldm_fwup_ua_state *s
     }
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
 
     struct pldm_msg *rsp = (struct pldm_msg *)(request->data + PLDM_MCTP_BINDING_MSG_OFFSET);
@@ -2078,6 +2133,9 @@ int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state
     update_info->transfer_result = transfer_result;
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
     if (state->previous_cmd != PLDM_REQUEST_FIRMWARE_DATA) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
@@ -2124,6 +2182,9 @@ int pldm_fwup_process_verify_complete_request(struct pldm_fwup_ua_state *state,
     update_info->verify_result = verify_result;
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
     if (state->previous_cmd != PLDM_TRANSFER_COMPLETE) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
@@ -2171,6 +2232,9 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
     update_info->comp_activation_methods_modification = comp_activation_methods_modification.value;
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
     if (state->previous_cmd != PLDM_VERIFY_COMPLETE) {
         completion_code = PLDM_FWUP_COMMAND_NOT_EXPECTED;
@@ -2217,6 +2281,9 @@ int pldm_fwup_process_get_meta_data_request(struct pldm_fwup_ua_state *state,
     }
 
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     uint8_t completion_code = PLDM_SUCCESS;
     uint8_t transfer_flag = 0;
     struct variable_field portion_of_meta_data;
@@ -2300,6 +2367,9 @@ exit:;
 int pldm_fwup_generate_activate_firmware_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     bool8_t self_contained_activation_req = 1;
@@ -2367,6 +2437,9 @@ int pldm_fwup_process_activate_firmware_response(struct pldm_fwup_ua_state *stat
 int pldm_fwup_generate_get_status_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
@@ -2452,6 +2525,9 @@ int pldm_fwup_process_get_status_response(struct pldm_fwup_ua_state *state, stru
 int pldm_fwup_generate_cancel_update_component_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
@@ -2513,6 +2589,9 @@ int pldm_fwup_process_cancel_update_component_response(struct pldm_fwup_ua_state
 int pldm_fwup_generate_cancel_update_request(struct pldm_fwup_ua_state *state, uint8_t *buffer, size_t buf_len)
 {
     static uint8_t instance_id = 1;
+    if (instance_id >= PLDM_INSTANCE_MAX) {
+        instance_id = 1;
+    }
     buffer[0] = MCTP_BASE_PROTOCOL_MSG_TYPE_PLDM;
 
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);

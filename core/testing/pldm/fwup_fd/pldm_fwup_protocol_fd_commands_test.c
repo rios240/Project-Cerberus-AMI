@@ -382,7 +382,6 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_50_kb_succ
     for (testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset = 0; 
             testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset < current_comp_img_size;
             testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset += max_transfer_size) {
-        printf("Offset: %u.\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
         status = send_and_receive_full_mctp_message(&testing, PLDM_REQUEST_FIRMWARE_DATA);
         CuAssertIntEquals(test, 0, status);
         CuAssertIntEquals(test, PLDM_REQUEST_FIRMWARE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
