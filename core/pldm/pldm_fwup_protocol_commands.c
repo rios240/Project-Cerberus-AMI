@@ -712,6 +712,11 @@ int pldm_fwup_generate_request_firmware_data_request(struct pldm_fwup_fd_state *
     struct pldm_msg *rq = (struct pldm_msg *)(buffer + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rq_payload_length = sizeof (struct pldm_request_firmware_data_req);
 
+    if (rq == NULL) {
+        printf("rq msg is null\n");
+        return -14;
+    }
+
     int status = encode_request_firmware_data_req(instance_id, rq, rq_payload_length,
         offset, length);
     if (status != PLDM_SUCCESS) {
