@@ -1845,8 +1845,10 @@ int pldm_fwup_process_pass_component_table_response(struct pldm_fwup_ua_state *s
     struct pldm_msg *rsp = (struct pldm_msg *)(response->data + PLDM_MCTP_BINDING_MSG_OFFSET);
     size_t rsp_payload_length = response->length - PLDM_MCTP_BINDING_MSG_OVERHEAD;
 
+    printf("PassComponentTable response.\n");
+
     uint8_t completion_code = 0;
-	uint8_t comp_resp = 50;
+	uint8_t comp_resp = 0;
 	uint8_t comp_resp_code = 0;
     int status = decode_pass_component_table_resp(rsp, rsp_payload_length, &completion_code, &comp_resp, &comp_resp_code);
     if (status != PLDM_SUCCESS) {
