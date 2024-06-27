@@ -1565,6 +1565,14 @@ int pldm_fwup_generate_request_update_request(struct pldm_fwup_ua_manager *ua_mg
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("max_transfer_size: %u\n", max_transfer_size);
+    printf("num_of_comp: %u\n", num_of_comp);
+    printf("max_outstanding_transfer_req: %u\n", max_outstanding_transfer_req);
+    printf("pkg_data_len: %u\n", pkg_data_len);
+    printf("comp_img_set_ver_str_type: %u\n", comp_img_set_ver_str_type);
+    printf("comp_img_set_ver_str_len: %u\n", comp_img_set_ver_str_len);
+    printf("comp_img_set_ver: %s\n", (const char *)comp_img_set_ver.ptr);
+
     ua_mgr->state.previous_cmd = PLDM_REQUEST_UPDATE;
     instance_id += 1;
     return rq_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -1873,6 +1881,15 @@ int pldm_fwup_generate_pass_component_table_request(struct pldm_fwup_ua_manager 
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("comp_classificaation: %u\n", comp_classification);
+    printf("comp_identifier: %u\n", comp_identifier);
+    printf("comp_classification_index: %u\n", comp_classification_index);
+    printf("comp_comparison_stamp: %u\n", comp_comparison_stamp);
+    printf("comp_ver_str_type: %u\n", comp_ver_str_type);
+    printf("comp_ver_str_len: %u\n", comp_ver_str_len);
+    printf("comp_ver: %s\n", (const char *)comp_ver.ptr);
+
+
     ua_mgr->state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     instance_id += 1;
     comp_num += 1;
@@ -1976,6 +1993,16 @@ int pldm_fwup_generate_update_component_request(struct pldm_fwup_ua_state *state
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("comp_classificaation: %u\n", comp_classification);
+    printf("comp_identifier: %u\n", comp_identifier);
+    printf("comp_classification_index: %u\n", comp_classification_index);
+    printf("comp_comparison_stamp: %u\n", comp_comparison_stamp);
+    printf("comp_img_size: %u\n", comp_img_size);
+    printf("update_option_flags: %u\n", update_option_flags.value);
+    printf("comp_ver_str_type: %u\n", comp_ver_str_type);
+    printf("comp_ver_str_len: %u\n", comp_ver_str_len);
+    printf("comp_ver: %s\n", (const char *)comp_ver.ptr);
     
     state->previous_cmd = PLDM_UPDATE_COMPONENT;
     instance_id += 1;
@@ -2149,6 +2176,9 @@ int pldm_fwup_process_transfer_complete_request(struct pldm_fwup_ua_state *state
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("completion_code: %u\n", completion_code);
+
+
     state->previous_cmd = PLDM_TRANSFER_COMPLETE;
     state->previous_completion_code = completion_code;
     request->length = rsp_payload_length + PLDM_MCTP_BINDING_MSG_OVERHEAD;
@@ -2197,6 +2227,8 @@ int pldm_fwup_process_verify_complete_request(struct pldm_fwup_ua_state *state,
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("completion_code: %u\n", completion_code);
 
     state->previous_cmd = PLDM_VERIFY_COMPLETE;
     state->previous_completion_code = completion_code;
@@ -2247,6 +2279,8 @@ int pldm_fwup_process_apply_complete_request(struct pldm_fwup_ua_state *state,
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("completion_code: %u\n", completion_code);
 
     state->previous_cmd = PLDM_APPLY_COMPLETE;
     state->previous_completion_code = completion_code;
@@ -2381,6 +2415,8 @@ int pldm_fwup_generate_activate_firmware_request(struct pldm_fwup_ua_state *stat
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("self_contained_activation_req: %u\n", self_contained_activation_req);
     
     state->previous_cmd = PLDM_ACTIVATE_FIRMWARE;
     instance_id += 1;

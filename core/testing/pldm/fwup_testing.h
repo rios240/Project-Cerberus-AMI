@@ -17,13 +17,13 @@
 
 #define PLDM_FWUP_FLASH_UA                              "../core/testing/pldm/flash_virtual_disk/ua_flash.bin"
 #define PLDM_FWUP_FLASH_FD                              "../core/testing/pldm/flash_virtual_disk/fd_flash.bin"
-#define PLDM_FWUP_FLASH_SIZE                            5242880
+#define PLDM_FWUP_FLASH_SIZE                            4294967296
 
 #define PLDM_FWUP_FLASH_MANAGER_PKG_DATA_ADDR           0
-#define PLDM_FWUP_FLASH_MANAGER_META_DATA_ADDR          1048576   
-#define PLDM_FWUP_FLASH_MANAGER_COMP_ONE_ADDR           2097152
-#define PLDM_FWUP_FLASH_MANAGER_COMP_TWO_ADDR           3145728
-#define PLDM_FWUP_FLASH_MANAGER_REGION_SIZE             1048576
+#define PLDM_FWUP_FLASH_MANAGER_META_DATA_ADDR          1073741824   
+#define PLDM_FWUP_FLASH_MANAGER_COMP_ONE_ADDR           2147483648
+#define PLDM_FWUP_FLASH_MANAGER_COMP_TWO_ADDR           3221225472
+#define PLDM_FWUP_FLASH_MANAGER_REGION_SIZE             4294967296
 
 #define PLDM_FWUP_NUM_COMPONENTS                        2
 
@@ -36,6 +36,12 @@
 #define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_500_KB        512000
 
 #define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_1_MB          1048576
+
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_100_MB        104857600
+
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_500_MB        524288000
+
+#define PLDM_FWUP_COMP_PKG_META_DATA_SIZE_1_GB          1073741824
 
 #define PLDM_FWUP_FD_EID                                0x40
 #define PLDM_FWUP_FD_SMBUS_ADDR                         0x4E

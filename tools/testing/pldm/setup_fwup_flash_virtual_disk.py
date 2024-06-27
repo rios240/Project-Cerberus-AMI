@@ -7,9 +7,9 @@ def setup_fwup_flash_virtual_disk(filename, regions):
     with open(filename, 'wb') as f:
         for region in regions:
             if region == 'empty':
-                f.write(bytes(1024 * 1024))
+                f.write(bytes(1024 * 1024 * 1024))
             elif region == 'random':
-                f.write(os.urandom(1024 * 1024)) 
+                f.write(os.urandom(1024 * 1024 * 1024)) 
 
 
 fd_flash_regions = ['empty', 'random', 'empty', 'empty']
