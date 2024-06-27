@@ -72,6 +72,13 @@ int pldm_fwup_process_query_device_identifiers_request(struct pldm_fwup_fd_state
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("device_identifiers_len: %u\n", device_identifiers_len);
+    printf("descriptor_count: %u\n", descriptor_count);
+    printf("pci_vid: %u\n", device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_vid);
+    printf("pci_device_id: %u\n",device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_device_id);
+    printf("pci_subsystem_vid: %u\n", device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_subsystem_vid);
+    printf("pci_subsystem_id: %u\n", device_mgr->entries[DEVICE_MANAGER_SELF_DEVICE_NUM].pci_subsystem_id);
+
     free((uint8_t *) descriptors.ptr);
 
     state->previous_completion_code = completion_code;
@@ -157,6 +164,21 @@ int pldm_fwup_prcocess_get_firmware_parameters_request(struct pldm_fwup_fd_state
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("comp_count: %u\n", rsp_data.comp_count);
+    printf("capabilities_during_update: %u\n", rsp_data.capabilities_during_update.value);
+    printf("active_comp_image_set_ver_str_len: %u\n", rsp_data.active_comp_image_set_ver_str_len);
+    printf("active_comp_image_set_ver_str_type: %u\n", rsp_data.active_comp_image_set_ver_str_type);
+    printf("pending_comp_image_set_ver_str_len: %u\n", rsp_data.pending_comp_image_set_ver_str_len);
+    printf("pending_comp_image_set_ver_str_type: %u\n", rsp_data.pending_comp_image_set_ver_str_type);
+    printf("completion_code: %u\n", rsp_data.completion_code);
+    printf("active_comp_img_set_ver: %s\n", (const char *)active_comp_img_set_ver.ptr);
+    printf("pending_comp_img_set_ver: %s\n", (const char *)pending_comp_img_set_ver.ptr);
+    printf("comp_parameter_table: %u\n", comp_parameter_table.ptr[0]);
+    printf("comp_parameter_table: %u\n", comp_parameter_table.ptr[1]);
+    printf("comp_parameter_table: %u\n", comp_parameter_table.ptr[2]);
+    printf("comp_parameter_table: %u\n", comp_parameter_table.ptr[3]);
+
 
     state->previous_cmd = PLDM_GET_FIRMWARE_PARAMETERS;
     switch_state(state, PLDM_FD_STATE_IDLE);
@@ -251,6 +273,10 @@ int pldm_fwup_process_request_update_request(struct pldm_fwup_fd_state *state,
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("completion_code: %u\n", completion_code);
+    printf("fd_meta_data_len: %u\n", fd_meta_data_len);
+    printf("fd_will_send_pkg_data: %u\n", fd_will_send_pkg_data);
    
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_REQUEST_UPDATE;
@@ -576,6 +602,10 @@ exit:;
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("completion_code: %u\n", completion_code);
+    printf("comp_resp: %u\n", comp_resp);
+    printf("comp_resp_code: %u\n", comp_resp_code);
+
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     update_info->comp_transfer_flag = transfer_flag;
@@ -688,6 +718,12 @@ exit:;
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("completion_code: %u\n", completion_code);
+    printf("comp_compatibility_resp: %u\n", comp_compatibility_resp);
+    printf("comp_compatibility_resp_code: %u\n", comp_compatibility_resp_code);
+    printf("update_option_flags_enabled: %u\n", update_option_flags_enabled.value);
+    printf("time_before_req_fw_data: %u\n", time_before_req_fw_data);
+
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_UPDATE_COMPONENT;
     if (completion_code == PLDM_SUCCESS) {
@@ -781,7 +817,6 @@ int pldm_fwup_process_request_firmware_data_response(struct pldm_fwup_fd_state *
     } else {
         status = 0;
     }
-
     return status;
 }
 
@@ -821,6 +856,8 @@ int pldm_fwup_generate_transfer_complete_request(struct pldm_fwup_fd_state *stat
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("transfer_result: %u\n", transfer_result);
 
     state->previous_cmd = PLDM_TRANSFER_COMPLETE;
     instance_id += 1;
@@ -890,6 +927,8 @@ int pldm_fwup_generate_verify_complete_request(struct pldm_fwup_fd_state *state,
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("verify_result: %u\n", verify_result);
 
     state->previous_cmd = PLDM_VERIFY_COMPLETE;
     instance_id += 1;
@@ -962,6 +1001,10 @@ int pldm_fwup_generate_apply_complete_request(struct pldm_fwup_fd_state *state, 
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("apply_result: %u\n", apply_result);
+    printf("comp_activation_methods_modification: %u\n", comp_activation_methods_modification.value);
+
 
     state->previous_cmd = PLDM_APPLY_COMPLETE;
     instance_id += 1;
@@ -1152,6 +1195,10 @@ int pldm_fwup_process_activate_firmware_request(struct pldm_fwup_fd_state *state
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("completion_code: %u\n", completion_code);
+    printf("estimated_time_activation: %u\n", estimated_time_activation);
+
+
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_ACTIVATE_FIRMWARE;
     switch_state(state, PLDM_FD_STATE_ACTIVATE);
@@ -1214,6 +1261,16 @@ int pldm_fwup_process_get_status_request(struct pldm_fwup_fd_state *state,
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
 
+    printf("completion_code: %u\n", completion_code);
+    printf("current_state: %u\n", current_state);
+    printf("previous_state: %u\n", previous_state);
+    printf("aux_state: %u\n", aux_state);
+    printf("aux_state_status: %u\n", aux_state_status);
+    printf("progress_percent: %u\n", progress_percent);
+    printf("reason_code: %u\n", reason_code);
+    printf("update_option_flags_enabled: %u\n", update_option_flags_enabled.value);
+
+
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_GET_STATUS;
     switch_state(state, state->current_state);
@@ -1259,6 +1316,8 @@ int pldm_fwup_process_cancel_update_component_request(struct pldm_fwup_fd_state 
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("completion_code: %u\n", completion_code);
 
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_CANCEL_UPDATE_COMPONENT;
@@ -1310,6 +1369,11 @@ int pldm_fwup_process_cancel_update_request(struct pldm_fwup_fd_state *state,
     if (status != PLDM_SUCCESS) {
         return CMD_HANDLER_PLDM_TRANSPORT_ERROR;
     }
+
+    printf("completion_code: %u\n", completion_code);
+    printf("non_functioning_component_indication: %u\n", non_functioning_component_indication);
+    printf("non_functioning_component_bitmap: %u\n", non_functioning_component_bitmap.value);
+
 
     state->previous_completion_code = completion_code;
     state->previous_cmd = PLDM_CANCEL_UPDATE;

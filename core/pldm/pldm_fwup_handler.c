@@ -450,12 +450,12 @@ int pldm_fwup_handler_start_update_fd(struct pldm_fwup_handler *handler, uint8_t
      * UpdateComponent command. Like PassComponentTable the order by which the components are updated is determined by the UA. */
     int components_updated = 0;
     while (components_updated < fd_mgr->update_info.num_components) {
-        platform_printf("Cerberus FD receives: UpdateComponent %u.\n", fd_mgr->update_info.current_comp_num + 1);
         /* Receive and respond to a UpdateComponent command. FD will transition to the Download state upon success. */
         status = pldm_fwup_handler_receive_and_respond_full_mctp_message(handler->channel, handler->mctp, handler->timeout_ms);
         if ((status = pldm_fwup_handler_check_operation_status(status, fd_mgr->state.previous_completion_code)) != 0) {
             return status;
         }
+        platform_printf("Cerberus FD receives: UpdateComponent %u.\n", fd_mgr->update_info.current_comp_num + 1);
         platform_printf("State: %s.\n", print_state(fd_mgr->state.current_state));
 
         platform_printf("Cerberus FD prepares.\n");

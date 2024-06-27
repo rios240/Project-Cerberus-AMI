@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
+#include <sys/time.h>
 #include "testing.h"
 #include "pldm/cmd_channel/cmd_channel_tcp.h"
 #include "cmd_interface/cmd_channel.h"
@@ -22,6 +24,10 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers_success
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
 
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
     TEST_START;
 
     int status = initialize_global_server_socket();
@@ -31,6 +37,8 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers_success
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
@@ -38,18 +46,30 @@ static void pldm_fwup_protocol_fd_commands_test_query_device_identifiers_success
     CuAssertIntEquals(test, PLDM_QUERY_DEVICE_IDENTIFIERS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_firmware_parameters_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -61,11 +81,15 @@ static void pldm_fwup_protocol_fd_commands_test_get_firmware_parameters_success(
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_FD_STATE_IDLE, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_GET_FIRMWARE_PARAMETERS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+
+    gettimeofday(&end, NULL);
 
 
     release_flash_ctx(&flash_ctx);
@@ -73,6 +97,12 @@ static void pldm_fwup_protocol_fd_commands_test_get_firmware_parameters_success(
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 
@@ -81,6 +111,11 @@ static void pldm_fwup_protocol_fd_commands_test_request_update_success(CuTest *t
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
 
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
+
     TEST_START;
 
     int status = initialize_global_server_socket();
@@ -90,6 +125,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_update_success(CuTest *t
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     status = receive_and_respond_full_mctp_message(&testing.channel, &testing.mctp, testing.timeout_ms);
     CuAssertIntEquals(test, 0, status);
@@ -102,17 +139,29 @@ static void pldm_fwup_protocol_fd_commands_test_request_update_success(CuTest *t
     CuAssertIntEquals(test, PLDM_FWUP_NUM_COMPONENTS, testing.fwup_mgr.fd_mgr.update_info.num_components);
     CuAssertStrEquals(test, PLDM_FWUP_PENDING_COMP_IMG_SET_VER, (const char *)testing.fwup_mgr.fd_mgr.update_info.comp_img_set_ver.version_str);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_request_update_already_in_update_mode(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -123,6 +172,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_update_already_in_update
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
 
@@ -132,17 +183,30 @@ static void pldm_fwup_protocol_fd_commands_test_request_update_already_in_update
     CuAssertIntEquals(test, PLDM_REQUEST_UPDATE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_ALREADY_IN_UPDATE_MODE, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_pass_component_table_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -153,6 +217,8 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table_success(CuT
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_DEVICE_METADATA;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
@@ -180,18 +246,30 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table_success(CuT
     CuAssertIntEquals(test, testing.fwup_mgr.fd_mgr.fw_parameters->entries[1].comp_classification_index, 
         testing.fwup_mgr.fd_mgr.update_info.comp_entries[1].comp_classification_index);
 
+    gettimeofday(&end, NULL);
+
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_pass_component_table_not_in_update_mode(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -202,6 +280,8 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table_not_in_upda
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_DEVICE_METADATA;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
@@ -219,17 +299,30 @@ static void pldm_fwup_protocol_fd_commands_test_pass_component_table_not_in_upda
     
     CuAssertIntEquals(test, PLDM_FD_STATE_READY_XFER, testing.fwup_mgr.fd_mgr.state.current_state);
 
+
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_update_component_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -240,6 +333,8 @@ static void pldm_fwup_protocol_fd_commands_test_update_component_success(CuTest 
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -263,17 +358,29 @@ static void pldm_fwup_protocol_fd_commands_test_update_component_success(CuTest 
     CuAssertIntEquals(test, 1, testing.fwup_mgr.fd_mgr.update_info.current_comp_update_option_flags.bits.bit0);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.update_info.current_comp_num);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_update_component_not_in_update_mode(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -284,6 +391,8 @@ static void pldm_fwup_protocol_fd_commands_test_update_component_not_in_update_m
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
     testing.fwup_mgr.fd_mgr.state.update_mode = 0;
@@ -304,11 +413,19 @@ static void pldm_fwup_protocol_fd_commands_test_update_component_not_in_update_m
     CuAssertIntEquals(test, PLDM_UPDATE_COMPONENT, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_NOT_IN_UPDATE_MODE, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 
@@ -316,6 +433,10 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_50_kb_succ
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -326,6 +447,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_50_kb_succ
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_50_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
@@ -347,17 +470,33 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_50_kb_succ
     }
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
 
+    gettimeofday(&end, NULL);
+
+    printf("offset: %u\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
+    printf("length: %u\n", testing.fwup_mgr.fd_mgr.update_info.max_transfer_size);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
+
 }
 
 static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_100_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -368,6 +507,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_100_kb_suc
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_100_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
@@ -389,17 +530,32 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_100_kb_suc
     }
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
 
+    gettimeofday(&end, NULL);
+
+    printf("offset: %u\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
+    printf("length: %u\n", testing.fwup_mgr.fd_mgr.update_info.max_transfer_size);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_500_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -410,6 +566,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_500_kb_suc
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_500_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
@@ -431,17 +589,32 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_500_kb_suc
     }
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
 
+    gettimeofday(&end, NULL);
+
+    printf("offset: %u\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
+    printf("length: %u\n", testing.fwup_mgr.fd_mgr.update_info.max_transfer_size);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_1_mb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -452,6 +625,8 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_1_mb_succe
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_1_MB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
@@ -473,11 +648,200 @@ static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_1_mb_succe
     }
     CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
 
+    gettimeofday(&end, NULL);
+
+    printf("offset: %u\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
+    printf("length: %u\n", testing.fwup_mgr.fd_mgr.update_info.max_transfer_size);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
+}
+
+static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_100_mb_success(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_100_MB);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
+
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
+    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_num = 0;
+    testing.fwup_mgr.fd_mgr.update_info.max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size = PLDM_FWUP_COMP_PKG_META_DATA_SIZE_100_MB;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset = 0;
+
+    uint32_t current_comp_img_size =  testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size;
+    uint32_t max_transfer_size = testing.fwup_mgr.fd_mgr.update_info.max_transfer_size;
+    for (testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset = 0; 
+            testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset < current_comp_img_size;
+            testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset += max_transfer_size) {
+        status = send_and_receive_full_mctp_message(&testing, PLDM_REQUEST_FIRMWARE_DATA);
+        CuAssertIntEquals(test, 0, status);
+        CuAssertIntEquals(test, PLDM_REQUEST_FIRMWARE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+        CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+    }
+    CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("offset: %u\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
+    printf("length: %u\n", testing.fwup_mgr.fd_mgr.update_info.max_transfer_size);
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
+}
+
+static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_500_mb_success(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_500_MB);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
+
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
+    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_num = 0;
+    testing.fwup_mgr.fd_mgr.update_info.max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size = PLDM_FWUP_COMP_PKG_META_DATA_SIZE_500_MB;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset = 0;
+
+    uint32_t current_comp_img_size =  testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size;
+    uint32_t max_transfer_size = testing.fwup_mgr.fd_mgr.update_info.max_transfer_size;
+    for (testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset = 0; 
+            testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset < current_comp_img_size;
+            testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset += max_transfer_size) {
+        status = send_and_receive_full_mctp_message(&testing, PLDM_REQUEST_FIRMWARE_DATA);
+        CuAssertIntEquals(test, 0, status);
+        CuAssertIntEquals(test, PLDM_REQUEST_FIRMWARE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+        CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+    }
+    CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("offset: %u\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
+    printf("length: %u\n", testing.fwup_mgr.fd_mgr.update_info.max_transfer_size);
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
+}
+
+
+static void pldm_fwup_protocol_fd_commands_test_request_firmware_data_1_gb_success(CuTest *test) {
+    struct pldm_fwup_protocol_testing_ctx testing_ctx;
+    struct pldm_fwup_protocol_flash_ctx flash_ctx;
+    struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
+    TEST_START;
+
+    int status = initialize_global_server_socket();
+    CuAssertIntEquals(test, 0, status);
+
+    setup_flash_ctx(&flash_ctx, test);
+    setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_1_GB);
+    setup_fd_device_manager(&testing.device_mgr, test);
+    setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
+
+    testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
+    testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_UPDATE_COMPONENT;
+    testing.fwup_mgr.fd_mgr.state.update_mode = 1;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_num = 0;
+    testing.fwup_mgr.fd_mgr.update_info.max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size = PLDM_FWUP_COMP_PKG_META_DATA_SIZE_1_GB;
+    testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset = 0;
+
+    uint32_t current_comp_img_size =  testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size;
+    uint32_t max_transfer_size = testing.fwup_mgr.fd_mgr.update_info.max_transfer_size;
+    for (testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset = 0; 
+            testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset < current_comp_img_size;
+            testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset += max_transfer_size) {
+        status = send_and_receive_full_mctp_message(&testing, PLDM_REQUEST_FIRMWARE_DATA);
+        CuAssertIntEquals(test, 0, status);
+        CuAssertIntEquals(test, PLDM_REQUEST_FIRMWARE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
+        CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
+    }
+    CuAssertIntEquals(test, PLDM_FD_STATE_DOWNLOAD, testing.fwup_mgr.fd_mgr.state.current_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("offset: %u\n", testing.fwup_mgr.fd_mgr.update_info.current_comp_img_offset);
+    printf("length: %u\n", testing.fwup_mgr.fd_mgr.update_info.max_transfer_size);
+
+    release_flash_ctx(&flash_ctx);
+    release_testing_ctx(&testing_ctx);
+    release_device_manager(&testing.device_mgr);
+    release_testing(&testing);
+    close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 
@@ -485,6 +849,10 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_success(CuTest
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+    
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -495,6 +863,8 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_success(CuTest
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -507,17 +877,30 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_success(CuTest
     CuAssertIntEquals(test, PLDM_TRANSFER_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_transfer_complete_command_not_expected(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -528,6 +911,8 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_command_not_ex
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -540,17 +925,30 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_command_not_ex
     CuAssertIntEquals(test, PLDM_TRANSFER_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_COMMAND_NOT_EXPECTED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_transfer_complete_generic_transfer_error(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -561,6 +959,8 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_generic_transf
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -573,17 +973,31 @@ static void pldm_fwup_protocol_fd_commands_test_transfer_complete_generic_transf
     CuAssertIntEquals(test, PLDM_TRANSFER_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
+
 }
 
 static void pldm_fwup_protocol_fd_commands_test_verify_complete_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -594,6 +1008,8 @@ static void pldm_fwup_protocol_fd_commands_test_verify_complete_success(CuTest *
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_VERIFY;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -606,17 +1022,29 @@ static void pldm_fwup_protocol_fd_commands_test_verify_complete_success(CuTest *
     CuAssertIntEquals(test, PLDM_VERIFY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_verify_complete_command_not_expected(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -627,6 +1055,8 @@ static void pldm_fwup_protocol_fd_commands_test_verify_complete_command_not_expe
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_VERIFY;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -639,11 +1069,19 @@ static void pldm_fwup_protocol_fd_commands_test_verify_complete_command_not_expe
     CuAssertIntEquals(test, PLDM_VERIFY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_COMMAND_NOT_EXPECTED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 
@@ -651,6 +1089,10 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete_success(CuTest *t
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -661,6 +1103,8 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete_success(CuTest *t
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_APPLY;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -673,17 +1117,30 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete_success(CuTest *t
     CuAssertIntEquals(test, PLDM_APPLY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_apply_complete_command_not_expected(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -694,6 +1151,8 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete_command_not_expec
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_APPLY;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -706,17 +1165,30 @@ static void pldm_fwup_protocol_fd_commands_test_apply_complete_command_not_expec
     CuAssertIntEquals(test, PLDM_APPLY_COMPLETE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_COMMAND_NOT_EXPECTED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_activate_firmware_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -727,6 +1199,8 @@ static void pldm_fwup_protocol_fd_commands_test_activate_firmware_success(CuTest
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -740,17 +1214,30 @@ static void pldm_fwup_protocol_fd_commands_test_activate_firmware_success(CuTest
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     CuAssertIntEquals(test, 1, testing.fwup_mgr.fd_mgr.update_info.self_contained_activation_req);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_activate_firmware_activation_not_required(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -761,6 +1248,8 @@ static void pldm_fwup_protocol_fd_commands_test_activate_firmware_activation_not
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -774,11 +1263,19 @@ static void pldm_fwup_protocol_fd_commands_test_activate_firmware_activation_not
     CuAssertIntEquals(test, PLDM_ACTIVATE_FIRMWARE, testing.fwup_mgr.fd_mgr.state.previous_cmd);
     CuAssertIntEquals(test, PLDM_FWUP_ACTIVATION_NOT_REQUIRED, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 
@@ -786,6 +1283,10 @@ static void pldm_fwup_protocol_fd_commands_test_get_status_success(CuTest *test)
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -796,6 +1297,9 @@ static void pldm_fwup_protocol_fd_commands_test_get_status_success(CuTest *test)
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
+
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
     testing.fwup_mgr.fd_mgr.state.previous_state = PLDM_FD_STATE_IDLE;
@@ -809,19 +1313,30 @@ static void pldm_fwup_protocol_fd_commands_test_get_status_success(CuTest *test)
     CuAssertIntEquals(test, 0, status);
     CuAssertIntEquals(test, PLDM_FD_STATE_LEARN_COMPONENTS, testing.fwup_mgr.fd_mgr.state.current_state);
     CuAssertIntEquals(test, PLDM_GET_STATUS, testing.fwup_mgr.fd_mgr.state.previous_cmd);
-    
+
+    gettimeofday(&end, NULL);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_cancel_update_component_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -832,6 +1347,8 @@ static void pldm_fwup_protocol_fd_commands_test_cancel_update_component_success(
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -847,17 +1364,30 @@ static void pldm_fwup_protocol_fd_commands_test_cancel_update_component_success(
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.update_info.current_comp_img_size);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.update_info.current_comp_update_option_flags.value);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
+
 
 static void pldm_fwup_protocol_fd_commands_test_cancel_update_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -868,6 +1398,8 @@ static void pldm_fwup_protocol_fd_commands_test_cancel_update_success(CuTest *te
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_5_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_DOWNLOAD;
     testing.fwup_mgr.fd_mgr.state.update_mode = 1;
@@ -886,17 +1418,29 @@ static void pldm_fwup_protocol_fd_commands_test_cancel_update_success(CuTest *te
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.update_info.current_comp_update_option_flags.value);
     CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.flash_mgr->package_data_size);
 
+    gettimeofday(&end, NULL);
+
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -908,6 +1452,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success(C
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
 
@@ -918,20 +1464,35 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success(C
         CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
     
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_package_data_100_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -943,6 +1504,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_100_kb_success(
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
 
@@ -953,20 +1516,35 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_100_kb_success(
         CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
     
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_package_data_500_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -978,6 +1556,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_500_kb_success(
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
 
@@ -988,20 +1568,36 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_500_kb_success(
         CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
     
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_package_data_1_mb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -1013,6 +1609,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_1_mb_success(Cu
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_REQUEST_UPDATE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
 
@@ -1023,14 +1621,24 @@ static void pldm_fwup_protocol_fd_commands_test_get_package_data_1_mb_success(Cu
         CuAssertIntEquals(test, PLDM_GET_PACKAGE_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
     
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 
@@ -1039,6 +1647,10 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_50_kb_succe
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
 
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
     TEST_START;
 
     int status = initialize_global_server_socket();
@@ -1048,6 +1660,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_50_kb_succe
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_50_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_PACKAGE_DATA;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
@@ -1060,14 +1674,25 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_50_kb_succe
         CuAssertIntEquals(test, PLDM_GET_DEVICE_METADATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_END && testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
-    
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("transfer_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag);
+    printf("next_data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.next_data_transfer_handle);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
+
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_100_kb_success(CuTest *test) {
@@ -1075,6 +1700,10 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_100_kb_succ
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
 
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
     TEST_START;
 
     int status = initialize_global_server_socket();
@@ -1084,6 +1713,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_100_kb_succ
     setup_testing_ctx(&testing_ctx, &flash_ctx, PLDM_FWUP_COMP_PKG_META_DATA_SIZE_100_KB);
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
+
+    gettimeofday(&start, NULL);
 
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_PACKAGE_DATA;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
@@ -1096,7 +1727,12 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_100_kb_succ
         CuAssertIntEquals(test, PLDM_GET_DEVICE_METADATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_END && testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("transfer_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag);
+    printf("next_data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.next_data_transfer_handle);
     
 
     release_flash_ctx(&flash_ctx);
@@ -1104,12 +1740,22 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_100_kb_succ
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_500_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -1121,6 +1767,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_500_kb_succ
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_PACKAGE_DATA;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
     testing.fwup_mgr.fd_mgr.update_info.max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
@@ -1132,20 +1780,36 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_500_kb_succ
         CuAssertIntEquals(test, PLDM_GET_DEVICE_METADATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_END && testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
     
+    gettimeofday(&end, NULL);
+
+    printf("transfer_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag);
+    printf("next_data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.next_data_transfer_handle);
+
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_1_mb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -1157,6 +1821,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_1_mb_succes
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_GET_PACKAGE_DATA;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_LEARN_COMPONENTS;
     testing.fwup_mgr.fd_mgr.update_info.max_transfer_size = PLDM_FWUP_PROTOCOL_MAX_TRANSFER_SIZE;
@@ -1168,7 +1834,12 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_1_mb_succes
         CuAssertIntEquals(test, PLDM_GET_DEVICE_METADATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_END && testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag != PLDM_START_AND_END);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("transfer_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_flag);
+    printf("next_data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.next_data_transfer_handle);
     
 
     release_flash_ctx(&flash_ctx);
@@ -1176,12 +1847,23 @@ static void pldm_fwup_protocol_fd_commands_test_get_device_meta_data_1_mb_succes
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
+
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_meta_data_50_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -1193,6 +1875,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_50_kb_success(CuTe
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
 
@@ -1203,20 +1887,35 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_50_kb_success(CuTe
         CuAssertIntEquals(test, PLDM_GET_META_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
     
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_meta_data_100_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
+
 
     TEST_START;
 
@@ -1228,6 +1927,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_100_kb_success(CuT
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
 
@@ -1238,7 +1939,12 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_100_kb_success(CuT
         CuAssertIntEquals(test, PLDM_GET_META_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
     
 
     release_flash_ctx(&flash_ctx);
@@ -1246,12 +1952,22 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_100_kb_success(CuT
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_meta_data_500_kb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -1263,6 +1979,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_500_kb_success(CuT
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
 
@@ -1273,20 +1991,34 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_500_kb_success(CuT
         CuAssertIntEquals(test, PLDM_GET_META_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
     
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
 
     release_flash_ctx(&flash_ctx);
     release_testing_ctx(&testing_ctx);
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 static void pldm_fwup_protocol_fd_commands_test_get_meta_data_1_mb_success(CuTest *test) {
     struct pldm_fwup_protocol_testing_ctx testing_ctx;
     struct pldm_fwup_protocol_flash_ctx flash_ctx;
     struct pldm_fwup_protocol_commands_testing testing;
+
+    struct timeval start, end;
+    long seconds, useconds;
+    double mtime;
 
     TEST_START;
 
@@ -1298,6 +2030,8 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_1_mb_success(CuTes
     setup_fd_device_manager(&testing.device_mgr, test);
     setup_testing(&testing, &testing_ctx, test);
 
+    gettimeofday(&start, NULL);
+
     testing.fwup_mgr.fd_mgr.state.previous_cmd = PLDM_PASS_COMPONENT_TABLE;
     testing.fwup_mgr.fd_mgr.state.current_state = PLDM_FD_STATE_READY_XFER;
 
@@ -1308,7 +2042,12 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_1_mb_success(CuTes
         CuAssertIntEquals(test, PLDM_GET_META_DATA, testing.fwup_mgr.fd_mgr.state.previous_cmd);
         CuAssertIntEquals(test, 0, testing.fwup_mgr.fd_mgr.state.previous_completion_code);
     } while (testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag != PLDM_GET_FIRSTPART);
-    reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+    //reset_get_cmd_state(&testing.fwup_mgr.fd_mgr.get_cmd_state);
+
+    gettimeofday(&end, NULL);
+
+    printf("transfer_op_flag: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.transfer_op_flag);
+    printf("data_transfer_handle: %u\n", testing.fwup_mgr.fd_mgr.get_cmd_state.data_transfer_handle);
     
 
     release_flash_ctx(&flash_ctx);
@@ -1316,6 +2055,12 @@ static void pldm_fwup_protocol_fd_commands_test_get_meta_data_1_mb_success(CuTes
     release_device_manager(&testing.device_mgr);
     release_testing(&testing);
     close_global_server_socket();
+
+    seconds  = end.tv_sec  - start.tv_sec;
+    useconds = end.tv_usec - start.tv_usec;
+
+    mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
+    printf("Execution time: %f milliseconds\n", mtime);
 }
 
 TEST_SUITE_START (pldm_fwup_protocol_fd_commands);
@@ -1344,6 +2089,9 @@ TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data_50_kb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data_100_kb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data_500_kb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data_1_mb_success);
+TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data_100_mb_success);
+TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data_500_mb_success);
+TEST (pldm_fwup_protocol_fd_commands_test_request_firmware_data_1_gb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_get_package_data_50_kb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_get_package_data_100_kb_success);
 TEST (pldm_fwup_protocol_fd_commands_test_get_package_data_500_kb_success);
